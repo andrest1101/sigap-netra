@@ -20,16 +20,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final preferences = await SharedPreferences.getInstance();
+  final dataSource = resolveDataSource(preferences);
 
   runApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(preferences),
         authRepositoryProvider.overrideWithValue(
-          buildAuthRepository(resolveDataSource(preferences)),
+          buildAuthRepository(dataSource),
         ),
         deviceRepositoryProvider.overrideWithValue(
-          buildDeviceRepository(resolveDataSource(preferences)),
+          buildDeviceRepository(dataSource),
         ),
       ],
       child: const App(),
@@ -39,13 +40,17 @@ Future<void> main() async {
 
 /// Menentukan sumber data dari preferensi tersimpan.
 ///
-/// Mode pengembang aktif secara bawaan sampai Firebase siap, supaya aplikasi
-/// tetap bisa dijalankan dan diuji tanpa konfigurasi apa pun.
+/// Mode simulasi dipakai sebagai bawaan sampai Firebase siap. Nilai
+/// `developer_mode` lama yang menunjuk ke Firebase juga diabaikan sementara
+/// ini, supaya aplikasi tidak macet di splash pada perangkat yang pernah
+/// menonaktifkan mode simulasi padahal Firebase belum dikonfigurasi.
 DataSource resolveDataSource(SharedPreferences preferences) {
   final developerMode = preferences.getBool('developer_mode');
-  if (developerMode != null) {
-    return developerMode ? DataSource.simulation : DataSource.firebase;
+
+  if (developerMode == false) {
+    return DataSource.simulation;
   }
+
   return DataSource.simulation;
 }
 
