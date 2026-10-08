@@ -736,6 +736,18 @@ abstract class AppLocalizations {
   /// **'Detail pembacaan'**
   String get historyDetailTitle;
 
+  /// No description provided for @historyEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada pembacaan'**
+  String get historyEmptyTitle;
+
+  /// No description provided for @historyEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.'**
+  String get historyEmptyBody;
+
   /// No description provided for @devicesTitle.
   ///
   /// In id, this message translates to:

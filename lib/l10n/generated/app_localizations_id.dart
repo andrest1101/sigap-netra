@@ -338,6 +338,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyDetailTitle => 'Detail pembacaan';
 
   @override
+  String get historyEmptyTitle => 'Belum ada pembacaan';
+
+  @override
+  String get historyEmptyBody =>
+      'Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.';
+
+  @override
   String get devicesTitle => 'Perangkat';
 
   @override

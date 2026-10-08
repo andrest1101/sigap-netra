@@ -117,6 +117,8 @@
   "historyDeleted": "Pembacaan dihapus.",
   "historySummaryTitle": "Ringkasan harian",
   "historyDetailTitle": "Detail pembacaan",
+  "historyEmptyTitle": "Belum ada pembacaan",
+  "historyEmptyBody": "Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.",
 
   "devicesTitle": "Perangkat",
   "devicesEmptyTitle": "Belum ada perangkat",
