@@ -99,6 +99,13 @@
   "validationNoImage": "Tidak ada gambar untuk pembacaan ini.",
   "validationDistanceLabel": "Jarak",
   "validationConfidenceLabel": "Keyakinan",
+  "validationConfidenceValue": "Keyakinan: {value}",
+  "validationConfidenceNoValue": "Keyakinan tidak tersedia",
+  "@validationConfidenceValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
 
   "historyTitle": "Riwayat",
   "historyFilterType": "Jenis",
@@ -117,6 +124,7 @@
   "historyDeleted": "Pembacaan dihapus.",
   "historySummaryTitle": "Ringkasan harian",
   "historyDetailTitle": "Detail pembacaan",
+  "historyRecognitionResult": "Hasil pengenalan",
   "historyEmptyTitle": "Belum ada pembacaan",
   "historyEmptyBody": "Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.",
 
@@ -135,6 +143,8 @@
   "deviceRemoved": "Perangkat dilepas.",
   "deviceThumbnailOn": "Thumbnail diunggah",
   "deviceThumbnailOff": "Thumbnail tidak diunggah",
+  "deviceLocalActive": "Aktif",
+  "deviceLocalInactive": "Tidak aktif",
 
   "provisioningTitle": "Pasang Wi-Fi",
   "provisioningIntro": "Pindai QR ini dengan kamera kacamata untuk menghubungkan perangkat ke Wi-Fi.",
@@ -182,16 +192,21 @@
   "settingsPrivacy": "Privasi",
   "settingsUploadThumbnails": "Kirim thumbnail pembacaan",
   "settingsUploadThumbnailsBody": "Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.",
+  "settingsDeviceUploadsReadOnly": "Nilai ini hanya informasi perangkat.",
   "settingsUploadThumbnailsConsentTitle": "Izinkan pengiriman thumbnail?",
   "settingsUploadThumbnailsConsentBody": "Thumbnail berisi Potongan gambar pembacaan dan dapat memuat informasi pribadi. Video, audio, dan lokasi tidak pernah dikirim.",
+  "settingsUploadsManageOnDevice": "Pengunggahan diatur di dokumen perangkat, bukan di aplikasi ini.",
   "settingsDeveloperMode": "Mode pengembang",
   "settingsDeveloperModeBody": "Gunakan data simulasi tanpa perangkat keras dan tanpa Firebase.",
+  "settingsAppliesAfterRestart": "Berlaku setelah aplikasi dimulai ulang.",
   "settingsDataSourceFirebase": "Firebase",
   "settingsDataSourceSimulation": "Simulasi",
   "settingsAbout": "Tentang aplikasi",
   "settingsVersion": "Versi",
   "settingsAccount": "Akun",
   "settingsSignedInAs": "Masuk sebagai",
+  "settingsSignedInUid": "ID pengguna",
+  "settingsSignedOutAsGuest": "Tamu (belum masuk)",
   "settingsSignOutConfirmTitle": "Keluar dari aplikasi?",
   "settingsSignOutConfirmBody": "Anda perlu masuk lagi untuk melihat data perangkat.",
 

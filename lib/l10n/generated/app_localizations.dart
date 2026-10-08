@@ -634,6 +634,18 @@ abstract class AppLocalizations {
   /// **'Keyakinan'**
   String get validationConfidenceLabel;
 
+  /// No description provided for @validationConfidenceValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Keyakinan: {value}'**
+  String validationConfidenceValue(String value);
+
+  /// No description provided for @validationConfidenceNoValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Keyakinan tidak tersedia'**
+  String get validationConfidenceNoValue;
+
   /// No description provided for @historyTitle.
   ///
   /// In id, this message translates to:
@@ -736,6 +748,12 @@ abstract class AppLocalizations {
   /// **'Detail pembacaan'**
   String get historyDetailTitle;
 
+  /// No description provided for @historyRecognitionResult.
+  ///
+  /// In id, this message translates to:
+  /// **'Hasil pengenalan'**
+  String get historyRecognitionResult;
+
   /// No description provided for @historyEmptyTitle.
   ///
   /// In id, this message translates to:
@@ -837,6 +855,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Thumbnail tidak diunggah'**
   String get deviceThumbnailOff;
+
+  /// No description provided for @deviceLocalActive.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktif'**
+  String get deviceLocalActive;
+
+  /// No description provided for @deviceLocalInactive.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak aktif'**
+  String get deviceLocalInactive;
 
   /// No description provided for @provisioningTitle.
   ///
@@ -1096,6 +1126,12 @@ abstract class AppLocalizations {
   /// **'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.'**
   String get settingsUploadThumbnailsBody;
 
+  /// No description provided for @settingsDeviceUploadsReadOnly.
+  ///
+  /// In id, this message translates to:
+  /// **'Nilai ini hanya informasi perangkat.'**
+  String get settingsDeviceUploadsReadOnly;
+
   /// No description provided for @settingsUploadThumbnailsConsentTitle.
   ///
   /// In id, this message translates to:
@@ -1108,6 +1144,12 @@ abstract class AppLocalizations {
   /// **'Thumbnail berisi Potongan gambar pembacaan dan dapat memuat informasi pribadi. Video, audio, dan lokasi tidak pernah dikirim.'**
   String get settingsUploadThumbnailsConsentBody;
 
+  /// No description provided for @settingsUploadsManageOnDevice.
+  ///
+  /// In id, this message translates to:
+  /// **'Pengunggahan diatur di dokumen perangkat, bukan di aplikasi ini.'**
+  String get settingsUploadsManageOnDevice;
+
   /// No description provided for @settingsDeveloperMode.
   ///
   /// In id, this message translates to:
@@ -1119,6 +1161,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Gunakan data simulasi tanpa perangkat keras dan tanpa Firebase.'**
   String get settingsDeveloperModeBody;
+
+  /// No description provided for @settingsAppliesAfterRestart.
+  ///
+  /// In id, this message translates to:
+  /// **'Berlaku setelah aplikasi dimulai ulang.'**
+  String get settingsAppliesAfterRestart;
 
   /// No description provided for @settingsDataSourceFirebase.
   ///
@@ -1155,6 +1203,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Masuk sebagai'**
   String get settingsSignedInAs;
+
+  /// No description provided for @settingsSignedInUid.
+  ///
+  /// In id, this message translates to:
+  /// **'ID pengguna'**
+  String get settingsSignedInUid;
+
+  /// No description provided for @settingsSignedOutAsGuest.
+  ///
+  /// In id, this message translates to:
+  /// **'Tamu (belum masuk)'**
+  String get settingsSignedOutAsGuest;
 
   /// No description provided for @settingsSignOutConfirmTitle.
   ///

@@ -1,29 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../../l10n/generated/app_localizations.dart';
-
-/// Pencarian pesan berdasarkan kunci l10n.
-///
-/// Generator `flutter gen-l10n` hanya menghasilkan getter, bukan peta
-/// string-dinamis, jadi `ValidationFailure` yang membawa kuncinya sendiri
-/// membutuhkan fungsi pencarian ini. Kunci yang tidak dikenal jatuh ke pesan
-/// error umum supaya UI tidak pernah menampilkan string kosong.
-extension AppLocalizationsLookup on AppLocalizations {
-  String lookupKey(String key) => switch (key) {
-    'loginInvalidEmail' => loginInvalidEmail,
-    'loginWrongPassword' => loginWrongPassword,
-    'loginTooManyAttempts' => loginTooManyAttempts,
-    'loginAccountDisabled' => loginAccountDisabled,
-    'loginEmailInUse' => loginEmailInUse,
-    'loginWeakPassword' => loginWeakPassword,
-    'loginRequiredField' => loginRequiredField,
-    'provisioningInvalidSsid' => provisioningInvalidSsid,
-    'provisioningPasswordTooShort' => provisioningPasswordTooShort,
-    'stateErrorUnknown' => stateErrorUnknown,
-    _ => stateErrorUnknown,
-  };
-}
-
 /// Kegagalan yang bisa terjadi pada lapisan domain.
 ///
 /// Domain tidak boleh tahu apa pun tentang `FirebaseException`, jadi semua
@@ -34,18 +10,9 @@ sealed class AppFailure extends Equatable {
 
   /// Kunci pesan pada `lib/l10n/app_id.arb`.
   ///
-  /// Berguna untuk log dan pengujian tanpa membangun widget tree.
+  /// Berguna untuk log dan pengujian tanpa membangun widget tree. Pesan
+  /// siap-tampil diselesaikan oleh `failureMessage()` di presentation.
   String get messageKey;
-
-  /// Pesan siap tampil dalam Bahasa Indonesia.
-  String message(AppLocalizations l10n) => switch (this) {
-    PermissionDeniedFailure() => l10n.stateErrorPermissionDenied,
-    NetworkUnavailableFailure() => l10n.stateErrorUnavailable,
-    NotFoundFailure() => l10n.stateErrorNotFound,
-    QuotaExceededFailure() => l10n.stateErrorResourceExhausted,
-    ValidationFailure() => l10n.lookupKey(messageKey),
-    UnknownFailure() => l10n.stateErrorUnknown,
-  };
 
   /// Aksi pemulihan yang bisa ditawarkan ke pengguna.
   RecoveryAction get recoveryAction;

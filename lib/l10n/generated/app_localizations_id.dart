@@ -286,6 +286,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get validationConfidenceLabel => 'Keyakinan';
 
   @override
+  String validationConfidenceValue(String value) {
+    return 'Keyakinan: $value';
+  }
+
+  @override
+  String get validationConfidenceNoValue => 'Keyakinan tidak tersedia';
+
+  @override
   String get historyTitle => 'Riwayat';
 
   @override
@@ -336,6 +344,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get historyDetailTitle => 'Detail pembacaan';
+
+  @override
+  String get historyRecognitionResult => 'Hasil pengenalan';
 
   @override
   String get historyEmptyTitle => 'Belum ada pembacaan';
@@ -389,6 +400,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get deviceThumbnailOff => 'Thumbnail tidak diunggah';
+
+  @override
+  String get deviceLocalActive => 'Aktif';
+
+  @override
+  String get deviceLocalInactive => 'Tidak aktif';
 
   @override
   String get provisioningTitle => 'Pasang Wi-Fi';
@@ -527,6 +544,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.';
 
   @override
+  String get settingsDeviceUploadsReadOnly =>
+      'Nilai ini hanya informasi perangkat.';
+
+  @override
   String get settingsUploadThumbnailsConsentTitle =>
       'Izinkan pengiriman thumbnail?';
 
@@ -535,11 +556,19 @@ class AppLocalizationsId extends AppLocalizations {
       'Thumbnail berisi Potongan gambar pembacaan dan dapat memuat informasi pribadi. Video, audio, dan lokasi tidak pernah dikirim.';
 
   @override
+  String get settingsUploadsManageOnDevice =>
+      'Pengunggahan diatur di dokumen perangkat, bukan di aplikasi ini.';
+
+  @override
   String get settingsDeveloperMode => 'Mode pengembang';
 
   @override
   String get settingsDeveloperModeBody =>
       'Gunakan data simulasi tanpa perangkat keras dan tanpa Firebase.';
+
+  @override
+  String get settingsAppliesAfterRestart =>
+      'Berlaku setelah aplikasi dimulai ulang.';
 
   @override
   String get settingsDataSourceFirebase => 'Firebase';
@@ -558,6 +587,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsSignedInAs => 'Masuk sebagai';
+
+  @override
+  String get settingsSignedInUid => 'ID pengguna';
+
+  @override
+  String get settingsSignedOutAsGuest => 'Tamu (belum masuk)';
 
   @override
   String get settingsSignOutConfirmTitle => 'Keluar dari aplikasi?';
