@@ -1,0 +1,51 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../domain/entities/device_command.dart';
+
+/// Riwayat perintah jarak jauh untuk demo UI.
+final commandsProvider =
+    NotifierProvider<CommandsController, List<DeviceCommand>>(
+      CommandsController.new,
+    );
+
+class CommandsController extends Notifier<List<DeviceCommand>> {
+  @override
+  List<DeviceCommand> build() => _initial();
+
+  void add(DeviceCommand command) {
+    state = [command, ...state];
+  }
+
+  void updateStatus(String id, CommandStatus status, {String? resultNote}) {
+    state = [
+      for (final command in state)
+        if (command.id == id)
+          command.copyWith(status: status, resultNote: resultNote)
+        else
+          command,
+    ];
+  }
+}
+
+List<DeviceCommand> _initial() {
+  return [
+    DeviceCommand(
+      id: 'cmd-sync-1',
+      deviceId: 'simulasi-maixcam-1',
+      type: CommandType.syncNow,
+      status: CommandStatus.done,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 6)),
+      requestedBy: 'demo@sigapnetra.local',
+      resultNote: 'Sinkronisasi selesai.',
+    ),
+    DeviceCommand(
+      id: 'cmd-restart-1',
+      deviceId: 'simulasi-maixcam-1',
+      type: CommandType.restart,
+      status: CommandStatus.failed,
+      createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
+      requestedBy: 'demo@sigapnetra.local',
+      resultNote: 'Perangkat tidak merespons.',
+    ),
+  ];
+}
