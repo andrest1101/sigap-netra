@@ -41,3 +41,9 @@ Catatan kompatibilitas package:
 - Semua provider yang perlu menampilkan error memakai retry policy eksplisit.
 - Semua data source produksi/simulasi mengikuti kontrak `DeviceDataSource`/feature skeleton yang sama.
 - Setiap fitur baru mengikuti Clean Architecture: domain murni, data layer sebagai satu-satunya akses Firestore, presentation memakai providers dan 4 state UI.
+
+## 2026-10-08 Windows run note
+
+- lutter build windows --debug lulus.
+- lutter run -d windows --no-hot --no-version-check berjalan sampai Dart VM Service naik.
+- .vscode/launch.json ditambahkan agar VS Code memakai program/device/mode yang benar saat Run/Run Without Debugging.
