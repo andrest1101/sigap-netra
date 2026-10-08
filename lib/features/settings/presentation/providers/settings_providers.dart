@@ -24,6 +24,33 @@ final developerModeProvider = NotifierProvider<DeveloperModeController, bool>(
   DeveloperModeController.new,
 );
 
+/// Izin thumbnail pembacaan.
+///
+/// Default sengaja false. Menyalakannya dibatasi UI privasi dan hanya untuk
+/// thumbnail kecil, bukan video/audio/lokasi.
+final uploadThumbnailsPrivacyProvider =
+    NotifierProvider<UploadThumbnailsPrivacyController, bool>(
+      UploadThumbnailsPrivacyController.new,
+    );
+
+class UploadThumbnailsPrivacyController extends Notifier<bool> {
+  static const String _storageKey = 'upload_thumbnails_privacy';
+
+  @override
+  bool build() {
+    final preferences = ref.read(sharedPreferencesProvider);
+    return preferences.getBool(_storageKey) ?? false;
+  }
+
+  Future<void> set(bool value) async {
+    if (state == value) return;
+    state = value;
+    await ref.read(sharedPreferencesProvider).setBool(_storageKey, value);
+  }
+
+  Future<void> toggle() => set(!state);
+}
+
 class DeveloperModeController extends Notifier<bool> {
   static const String _storageKey = 'developer_mode';
 
