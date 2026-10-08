@@ -44,6 +44,22 @@ Catatan kompatibilitas package:
 
 ## 2026-10-08 Windows run note
 
-- lutter build windows --debug lulus.
-- lutter run -d windows --no-hot --no-version-check berjalan sampai Dart VM Service naik.
-- .vscode/launch.json ditambahkan agar VS Code memakai program/device/mode yang benar saat Run/Run Without Debugging.
+- `flutter build windows --debug` lulus.
+- `flutter run -d windows --no-hot --no-version-check` berjalan sampai Dart VM Service naik.
+- `.vscode/launch.json` ditambahkan agar VS Code memakai program/device/mode yang benar saat Run/Run Without Debugging.
+
+### Perbaikan root cause splash macet
+
+- Gejala: aplikasi berhenti di splash / Run Without Debugging tidak pernah sampai UI.
+- Penyebab: nilai lama `developer_mode = false` di SharedPreferences membuat `resolveDataSource()` memilih `DataSource.firebase`, sehingga data source Firebase dibuat sebelum `Firebase.initializeApp()` → crash/hang diam-diam.
+- Perbaikan: `lib/main.dart` — `resolveDataSource()` selalu mengembalikan `DataSource.simulation` sampai Firebase dikonfigurasi; komentar `firebase_core` dihapus dari `main.dart`.
+- Verifikasi: `flutter analyze` bersih, `flutter test` 42 lulus, exe hasil `flutter build windows --debug` dijalankan langsung dan tetap hidup setelah 8 detik (lalu dihentikan manual).
+- Log debug `windows-run-no-debug.log` sudah dihapus, tidak perlu di-commit.
+
+### Audit l10n/privasi/arsitektur (batch ini)
+
+- `AppFailure` dilepas dari Flutter/l10n; pesan error lewat `lib/core/widgets/failure_message.dart`.
+- `placeholder_screen.dart` dihapus; semua route memakai layar nyata.
+- Validasi memakai UID (`currentUserProvider?.uid`), command dibuat `CommandStatus.pending` dengan `requestedBy` UID, data demo memakai id simulasi.
+- Skeleton domain baru untuk `validation`, `history`, `events`, `commands`, `provisioning` (kontrak, implementasi menyusul setelah keputusan owner).
+- `maskEmail()` di Pengaturan; kunci l10n baru (`settingsSignedOutAsGuest`, `settingsAppliesAfterRestart`, `settingsDeviceUploadsReadOnly`, `deviceLocalActive/Inactive`, `validationConfidenceValue`, `historyRecognitionResult`, `historyEmptyTitle/Body`).
