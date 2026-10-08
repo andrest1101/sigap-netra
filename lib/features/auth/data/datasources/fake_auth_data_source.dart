@@ -10,6 +10,8 @@ import '../../domain/repositories/auth_repository.dart';
 /// perangkat keras, sehingga seluruh alur aplikasi dapat dicoba. Login demo
 /// hanya memerlukan email dan kata sandi yang tidak kosong.
 class FakeAuthDataSource {
+  // UID demo lokal. Bukan format UID Firestore final dan tidak boleh dipakai
+  // sebagai contoh struktur auth production.
   static const String _demoUid = 'simulasi-user-1';
   static const String _demoEmail = 'demo@sigapnetra.local';
 

@@ -17,13 +17,18 @@ final pendingDetectionsProvider = Provider<List<Detection>>((ref) {
 });
 
 class DetectionsController extends Notifier<List<Detection>> {
+  /// Contoh UI sementara.
+  ///
+  /// Jangan dipakai sebagai model pagination Firestore. Contoh ini hanya
+  /// untuk melihat susunan layar validasi/riwayat sampai repository
+  /// production dan daftar `type` device dikonfirmasi.
   @override
   List<Detection> build() => _sample();
 
   void markValidated({
     required String id,
     required ValidationStatus status,
-    String validatedBy = 'demo@sigapnetra.local',
+    required String? validatedBy,
   }) {
     state = [
       for (final detection in state)

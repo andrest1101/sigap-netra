@@ -9,6 +9,7 @@ final commandsProvider =
     );
 
 class CommandsController extends Notifier<List<DeviceCommand>> {
+  /// Contoh UI sementara, bukan antrean Firestore.
   @override
   List<DeviceCommand> build() => _initial();
 
@@ -28,14 +29,15 @@ class CommandsController extends Notifier<List<DeviceCommand>> {
 }
 
 List<DeviceCommand> _initial() {
+  final now = DateTime.now();
   return [
     DeviceCommand(
       id: 'cmd-sync-1',
       deviceId: 'simulasi-maixcam-1',
       type: CommandType.syncNow,
       status: CommandStatus.done,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 6)),
-      requestedBy: 'demo@sigapnetra.local',
+      createdAt: now.subtract(const Duration(minutes: 6)),
+      requestedBy: 'simulasi-user-1',
       resultNote: 'Sinkronisasi selesai.',
     ),
     DeviceCommand(
@@ -43,8 +45,8 @@ List<DeviceCommand> _initial() {
       deviceId: 'simulasi-maixcam-1',
       type: CommandType.restart,
       status: CommandStatus.failed,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-      requestedBy: 'demo@sigapnetra.local',
+      createdAt: now.subtract(const Duration(minutes: 2)),
+      requestedBy: 'simulasi-user-1',
       resultNote: 'Perangkat tidak merespons.',
     ),
   ];

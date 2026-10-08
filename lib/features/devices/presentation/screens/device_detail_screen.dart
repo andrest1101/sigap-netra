@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -27,149 +28,147 @@ class DeviceDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.deviceDetailTitle)),
-      body: Expanded(
-        child: device.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => ErrorView(
-            message: error is AppFailure ? error.message(l10n) : null,
-            onRetry: () => ref.invalidate(deviceProvider(deviceId)),
-          ),
-          data: (device) {
-            if (device == null) {
-              return EmptyView(
-                title: l10n.stateErrorNotFound,
-                message: l10n.deviceDetailTitle,
-                icon: Icons.device_unknown_outlined,
-                action: FilledButton(
-                  onPressed: () => context.go(AppRoutes.devices),
-                  child: Text(l10n.commonBack),
-                ),
-              );
-            }
+      body: device.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => ErrorView(
+          message: error is AppFailure ? failureMessage(error, l10n) : null,
+          onRetry: () => ref.invalidate(deviceProvider(deviceId)),
+        ),
+        data: (device) {
+          if (device == null) {
+            return EmptyView(
+              title: l10n.stateErrorNotFound,
+              message: l10n.deviceDetailTitle,
+              icon: Icons.device_unknown_outlined,
+              action: FilledButton(
+                onPressed: () => context.go(AppRoutes.devices),
+                child: Text(l10n.commonBack),
+              ),
+            );
+          }
 
-            final connectivity = device.connectivity;
-            return ListView(
-              padding: const EdgeInsets.all(DesignTokens.spaceLg),
-              children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(DesignTokens.spaceLg),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          child: const Icon(Icons.visibility_outlined),
+          final connectivity = device.connectivity;
+          return ListView(
+            padding: const EdgeInsets.all(DesignTokens.spaceLg),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(DesignTokens.spaceLg),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        child: const Icon(Icons.visibility_outlined),
+                      ),
+                      const SizedBox(width: DesignTokens.spaceMd),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              device.name,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: DesignTokens.spaceXs),
+                            Text(switch (connectivity) {
+                              DeviceConnectivity.online => l10n.statusOnline,
+                              DeviceConnectivity.offline => l10n.statusOffline,
+                              DeviceConnectivity.unknown => l10n.commonUnknown,
+                            }),
+                          ],
                         ),
-                        const SizedBox(width: DesignTokens.spaceMd),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                device.name,
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: DesignTokens.spaceXs),
-                              Text(switch (connectivity) {
-                                DeviceConnectivity.online => l10n.statusOnline,
-                                DeviceConnectivity.offline =>
-                                  l10n.statusOffline,
-                                DeviceConnectivity.unknown =>
-                                  l10n.commonUnknown,
-                              }),
-                            ],
-                          ),
-                        ),
-                        StatusPill(
-                          label: switch (connectivity) {
-                            DeviceConnectivity.online => l10n.statusOnline,
-                            DeviceConnectivity.offline => l10n.statusOffline,
-                            DeviceConnectivity.unknown => l10n.commonUnknown,
-                          },
-                          tone: switch (connectivity) {
-                            DeviceConnectivity.online => AppStatusTone.success,
-                            DeviceConnectivity.offline => AppStatusTone.error,
-                            DeviceConnectivity.unknown => AppStatusTone.neutral,
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                      StatusPill(
+                        label: switch (connectivity) {
+                          DeviceConnectivity.online => l10n.statusOnline,
+                          DeviceConnectivity.offline => l10n.statusOffline,
+                          DeviceConnectivity.unknown => l10n.commonUnknown,
+                        },
+                        tone: switch (connectivity) {
+                          DeviceConnectivity.online => AppStatusTone.success,
+                          DeviceConnectivity.offline => AppStatusTone.error,
+                          DeviceConnectivity.unknown => AppStatusTone.neutral,
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: DesignTokens.spaceLg),
-                Text(
-                  l10n.historyDetailTitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: DesignTokens.spaceSm),
-                _InfoRow(
-                  label: l10n.homeLastSeenLabel,
-                  value: RelativeTime.format(device.lastSeen, now, l10n: l10n),
-                ),
-                _InfoRow(
-                  label: l10n.deviceModelLabel,
-                  value: device.model ?? '-',
-                ),
-                _InfoRow(
-                  label: l10n.deviceFirmwareLabel,
-                  value: device.firmwareVersion ?? '-',
-                ),
-                _InfoRow(
-                  label: l10n.deviceWifiLabel,
-                  value: device.wifiSsid ?? '-',
-                ),
-                _InfoRow(
-                  label: l10n.deviceBootCountLabel,
-                  value: device.bootCount?.toString() ?? '-',
-                ),
-                const SizedBox(height: DesignTokens.spaceLg),
-                Text(
-                  l10n.settingsPrivacy,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: DesignTokens.spaceSm),
-                _InfoRow(
-                  label: l10n.settingsUploadThumbnails,
-                  value: device.settings.uploadThumbnails
-                      ? l10n.deviceThumbnailOn
-                      : l10n.deviceThumbnailOff,
-                ),
-                _InfoRow(
-                  label: l10n.settingsDeveloperMode,
-                  value: device.settings.uploadText ? 'Aktif' : 'Nonaktif',
-                ),
-                const SizedBox(height: DesignTokens.spaceLg),
-                Text(
-                  l10n.deviceRemoteControl,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: DesignTokens.spaceSm),
-                _ActionTile(
-                  icon: Icons.qr_code_2,
-                  label: l10n.provisioningTitle,
-                  onTap: () => context.push('/perangkat/$deviceId/wifi'),
-                ),
-                _ActionTile(
-                  icon: Icons.settings_remote,
-                  label: l10n.deviceRemoteControl,
-                  onTap: () => context.push('/perangkat/$deviceId/perintah'),
-                ),
-                _ActionTile(
-                  icon: Icons.sync_alt,
-                  label: l10n.eventsTitle,
-                  onTap: () => context.push('/pengaturan/koneksi/$deviceId'),
-                ),
-              ],
-            );
-          },
-        ),
+              ),
+              const SizedBox(height: DesignTokens.spaceLg),
+              Text(
+                l10n.deviceDetailTitle,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: DesignTokens.spaceSm),
+              _InfoRow(
+                label: l10n.homeLastSeenLabel,
+                value: RelativeTime.format(device.lastSeen, now, l10n: l10n),
+              ),
+              _InfoRow(
+                label: l10n.deviceModelLabel,
+                value: device.model ?? '-',
+              ),
+              _InfoRow(
+                label: l10n.deviceFirmwareLabel,
+                value: device.firmwareVersion ?? '-',
+              ),
+              _InfoRow(
+                label: l10n.deviceWifiLabel,
+                value: device.wifiSsid ?? '-',
+              ),
+              _InfoRow(
+                label: l10n.deviceBootCountLabel,
+                value: device.bootCount?.toString() ?? '-',
+              ),
+              const SizedBox(height: DesignTokens.spaceLg),
+              Text(
+                l10n.settingsPrivacy,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: DesignTokens.spaceSm),
+              _InfoRow(
+                label: l10n.settingsUploadThumbnails,
+                value: device.settings.uploadThumbnails
+                    ? l10n.deviceThumbnailOn
+                    : l10n.deviceThumbnailOff,
+              ),
+              _InfoRow(
+                label: l10n.settingsDeveloperMode,
+                value: device.settings.uploadText
+                    ? l10n.deviceLocalActive
+                    : l10n.deviceLocalInactive,
+              ),
+              const SizedBox(height: DesignTokens.spaceLg),
+              Text(
+                l10n.deviceRemoteControl,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: DesignTokens.spaceSm),
+              _ActionTile(
+                icon: Icons.qr_code_2,
+                label: l10n.provisioningTitle,
+                onTap: () => context.push('/perangkat/$deviceId/wifi'),
+              ),
+              _ActionTile(
+                icon: Icons.settings_remote,
+                label: l10n.deviceRemoteControl,
+                onTap: () => context.push('/perangkat/$deviceId/perintah'),
+              ),
+              _ActionTile(
+                icon: Icons.sync_alt,
+                label: l10n.eventsTitle,
+                onTap: () => context.push('/pengaturan/koneksi/$deviceId'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

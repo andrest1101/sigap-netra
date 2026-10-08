@@ -20,7 +20,7 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = ref.watch(appThemePreferenceProvider);
     final developerMode = ref.watch(developerModeProvider);
-    final uploadThumbnails = ref.watch(uploadThumbnailsPrivacyProvider);
+    final deviceUploads = ref.watch(uploadThumbnailsPrivacyProvider);
     final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -73,8 +73,10 @@ class SettingsScreen extends ConsumerWidget {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.settingsUploadThumbnails),
-                  subtitle: Text(l10n.settingsUploadThumbnailsBody),
-                  value: uploadThumbnails,
+                  subtitle: Text(
+                    '${l10n.settingsUploadThumbnailsBody}\n${l10n.settingsDeviceUploadsReadOnly}',
+                  ),
+                  value: deviceUploads,
                   onChanged: (value) async {
                     if (value) {
                       final accepted = await _showThumbnailConsent(context);
@@ -101,7 +103,9 @@ class SettingsScreen extends ConsumerWidget {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.settingsDeveloperMode),
-                  subtitle: Text(l10n.settingsDeveloperModeBody),
+                  subtitle: Text(
+                    '${l10n.settingsDeveloperModeBody}\n${l10n.settingsAppliesAfterRestart}',
+                  ),
                   value: developerMode,
                   onChanged: (_) =>
                       ref.read(developerModeProvider.notifier).toggle(),
@@ -118,7 +122,14 @@ class SettingsScreen extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.person_outline),
                   title: Text(l10n.settingsSignedInAs),
-                  subtitle: Text(currentUser?.email ?? '-'),
+                  subtitle: Text(
+                    currentUser == null
+                        ? l10n.settingsSignedOutAsGuest
+                        : currentUser.email != null &&
+                              currentUser.email!.isNotEmpty
+                        ? maskEmail(currentUser.email!)
+                        : currentUser.uid,
+                  ),
                   trailing: TextButton(
                     onPressed: () async {
                       final confirmed = await _showSignOutConfirmation(context);
@@ -194,4 +205,19 @@ class SettingsScreen extends ConsumerWidget {
         ) ??
         false;
   }
+}
+
+/// Menampilkan email dalam bentuk tersamar.
+///
+/// Privasi: UI tidak pernah menampilkan alamat penuh.
+String maskEmail(String email) {
+  final parts = email.split('@');
+  if (parts.length != 2 || parts.first.isEmpty || parts.last.isEmpty) {
+    return email;
+  }
+
+  final local = parts.first;
+  final domain = parts.last;
+  final visible = local.length <= 2 ? local : local.substring(0, 2);
+  return '$visible***@$domain';
 }

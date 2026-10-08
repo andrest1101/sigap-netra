@@ -5,6 +5,7 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/device_command.dart';
 import '../providers/commands_providers.dart';
 
@@ -155,17 +156,16 @@ class CommandsScreen extends ConsumerWidget {
 
     if (!confirmed || !context.mounted) return;
 
+    final uid = ref.read(currentUserProvider)?.uid;
     final commands = ref.read(commandsProvider);
     final newCommand = DeviceCommand(
       id: 'cmd-${commands.length + 1}',
       deviceId: deviceId,
       type: type,
-      status: CommandStatus.sent,
+      status: CommandStatus.pending,
       createdAt: DateTime.now(),
-      requestedBy: 'demo@sigapnetra.local',
-      resultNote: type == CommandType.restart
-          ? l10n.commandsConfirmRestartBody
-          : null,
+      requestedBy: uid,
+      resultNote: null,
     );
     ref.read(commandsProvider.notifier).add(newCommand);
 

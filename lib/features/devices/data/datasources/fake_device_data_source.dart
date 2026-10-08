@@ -12,6 +12,8 @@ import '../../domain/repositories/device_repository.dart';
 /// Data disimpan in-memory dan hilang saat aplikasi ditutup, sesuai sifat
 /// simulasi.
 class FakeDeviceDataSource implements DeviceDataSource {
+  // ID perangkat demo lokal. Bukan format `deviceId` Firestore final dan
+  // tidak boleh dipakai sebagai sumber kebenaran pairing.
   static const String _deviceId = 'simulasi-maixcam-1';
   static const String _deviceName = 'Kacamata Kamar';
   static const String _deviceModel = 'MaixCAM';

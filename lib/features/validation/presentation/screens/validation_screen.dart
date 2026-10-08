@@ -7,6 +7,7 @@ import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../monitoring/presentation/providers/monitoring_providers.dart';
 
@@ -49,12 +50,14 @@ class ValidationScreen extends ConsumerWidget {
                             .markValidated(
                               id: detection.id,
                               status: ValidationStatus.match,
+                              validatedBy: ref.read(currentUserProvider)?.uid,
                             ),
                         onMismatch: () => ref
                             .read(detectionsProvider.notifier)
                             .markValidated(
                               id: detection.id,
                               status: ValidationStatus.mismatch,
+                              validatedBy: ref.read(currentUserProvider)?.uid,
                             ),
                       );
                     },
@@ -132,7 +135,11 @@ class _ValidationCard extends StatelessWidget {
             const SizedBox(height: DesignTokens.spaceMd),
             Text(
               isMoney
-                  ? 'Keyakinan: ${(detection.confidence ?? 0).toStringAsFixed(2)}'
+                  ? (detection.confidence == null
+                        ? l10n.validationConfidenceNoValue
+                        : l10n.validationConfidenceValue(
+                            (detection.confidence! * 100).toStringAsFixed(0),
+                          ))
                   : (detection.ocrText ?? l10n.validationNoImage),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,

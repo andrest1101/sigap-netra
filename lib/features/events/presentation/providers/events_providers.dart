@@ -7,6 +7,7 @@ final eventsProvider = NotifierProvider<EventsController, List<DeviceEvent>>(
 );
 
 class EventsController extends Notifier<List<DeviceEvent>> {
+  /// Contoh UI sementara, bukan log Firestore.
   @override
   List<DeviceEvent> build() => _initial();
 }

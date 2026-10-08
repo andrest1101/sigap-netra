@@ -128,7 +128,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             child: items.isEmpty
                 ? EmptyView(
                     title: l10n.historyEmptyTitle,
-                    message: l10n.historyDeleteBody,
+                    message: l10n.historyEmptyBody,
                     icon: Icons.history_toggle_off_outlined,
                   )
                 : ListView.separated(

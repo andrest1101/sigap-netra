@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -94,7 +95,7 @@ class HomeScreen extends ConsumerWidget {
 
   String _messageFor(BuildContext context, Object error) {
     final l10n = AppLocalizations.of(context);
-    if (error is AppFailure) return error.message(l10n);
+    if (error is AppFailure) return failureMessage(error, l10n);
     return l10n.stateErrorBody;
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/login_form.dart';
@@ -80,7 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _messageFor(AppFailure failure) =>
-      failure.message(AppLocalizations.of(context));
+      failureMessage(failure, AppLocalizations.of(context));
 
   @override
   Widget build(BuildContext context) {

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/gradient_header.dart';
@@ -42,7 +43,9 @@ class DeviceListScreen extends ConsumerWidget {
             child: devices.when(
               loading: () => const SkeletonList(itemCount: 3),
               error: (error, _) => ErrorView(
-                message: error is AppFailure ? error.message(l10n) : null,
+                message: error is AppFailure
+                    ? failureMessage(error, l10n)
+                    : null,
                 onRetry: () => ref.invalidate(myDevicesProvider),
               ),
               data: (list) {

@@ -28,7 +28,7 @@ class HistoryDetailScreen extends ConsumerWidget {
         appBar: AppBar(title: Text(l10n.historyDetailTitle)),
         body: EmptyView(
           title: l10n.stateErrorNotFound,
-          message: l10n.historyDeleteBody,
+          message: l10n.historyEmptyBody,
           icon: Icons.receipt_long_outlined,
         ),
       );
@@ -76,7 +76,9 @@ class HistoryDetailScreen extends ConsumerWidget {
             readOnly: true,
             minLines: 4,
             maxLines: 8,
-            decoration: const InputDecoration(labelText: 'Hasil pengenalan'),
+            decoration: InputDecoration(
+              labelText: l10n.historyRecognitionResult,
+            ),
           ),
           const SizedBox(height: DesignTokens.spaceLg),
           _MetaRow(
