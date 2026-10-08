@@ -4,9 +4,18 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/commands/presentation/screens/commands_screen.dart';
+import '../../features/devices/presentation/screens/device_detail_screen.dart';
+import '../../features/devices/presentation/screens/device_list_screen.dart';
+import '../../features/events/presentation/screens/connection_logs_screen.dart';
+import '../../features/history/presentation/screens/history_detail_screen.dart';
+import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/provisioning/presentation/screens/wifi_provisioning_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
-import '../widgets/placeholder_screen.dart';
 
 /// Nama path route sebagai konstanta.
 ///
@@ -79,15 +88,18 @@ class AppNavDestination {
 ///
 /// Fungsi murni supaya aturan redirect bisa diuji tanpa widget tree.
 String? redirectFor(AuthState authState, String location) {
-  final isPublic = location == AppRoutes.login || location == AppRoutes.splash;
+  final isAuthRoute =
+      location == AppRoutes.login || location == AppRoutes.splash;
 
   return switch (authState) {
-    AuthUnknown() => isPublic ? null : AppRoutes.splash,
-    AuthSignedOut() => isPublic ? null : AppRoutes.login,
-    AuthSignedIn() =>
-      location == AppRoutes.login || location == AppRoutes.splash
-          ? AppRoutes.home
-          : null,
+    AuthUnknown() => isAuthRoute ? null : AppRoutes.splash,
+    AuthSignedOut() =>
+      location == AppRoutes.splash
+          ? AppRoutes.login
+          : isAuthRoute
+          ? null
+          : AppRoutes.login,
+    AuthSignedIn() => isAuthRoute ? AppRoutes.home : null,
   };
 }
 
@@ -178,11 +190,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const PlaceholderScreen(
-          screenKey: 'login',
-          icon: Icons.login,
-          titleKey: 'loginTitle',
-        ),
+        builder: (context, state) => const LoginScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -200,11 +208,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.validation,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'validation',
-                  icon: Icons.fact_check_outlined,
-                  titleKey: 'validationTitle',
-                ),
+                builder: (context, state) => const ValidationScreen(),
               ),
             ],
           ),
@@ -212,18 +216,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.history,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'history',
-                  icon: Icons.history,
-                  titleKey: 'historyTitle',
-                ),
+                builder: (context, state) => const HistoryScreen(),
               ),
               GoRoute(
                 path: AppRoutes.historyDetail,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'historyDetail',
-                  icon: Icons.receipt_long,
-                  titleKey: 'historyDetailTitle',
+                builder: (context, state) => HistoryDetailScreen(
+                  detectionId: state.pathParameters['detectionId']!,
                 ),
               ),
             ],
@@ -232,35 +230,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.devices,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'devices',
-                  icon: Icons.devices_other_outlined,
-                  titleKey: 'devicesTitle',
-                ),
+                builder: (context, state) => const DeviceListScreen(),
               ),
               GoRoute(
                 path: AppRoutes.deviceDetail,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'deviceDetail',
-                  icon: Icons.visibility_outlined,
-                  titleKey: 'deviceDetailTitle',
+                builder: (context, state) => DeviceDetailScreen(
+                  deviceId: state.pathParameters['deviceId']!,
                 ),
               ),
               GoRoute(
                 path: AppRoutes.deviceWifi,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'deviceWifi',
-                  icon: Icons.qr_code_2,
-                  titleKey: 'provisioningTitle',
+                builder: (context, state) => WifiProvisioningScreen(
+                  deviceId: state.pathParameters['deviceId']!,
                 ),
               ),
               GoRoute(
                 path: AppRoutes.deviceCommands,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'deviceCommands',
-                  icon: Icons.settings_remote,
-                  titleKey: 'commandsTitle',
-                ),
+                builder: (context, state) =>
+                    CommandsScreen(deviceId: state.pathParameters['deviceId']),
               ),
             ],
           ),
@@ -268,26 +255,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.settings,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'settings',
-                  icon: Icons.settings_outlined,
-                  titleKey: 'settingsTitle',
-                ),
+                builder: (context, state) => const SettingsScreen(),
               ),
               GoRoute(
                 path: AppRoutes.settingsConnection,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'settingsConnection',
-                  icon: Icons.sync_alt,
-                  titleKey: 'eventsTitle',
-                ),
+                builder: (context, state) => const ConnectionLogsScreen(),
               ),
               GoRoute(
                 path: AppRoutes.settingsConnectionDevice,
-                builder: (context, state) => const PlaceholderScreen(
-                  screenKey: 'settingsConnectionDevice',
-                  icon: Icons.sync_alt,
-                  titleKey: 'eventsTitle',
+                builder: (context, state) => ConnectionLogsScreen(
+                  deviceId: state.pathParameters['deviceId'],
                 ),
               ),
             ],
