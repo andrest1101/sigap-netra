@@ -5,7 +5,7 @@ import 'package:sigap_netra_app/features/monitoring/domain/entities/detection.da
 
 void main() {
   const deviceId = 'dev-1';
-  const deviceName = 'Kacamata Kamar';
+  const deviceName = 'Kacamata Cerdas';
   final createdAt = DateTime(2026, 10, 8, 12);
 
   Detection map(Map<String, dynamic> data) {

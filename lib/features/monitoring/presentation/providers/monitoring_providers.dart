@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/demo_ids.dart';
 import '../../domain/entities/detection.dart';
 
 final detectionsProvider =
@@ -76,40 +77,66 @@ class DetectionsController extends Notifier<List<Detection>> {
   }
 }
 
+/// Contoh antrean demo: HANYA uang dan teks OCR.
+///
+/// Kacamata SIGAP-NETRA hanya membaca uang (YOLO) dan teks/menu (OCR) —
+/// tidak ada deteksi objek lain. Jangan menambah contoh selain dua jenis ini.
 List<Detection> _sample() {
   final now = DateTime.now();
   return [
     Detection(
-      id: 'det-money-50k',
-      deviceId: 'simulasi-maixcam-1',
-      deviceName: 'Kacamata Kamar',
+      id: 'det-money-100k',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
       type: DetectionType.money,
       createdAt: now.subtract(const Duration(seconds: 12)),
+      amount: 100000,
+      label: 'Nominal 100.000',
+      confidence: 0.95,
+      distanceCm: 30,
+    ),
+    Detection(
+      id: 'det-money-50k',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
+      type: DetectionType.money,
+      createdAt: now.subtract(const Duration(minutes: 1)),
       amount: 50000,
       label: 'Nominal 50.000',
       confidence: 0.92,
       distanceCm: 35,
     ),
     Detection(
-      id: 'det-text-menu',
-      deviceId: 'simulasi-maixcam-1',
-      deviceName: 'Kacamata Kamar',
+      id: 'det-text-struk',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
       type: DetectionType.text,
-      createdAt: now.subtract(const Duration(minutes: 1)),
-      ocrText: 'Es Teh Manis Rp8.000, Nasi Goreng Rp25.000',
-      confidence: 0.88,
-      distanceCm: null,
+      createdAt: now.subtract(const Duration(minutes: 2)),
+      ocrText:
+          'MINIMARKET SEGAR\nBelanja Rp52.500\nTunai Rp100.000\nKembali Rp47.500',
+      confidence: 0.9,
+      distanceCm: 25,
     ),
     Detection(
-      id: 'det-money-20k',
-      deviceId: 'simulasi-maixcam-1',
-      deviceName: 'Kacamata Kamar',
+      id: 'det-money-10k',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
       type: DetectionType.money,
+      createdAt: now.subtract(const Duration(minutes: 3)),
+      amount: 10000,
+      label: 'Nominal 10.000',
+      confidence: 0.88,
+      distanceCm: 28,
+    ),
+    Detection(
+      id: 'det-text-rambu',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
+      type: DetectionType.text,
       createdAt: now.subtract(const Duration(minutes: 4)),
-      amount: 20000,
-      label: 'Nominal 20.000',
-      confidence: 0.79,
-      distanceCm: 22,
+      ocrText: 'PINTU KELUAR',
+      confidence: 0.86,
+      distanceCm: null,
     ),
   ];
 }

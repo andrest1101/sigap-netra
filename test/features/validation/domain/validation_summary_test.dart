@@ -7,7 +7,7 @@ Detection _detection(ValidationStatus status) {
   return Detection(
     id: 'det-${status.name}',
     deviceId: 'dev-1',
-    deviceName: 'Kacamata Kamar',
+    deviceName: 'Kacamata Cerdas',
     type: DetectionType.money,
     createdAt: DateTime(2026, 10, 8, 12),
     validationStatus: status,

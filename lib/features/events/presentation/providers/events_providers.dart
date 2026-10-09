@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/demo_ids.dart';
 import '../../domain/entities/device_event.dart';
 
 final eventsProvider = NotifierProvider<EventsController, List<DeviceEvent>>(
@@ -17,7 +18,7 @@ List<DeviceEvent> _initial() {
   return [
     DeviceEvent(
       id: 'evt-boot',
-      deviceId: 'simulasi-maixcam-1',
+      deviceId: kDemoDeviceId,
       type: 'boot',
       severity: EventSeverity.info,
       message: 'Perangkat selesai booting.',
@@ -25,7 +26,7 @@ List<DeviceEvent> _initial() {
     ),
     DeviceEvent(
       id: 'evt-wifi-disconnect',
-      deviceId: 'simulasi-maixcam-1',
+      deviceId: kDemoDeviceId,
       type: 'wlan_disconnected',
       severity: EventSeverity.warning,
       message: 'Koneksi Wi-Fi terputus sebentar.',
@@ -33,7 +34,7 @@ List<DeviceEvent> _initial() {
     ),
     DeviceEvent(
       id: 'evt-command-failed',
-      deviceId: 'simulasi-maixcam-1',
+      deviceId: kDemoDeviceId,
       type: 'command_failed',
       severity: EventSeverity.error,
       message: 'Perintah restart gagal dieksekusi.',

@@ -157,14 +157,14 @@ void main() {
       repository.emit([
         Device(
           deviceId: 'dev-1',
-          name: 'Kacamata Kamar',
+          name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
         ),
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Kacamata Kamar'), findsOneWidget);
+      expect(find.text('Kacamata Cerdas'), findsOneWidget);
       expect(find.text('Menunggu'), findsOneWidget);
       expect(find.text('Akurasi'), findsOneWidget);
       expect(find.text('Sinkronkan sekarang'), findsOneWidget);
@@ -178,7 +178,7 @@ void main() {
       repository.emit([
         Device(
           deviceId: 'dev-1',
-          name: 'Kacamata Dapur',
+          name: 'Kacamata Cerdas 2',
           connectivity: DeviceConnectivity.offline,
           // Status akhir dihitung ulang dari lastSeen, jadi test harus
           // memberi nilai yang benar-benar sudah melewati ambang 90 detik.

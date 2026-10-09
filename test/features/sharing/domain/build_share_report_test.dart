@@ -32,7 +32,7 @@ void main() {
       return Detection(
         id: 'det-1',
         deviceId: 'simulasi-maixcam-1',
-        deviceName: 'Kacamata Kamar',
+        deviceName: 'Kacamata Cerdas',
         type: DetectionType.text,
         createdAt: DateTime(2026, 10, 8, 12),
         ocrText: ocrText,

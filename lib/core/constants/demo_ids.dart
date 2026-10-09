@@ -9,7 +9,7 @@ library;
 const String kDemoDeviceId = 'simulasi-maixcam-1';
 
 /// Nama tampilan perangkat demo lokal.
-const String kDemoDeviceName = 'Kacamata Kamar';
+const String kDemoDeviceName = 'Kacamata Cerdas';
 
 /// UID pengguna demo lokal untuk seluruh fake data sources.
 const String kDemoUserId = 'simulasi-user-1';

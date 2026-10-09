@@ -12,7 +12,7 @@ void main() {
         ..addDevices([
           Device(
             deviceId: 'dev-1',
-            name: 'Kacamata Kamar',
+            name: 'Kacamata Cerdas',
             connectivity: DeviceConnectivity.online,
             lastSeen: DateTime(2026, 10, 8, 12),
           ),
@@ -23,7 +23,7 @@ void main() {
 
       expect(devices, hasLength(1));
       expect(devices.single.deviceId, 'dev-1');
-      expect(devices.single.name, 'Kacamata Kamar');
+      expect(devices.single.name, 'Kacamata Cerdas');
     });
 
     test('meneruskan detail perangkat yang ditemukan', () async {
@@ -31,7 +31,7 @@ void main() {
         ..addDevices([
           Device(
             deviceId: 'dev-1',
-            name: 'Kacamata Kamar',
+            name: 'Kacamata Cerdas',
             connectivity: DeviceConnectivity.offline,
             lastSeen: DateTime(2026, 10, 8, 6),
           ),
@@ -54,7 +54,7 @@ void main() {
       source.addDevices([
         Device(
           deviceId: 'dev-2',
-          name: 'Kacamata Dapur',
+          name: 'Kacamata Cerdas 2',
           connectivity: DeviceConnectivity.online,
           lastSeen: DateTime(2026, 10, 8, 12),
         ),

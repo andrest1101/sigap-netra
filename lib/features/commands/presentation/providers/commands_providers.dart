@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/demo_ids.dart';
 import '../../domain/entities/device_command.dart';
 
 /// Riwayat perintah jarak jauh untuk demo UI.
@@ -33,20 +34,20 @@ List<DeviceCommand> _initial() {
   return [
     DeviceCommand(
       id: 'cmd-sync-1',
-      deviceId: 'simulasi-maixcam-1',
+      deviceId: kDemoDeviceId,
       type: CommandType.syncNow,
       status: CommandStatus.done,
       createdAt: now.subtract(const Duration(minutes: 6)),
-      requestedBy: 'simulasi-user-1',
+      requestedBy: kDemoUserId,
       resultNote: 'Sinkronisasi selesai.',
     ),
     DeviceCommand(
       id: 'cmd-restart-1',
-      deviceId: 'simulasi-maixcam-1',
+      deviceId: kDemoDeviceId,
       type: CommandType.restart,
       status: CommandStatus.failed,
       createdAt: now.subtract(const Duration(minutes: 2)),
-      requestedBy: 'simulasi-user-1',
+      requestedBy: kDemoUserId,
       resultNote: 'Perangkat tidak merespons.',
     ),
   ];
