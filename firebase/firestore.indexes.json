@@ -1,5 +1,5 @@
 {
-  "comment": "Indeks composite SiGap Netra App — cerminan persis docs/firestore_schema.md bagian 8. Ubah bersama skema + rules + model dalam satu changeset bila skema berubah.",
+  "comment": "Indeks composite SIGAP-NETRA App — cerminan persis docs/firestore_schema.md bagian 8. Ubah bersama skema + rules + model dalam satu changeset bila skema berubah.",
   "indexes": [
     {
       "comment": "#1 WatchPendingDetections: validationStatus == pending + createdAt DESC",

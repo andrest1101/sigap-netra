@@ -1,4 +1,19 @@
-# Progress — SiGap Netra App
+# Progress — SIGAP-NETRA App
+
+## 2026-10-09 Refactor UI/UX massal — identitas visual v3 "Lensa"
+
+Keputusan owner: teal/hijau `#00897B` diganti total (warna lama = warna app sebelumnya), desain lama tidak diikuti, PRD warna ikut diganti, rename brand **SIGAP-NETRA**, sistem tidak disentuh (murni presentation + theme + l10n + docs + assets). Referensi: `docs/ui_spec.md` v3 (dari Claude). Sistem dikerjakan setelah presentasi.
+
+- Fondasi: seed **Netra Indigo `#4A47D6`** + aksen **Lensa Amber** (`#F5A524`/`#FFC15A` tertiary); `StatusColors` → `ThemeExtension` (ok `#1E9E63`, bad `#D64550`, warn `#E5A00D`, neutral `#6B6F80` + dark shades); radii hero 28/card 20/thumbnail 14/input 14/sheet 28, tombol & chip pil; background `#F6F6FB`/`#0E0F1A`; font **Plus Jakarta Sans** di-bundle (`assets/fonts/`, OFL); dynamic color tetap mati.
+- `GradientHeader` dihapus total; diganti `LargeTitleScaffold` (app bar large-title menyusut).
+- Widget baru: `LensRing` (CustomPainter diafragma + mode focusing), `StatusDot`/`StatusChip`/`MetricChip`, `BentoTile`/`BentoNumber`/`SectionHeader`, `ThumbnailTile` (3 state eksplisit), `ConfirmSheet`/`ConsentSheet`/`showUndoSnackbar`.
+- Layar: Splash lensa + SIGAP-NETRA; Login identitas baru + divider "atau"; Beranda (Hero + bento 2 kolom + 5 aktivitas); Validasi (SegmentedButton + progres + tumpukan kartu + swipe + Urungkan 5 dtk + panel tanpa-gambar); Riwayat (segmen Daftar|Statistik + chip + grup per hari + swipe-hapus + menu ⋯); Perangkat = hub (kepala + Hubungkan + Kontrol + timeline + filter severity); QR stepper 3 langkah (payload tetap shell); Pengaturan via avatar (segmen tema + ConsentSheet + versi konstanta).
+- Router: tepat 4 tab M3 standar + badge warn "99+" hanya Validasi; `/pengaturan` top-level.
+- Status tone lama (`success/error/warning`) → `ok/bad/warn`; `info` → tertiary. Palet info biru dihapus.
+- Docs: `AGENTS.md` §5, `PRD.md`, `docs/ui_spec.md` = v3 (lama diarsip `ui_spec_legacy_teal.md`), judul brand di schema/protocol/rules/indexes/progress → SIGAP-NETRA. Nama package Dart tetap `sigap_netra_app`.
+- Test: home test ikut identitas baru + `pumpFrames` melewati tick 15 dtk (hindari `!timersPending`); 93 hijau.
+- Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 93 lulus, `flutter build windows --debug` sukses (LNK1168 sempat terjadi karena exe lama masih jalan — dimatikan lalu build ulang), smoke-run exe ALIVE 8 detik.
+- Catatan: `package_info_plus` belum dipakai (perlu persetujuan package); versi Tentang via `kAppVersionDisplay` sinkron manual dengan pubspec.
 
 Tanggal: 2026-10-08
 

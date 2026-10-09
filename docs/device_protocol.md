@@ -1,4 +1,4 @@
-# Protokol Perangkat - SiGap Netra
+# Protokol Perangkat - SIGAP-NETRA
 
 Dokumen ini menjelaskan bagaimana perangkat Sipeed MaixCAM (MaixPy / Python)
 berkomunikasi dengan Cloud Firestore lewat REST API, dan bagaimana kredensial

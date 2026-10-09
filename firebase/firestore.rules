@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Security Rules SiGap Netra App — deny-by-default.
+// Security Rules SIGAP-NETRA App — deny-by-default.
 // Sumber kebenaran: `docs/firestore_schema.md` bagian 9 (inventaris rules).
 //
 // Status: DRAFT v0.1. Belum diuji emulator (menunggu Firebase project).

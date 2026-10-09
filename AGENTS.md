@@ -1,4 +1,4 @@
-# 🤖 System Prompt & AI Agent Guidelines for SiGap Netra App
+# 🤖 System Prompt & AI Agent Guidelines for SIGAP-NETRA App
 
 ## 1. Role & Identity
 
@@ -47,7 +47,7 @@ Dependency rule: `presentation → domain ← data`. Domain depends on nothing.
 - **Backend:** Firebase Auth (Email/Password + Google Sign-In) and **Cloud Firestore**.
 - **Real-time:** Firestore `snapshots()` streams (wrapped in repositories → `StreamProvider`). Always limit queries (`limit(...)`) to protect the read quota.
 - **Packages (expected):** `firebase_core`, `firebase_auth`, `cloud_firestore`, `flutter_riverpod`, `go_router`, `google_sign_in`, `share_plus`, `fl_chart`, `intl`, `shared_preferences`, `path_provider`, `equatable`, `flutter_localizations`, `qr_flutter`. Dev: `mocktail`, `fake_cloud_firestore`, `firebase_auth_mocks`. Ask before adding anything else.
-- **UI/UX:** Follow `docs/ui_spec.md`. Material 3, light + dark + system theme, **Bahasa Indonesia** strings (all in `lib/l10n/app_id.arb`, none hardcoded in widgets). Seed colour teal `#00897B`, gradient teal headers, radii: card 16 / button 12 / badge 8 / bottom nav 24. Strict status colours: Green = online/Cocok, Red = offline-terputus/Tidak cocok/error, Amber = warning/menunggu, Grey = Belum/unknown. Android is the primary test target; keep code iOS-compatible (no platform-specific shortcuts).
+- **UI/UX:** Follow `docs/ui_spec.md` (identitas visual v3 "Lensa": large-title tanpa gradien, Lens Ring, bento, 4 tab standar, Pengaturan via avatar). Material 3, light + dark + system theme, **Bahasa Indonesia** strings (all in `lib/l10n/app_id.arb`, none hardcoded in widgets). Brand name tampil: **SIGAP-NETRA**. Seed colour Netra Indigo `#4A47D6`, aksen Lensa Amber sebagai `tertiary` (`#F5A524` light / `#FFC15A` dark), font Plus Jakarta Sans (bundled). Radii: hero 28 / card 20 / thumbnail 14 / input 14 / sheet 28, tombol & chip pil (stadium), bottom nav 24→80 height standar. Strict status colours (ThemeExtension `StatusColors`): ok `#1E9E63` = Terhubung/Cocok, bad `#D64550` = Terputus/Tidak cocok/error, warn `#E5A00D` = Menunggu/peringatan, neutral `#6B6F80` = Belum/unknown (dark shades di `status_colors.dart`). Android is the primary test target; keep code iOS-compatible (no platform-specific shortcuts).
 
 ## 6. Directory Structure
 
