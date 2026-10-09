@@ -48,6 +48,9 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
       subtitle: filtered.isEmpty
           ? null
           : l10n.validationProgressValue(clamped + 1, filtered.length),
+      // Body memakai `Expanded` (tumpukan kartu mengisi sisa layar), jadi
+      // wajib `fillRemaining` agar constraint vertikal terbatas.
+      fillRemaining: true,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

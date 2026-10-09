@@ -13,6 +13,17 @@ Keputusan owner: teal/hijau `#00897B` diganti total (warna lama = warna app sebe
 - Docs: `AGENTS.md` §5, `PRD.md`, `docs/ui_spec.md` = v3 (lama diarsip `ui_spec_legacy_teal.md`), judul brand di schema/protocol/rules/indexes/progress → SIGAP-NETRA. Nama package Dart tetap `sigap_netra_app`.
 - Test: home test ikut identitas baru + `pumpFrames` melewati tick 15 dtk (hindari `!timersPending`); 93 hijau.
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 93 lulus, `flutter build windows --debug` sukses (LNK1168 sempat terjadi karena exe lama masih jalan — dimatikan lalu build ulang), smoke-run exe ALIVE 8 detik.
+
+## 2026-10-09 Perbaikan bug presentasi (warna, nama, sampel, Validasi)
+
+Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda terlalu turun, (3) sampel campur objek, (4) tab Validasi kosong.
+
+- Bug 1 (warna): Hero Beranda + panel offline ke `onPrimaryContainer` konsisten; Lens Ring baterai pakai `onHero` untuk track/progres/angka; hairline `outlineVariant` di `CardTheme` global + Hero + BentoTile + DeviceHead + ConnectCard + detail + tile event/perintah + OCR card + placeholder statistik. Audit pasangan silang seluruh lib: tidak ada yang tersisa.
+- Bug 2 (nama + layout): `kDemoDeviceName` → "Kacamata Cerdas"; semua hardcode demo ke `demo_ids.dart` (monitoring/events/commands providers); test ikut rename. Beranda dirapatkan: padding Hero 8→0, bento 24→12, `SectionHeader.compact`, avatar 56→48, ring 64→56 (konten naik ±60-80px, large-title v3 dipertahankan).
+- Bug 3 (sampel): 5 sampel realistis uang + teks OCR (100rb/50rb/struk minimarket/10rb/PINTU KELUAR); komentar larangan menambah jenis selain uang/teks di dua `_sample()`; test baru assert dua jenis saja.
+- Bug 4 (Validasi crash layout, bukan data): `Expanded` dalam sliver tak terbatas → `LargeTitleScaffold.fillRemaining` (`SliverFillRemaining`); layar lain aman (audit: hanya Validasi). Regression test: render kartu + filter + Cocok/snackbar + Urungkan (+ auth stub).
+- Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
+- Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 - Catatan: `package_info_plus` belum dipakai (perlu persetujuan package); versi Tentang via `kAppVersionDisplay` sinkron manual dengan pubspec.
 
 Tanggal: 2026-10-08
