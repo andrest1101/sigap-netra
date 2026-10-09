@@ -1,0 +1,254 @@
+rules_version = '2';
+
+// Security Rules SiGap Netra App — deny-by-default.
+// Sumber kebenaran: `docs/firestore_schema.md` bagian 9 (inventaris rules).
+//
+// Status: DRAFT v0.1. Belum diuji emulator (menunggu Firebase project).
+// Bila skema berubah, file ini, `firestore.indexes.json`, model Dart beserta
+// test, dan `docs/device_protocol.md` wajib diubah dalam satu changeset.
+//
+// [PERLU KONFIRMASI — penghenti device] Skema otorisasi device BELUM
+// diputuskan owner (`docs/firestore_schema.md` bagian 11 A1). Karena itu
+// `isDevice()` di bawah sengaja mengembalikan `false`: SEMUA tulis yang
+// mengklaim sebagai device DITOLAK sampai skema auth device diputuskan.
+// Ini konsisten dengan deny-by-default dan mencegah celah sebelum
+// keputusan ada. Jangan longgarkan tanpa keputusan owner.
+//
+// [PERLU KONFIRMASI — pengecualian owner] Aturan `update` map `members` dan
+// `mediaLimit` oleh owner di bawah mengikuti solusi paling mungkin di skema
+// bagian 6 poin 1, tetapi memperluas hak tulis app sehingga perlu
+// persetujuan eksplisit owner sebelum dipakai produksi.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helper ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function deviceDoc(deviceId) {
+      return get(/databases/$(database)/documents/devices/$(deviceId));
+    }
+
+    function memberRole(deviceId) {
+      return deviceDoc(deviceId).data.members[request.auth.uid];
+    }
+
+    function isMember(deviceId) {
+      return isSignedIn() && memberRole(deviceId) != null;
+    }
+
+    function isOwner(deviceId) {
+      return isSignedIn() && memberRole(deviceId) == 'owner';
+    }
+
+    function isDevice(deviceId) {
+      // [PERLU KONFIRMASI] Lihat catatan header: skema auth device belum
+      // diputuskan, jadi selalu false sampai ada keputusan.
+      return false;
+    }
+
+    function onlyKeysChanged(allowed) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowed);
+    }
+
+    // Nama field yang menyerupai kredensial. Rules hanya bisa memeriksa nama
+    // field, bukan isi (skema bagian 9 aturan 13), jadi daftar ini adalah
+    // allow-list eksplisit yang harus ditetapkan final oleh owner (skema 11 D15).
+    function hasCredentialField(map) {
+      return map.keys().hasAny([
+        'password', 'passwd', 'wifiPassword', 'pass',
+        'token', 'idToken', 'refreshToken', 'accessToken',
+        'secret', 'apiKey', 'privateKey', 'otp',
+      ]);
+    }
+
+    function validDetectionType(t) {
+      return t == 'money' || t == 'text';
+    }
+
+    function validValidationStatus(s) {
+      return s == 'pending' || s == 'match' || s == 'mismatch';
+    }
+
+    function validSeverity(s) {
+      return s == 'info' || s == 'warning' || s == 'error';
+    }
+
+    function validCommandType(t) {
+      return t == 'sync_now' || t == 'speak_text' || t == 'set_volume'
+        || t == 'restart' || t == 'reprovision';
+    }
+
+    function validCommandStatus(s) {
+      return s == 'pending' || s == 'sent' || s == 'acked'
+        || s == 'done' || s == 'failed';
+    }
+
+    function validPayload(t, payload) {
+      return (t == 'sync_now' && payload == {}) ||
+        (t == 'restart' && payload == {}) ||
+        (t == 'reprovision' && payload == {}) ||
+        (t == 'speak_text'
+          && payload.keys().hasOnly(['text'])
+          && payload.text is string
+          && payload.text.size() > 0
+          && payload.text.size() <= 200) ||
+        (t == 'set_volume'
+          && payload.keys().hasOnly(['level'])
+          && payload.level is int
+          && payload.level >= 0
+          && payload.level <= 100);
+    }
+
+    // Urutan maju satu arah: pending -> sent -> acked -> done | failed.
+    function validStatusTransition(oldStatus, newStatus) {
+      return (oldStatus == 'pending' && newStatus == 'sent') ||
+        (oldStatus == 'sent' && newStatus == 'acked') ||
+        (oldStatus == 'acked' && (newStatus == 'done' || newStatus == 'failed'));
+    }
+
+    // ---------- devices/{deviceId} ----------
+
+    match /devices/{deviceId} {
+      // Baca hanya anggota (skema bagian 9 aturan 2).
+      allow read: if isMember(deviceId);
+
+      // Tulis telemetri hanya device (saat ini ditolak semua — lihat header).
+      // `create` dan `update` dipisah karena `resource` tidak ada saat create.
+      allow create: if isDevice(deviceId)
+        && request.resource.data.keys().hasOnly([
+          'deviceId', 'name', 'model', 'firmwareVersion', 'wifiSsid',
+          'lastSeen', 'bootCount', 'batteryPct', 'settings',
+          'createdAt', 'updatedAt',
+        ])
+        && request.resource.data.settings.uploadThumbnails is bool
+        && request.resource.data.settings.uploadText is bool;
+
+      allow update: if isDevice(deviceId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'model', 'firmwareVersion', 'wifiSsid', 'lastSeen',
+          'bootCount', 'batteryPct', 'settings', 'updatedAt',
+        ])
+        && request.resource.data.settings.uploadThumbnails is bool
+        && request.resource.data.settings.uploadText is bool;
+
+      // Pengecualian owner untuk keanggotaan/batas media [PERLU KONFIRMASI].
+      allow update: if isOwner(deviceId)
+        && onlyKeysChanged(['members', 'mediaLimit']);
+
+      // App tidak boleh membuat/menghapus dokumen device.
+      allow delete: if false;
+
+      // ---------- detections ----------
+
+      match /detections/{detectionId} {
+        allow read: if isMember(deviceId);
+
+        // Device membuat dokumen baru; app tidak boleh create (aturan 5).
+        allow create: if isDevice(deviceId)
+          && validDetectionType(request.resource.data.type)
+          && request.resource.data.validationStatus == 'pending'
+          && !('validatedBy' in request.resource.data)
+          && !('validatedAt' in request.resource.data)
+          && (!('ocrText' in request.resource.data)
+            || request.resource.data.ocrText.size() <= 500)
+          && request.resource.data.confidence is number
+          && request.resource.data.confidence >= 0
+          && request.resource.data.confidence <= 1
+          && (!('distanceCm' in request.resource.data)
+            || request.resource.data.distanceCm == null
+            || request.resource.data.distanceCm is int);
+
+        // Anggota hanya boleh update 3 field validasi (aturan 6).
+        allow update: if isMember(deviceId)
+          && onlyKeysChanged(['validationStatus', 'validatedBy', 'validatedAt'])
+          && validValidationStatus(request.resource.data.validationStatus);
+
+        // Anggota boleh hapus; device tidak boleh hapus.
+        allow delete: if isMember(deviceId);
+      }
+
+      // ---------- media ----------
+
+      match /media/{mediaId} {
+        allow read: if isMember(deviceId);
+
+        // Hanya device, hanya saat opt-in aktif, dan penuhi batas thumbnail
+        // (aturan 11): mime JPEG, size <= 60000, bytes <= 81920.
+        allow create: if isDevice(deviceId)
+          && deviceDoc(deviceId).data.settings.uploadThumbnails == true
+          && request.resource.data.mime == 'image/jpeg'
+          && request.resource.data.size is int
+          && request.resource.data.size <= 60000
+          && request.resource.data.bytes is string
+          && request.resource.data.bytes.size() <= 81920;
+
+        // Anggota boleh menghapus (bersama deteksi); update tidak pernah.
+        allow update: if false;
+        allow delete: if isMember(deviceId);
+      }
+
+      // ---------- events ----------
+
+      match /events/{eventId} {
+        allow read: if isMember(deviceId);
+
+        // Hanya device yang membuat event; app tidak boleh tulis/hapus.
+        // Isi pesan bebas kredensial ditegakkan di kode device (rules tidak
+        // bisa memeriksa isi string bebas, hanya nama field).
+        allow create: if isDevice(deviceId)
+          && request.resource.data.severity is string
+          && validSeverity(request.resource.data.severity)
+          && request.resource.data.type is string
+          && request.resource.data.message is string
+          && request.resource.data.message.size() <= 200;
+
+        allow update, delete: if false;
+      }
+
+      // ---------- commands ----------
+
+      match /commands/{commandId} {
+        allow read: if isMember(deviceId);
+
+        // Anggota membuat perintah: status awal pending, payload sah, tanpa
+        // field kredensial, requestedBy = UID sendiri (aturan 4 dilanggar
+        // bila device mencoba create).
+        allow create: if isMember(deviceId)
+          && !isDevice(deviceId)
+          && validCommandType(request.resource.data.type)
+          && request.resource.data.status == 'pending'
+          && request.resource.data.requestedBy == request.auth.uid
+          && request.resource.data.payload is map
+          && validPayload(
+            request.resource.data.type,
+            request.resource.data.payload,
+          )
+          && !hasCredentialField(request.resource.data.payload)
+          && request.resource.data.createdAt == request.time;
+
+        // Hanya device yang boleh memajukan status + updatedAt + resultNote.
+        // `failed` wajib punya resultNote yang ringkas (maks 200 karakter,
+        // tanpa kredensial — ditegakkan di kode device karena rules tidak
+        // bisa memeriksa isi string bebas).
+        allow update: if isDevice(deviceId)
+          && onlyKeysChanged(['status', 'updatedAt', 'resultNote'])
+          && validCommandStatus(request.resource.data.status)
+          && validStatusTransition(resource.data.status, request.resource.data.status)
+          && (request.resource.data.status != 'failed'
+            || (request.resource.data.resultNote is string
+              && request.resource.data.resultNote.size() > 0
+              && request.resource.data.resultNote.size() <= 200));
+
+        allow delete: if false;
+      }
+    }
+
+    // Tolak semua akses lain secara default (aturan 1).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
