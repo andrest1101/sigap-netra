@@ -13,12 +13,12 @@ extension DeviceConnectivityDisplay on DeviceConnectivity {
   StatusPillData toPillData(AppLocalizations l10n) => switch (this) {
     DeviceConnectivity.online => StatusPillData(
       label: l10n.statusOnline,
-      tone: AppStatusTone.success,
+      tone: AppStatusTone.ok,
       icon: Icons.check_circle_outline,
     ),
     DeviceConnectivity.offline => StatusPillData(
       label: l10n.statusOffline,
-      tone: AppStatusTone.error,
+      tone: AppStatusTone.bad,
       icon: Icons.cloud_off,
     ),
     DeviceConnectivity.unknown => StatusPillData(
@@ -37,8 +37,8 @@ extension DeviceConnectivityDisplay on DeviceConnectivity {
 
   /// Warna solid untuk indikator kecil.
   Color solidColor(StatusColors palette) => switch (this) {
-    DeviceConnectivity.online => palette.success.solid,
-    DeviceConnectivity.offline => palette.error.solid,
+    DeviceConnectivity.online => palette.ok.solid,
+    DeviceConnectivity.offline => palette.bad.solid,
     DeviceConnectivity.unknown => palette.neutral.solid,
   };
 }

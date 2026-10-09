@@ -46,7 +46,7 @@ class LoginForm extends StatelessWidget {
             autocorrect: false,
             decoration: InputDecoration(
               labelText: l10n.loginEmailLabel,
-              prefixIcon: const Icon(Icons.mail_outline),
+              prefixIcon: const Icon(Icons.mail_outline_rounded),
             ),
           ),
           const SizedBox(height: DesignTokens.spaceLg),
@@ -60,7 +60,7 @@ class LoginForm extends StatelessWidget {
             decoration: InputDecoration(
               labelText: l10n.loginPasswordLabel,
               helperText: l10n.loginPasswordHint,
-              prefixIcon: const Icon(Icons.lock_outline),
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
             ),
           ),
           const SizedBox(height: DesignTokens.spaceXl),
@@ -72,6 +72,24 @@ class LoginForm extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(l10n.loginSignInWithEmail),
+          ),
+          const SizedBox(height: DesignTokens.spaceMd),
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignTokens.spaceMd,
+                ),
+                child: Text(
+                  l10n.loginOrDivider,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const Expanded(child: Divider()),
+            ],
           ),
           const SizedBox(height: DesignTokens.spaceMd),
           OutlinedButton.icon(

@@ -56,6 +56,24 @@ class DetectionsController extends Notifier<List<Detection>> {
           detection,
     ];
   }
+
+  /// Menyembunyikan item untuk hapus-dengan-undo di Riwayat demo.
+  ///
+  /// Bukan hapus permanen: Fase 2 lanjutan memakai `DeleteDetection`
+  /// (deteksi + `media`). Item dikembalikan lewat [restoreForUndo].
+  void removeForUndo(String id) {
+    state = [
+      for (final detection in state)
+        if (detection.id != id) detection,
+    ];
+  }
+
+  /// Mengembalikan item yang disembunyikan [removeForUndo], di posisi
+  /// terurut waktu terbaru-dulu.
+  void restoreForUndo(Detection detection) {
+    state = [...state, detection]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
 }
 
 List<Detection> _sample() {

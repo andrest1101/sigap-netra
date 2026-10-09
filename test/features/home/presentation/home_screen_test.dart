@@ -72,11 +72,14 @@ void main() {
 
   // Skeleton memakai animasi berulang, jadi `pumpAndSettle` tidak pernah
   // selesai selama state loading. Karena itu setiap transisi dipompa secara
-  // eksplisit.
+  // eksplisit. Pump terakhir melewati tick konektivitas 15 detik supaya timer
+  // periodic sempat fire — tanpanya binding protes ada timer pending saat
+  // finalisasi tree (flutter_test `!timersPending`).
   Future<void> pumpFrames(WidgetTester tester) async {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
+    await tester.pump(const Duration(seconds: 16));
   }
 
   group('Beranda', () {
@@ -106,8 +109,8 @@ void main() {
       await pumpHome(tester);
       await pumpFrames(tester);
 
-      // Ringkasan belum tampil karena data belum pernah datang.
-      expect(find.text('Ringkasan validasi'), findsNothing);
+      // Bento belum tampil karena data belum pernah datang.
+      expect(find.text('Menunggu'), findsNothing);
       expect(find.text('Belum ada perangkat'), findsNothing);
     });
 
@@ -148,7 +151,7 @@ void main() {
       );
     });
 
-    testWidgets('menampilkan ringkasan dan kartu perangkat', (tester) async {
+    testWidgets('menampilkan hero dan bento perangkat', (tester) async {
       final now = DateTime(2026, 10, 8, 12);
       await pumpHome(tester);
       repository.emit([
@@ -161,8 +164,11 @@ void main() {
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Ringkasan validasi'), findsOneWidget);
       expect(find.text('Kacamata Kamar'), findsOneWidget);
+      expect(find.text('Menunggu'), findsOneWidget);
+      expect(find.text('Akurasi'), findsOneWidget);
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
+      expect(find.text('QR Wi-Fi'), findsOneWidget);
     });
 
     testWidgets('perangkat terputus menampilkan warna status merah', (

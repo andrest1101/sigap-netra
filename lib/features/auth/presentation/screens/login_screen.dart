@@ -103,15 +103,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.visibility_outlined,
-                    size: 64,
-                    color: colorScheme.primary,
+                  Semantics(
+                    header: true,
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: ShapeDecoration(
+                        color: colorScheme.primaryContainer,
+                        shape: const CircleBorder(),
+                      ),
+                      child: Icon(
+                        Icons.visibility_rounded,
+                        size: 36,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: DesignTokens.spaceLg),
                   Text(
-                    l10n.loginTitle,
-                    style: textTheme.headlineSmall,
+                    l10n.appTitle,
+                    style: textTheme.headlineSmall?.copyWith(
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w700,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: DesignTokens.spaceSm),
