@@ -1,5 +1,6 @@
 import '../../../monitoring/domain/entities/detection.dart';
 import '../repositories/validation_repository.dart';
+import '../repositories/validation_summary.dart';
 
 /// Menghitung akurasi validasi manusia dalam domain.
 double calculateValidationAccuracy(List<Detection> detections) {
@@ -20,8 +21,8 @@ class WatchPendingDetections {
 
   final ValidationRepository _repository;
 
-  Stream<List<Detection>> call({int limit = 20}) {
-    return _repository.watchPendingDetections(limit: limit);
+  Stream<List<Detection>> call({required String deviceId, int limit = 20}) {
+    return _repository.watchPendingDetections(deviceId: deviceId, limit: limit);
   }
 }
 
@@ -32,11 +33,13 @@ class SubmitValidation {
   final ValidationRepository _repository;
 
   Future<void> call({
+    required String deviceId,
     required String detectionId,
     required ValidationStatus status,
     required String? validatedBy,
   }) {
     return _repository.submitValidation(
+      deviceId: deviceId,
       detectionId: detectionId,
       status: status,
       validatedBy: validatedBy,
@@ -50,18 +53,26 @@ class UndoValidation {
 
   final ValidationRepository _repository;
 
-  Future<void> call({required String detectionId}) {
-    return _repository.undoValidation(detectionId: detectionId);
+  Future<void> call({
+    required String deviceId,
+    required String detectionId,
+    required String? validatedBy,
+  }) {
+    return _repository.undoValidation(
+      deviceId: deviceId,
+      detectionId: detectionId,
+      validatedBy: validatedBy,
+    );
   }
 }
 
-/// Kontrak perhitungan akurasi manusia.
-class GetAccuracy {
-  const GetAccuracy(this._repository);
+/// Kontrak ringkasan akurasi manusia (dihitung dari `count()`, bukan unduhan).
+class GetValidationSummary {
+  const GetValidationSummary(this._repository);
 
   final ValidationRepository _repository;
 
-  Future<double?> call({int limit = 1000}) {
-    return _repository.getValidationAccuracy(limit: limit);
+  Future<ValidationSummary> call({required String deviceId}) {
+    return _repository.getValidationSummary(deviceId: deviceId);
   }
 }
