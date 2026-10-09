@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/errors/app_failure.dart';
+import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
+import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
 import 'package:sigap_netra_app/features/devices/domain/repositories/device_repository.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
@@ -20,7 +22,7 @@ class FakeDeviceRepository implements DeviceRepository {
   Object? errorToEmit;
 
   @override
-  Stream<List<Device>> watchMyDevices() {
+  Stream<List<Device>> watchMyDevices({required String uid}) {
     final error = errorToEmit;
     if (error != null) {
       return Stream<List<Device>>.error(error);
@@ -50,7 +52,14 @@ void main() {
   Future<void> pumpHome(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [deviceRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          deviceRepositoryProvider.overrideWithValue(repository),
+          // Daftar perangkat membutuhkan UID (filter keanggotaan), jadi test
+          // mem-pump sebagai pengguna yang sudah masuk.
+          currentUserProvider.overrideWithValue(
+            const AppUser(uid: 'user-1', email: 'user@example.com'),
+          ),
+        ],
         child: const MaterialApp(
           locale: Locale('id'),
           supportedLocales: AppLocalizations.supportedLocales,
@@ -63,20 +72,45 @@ void main() {
 
   // Skeleton memakai animasi berulang, jadi `pumpAndSettle` tidak pernah
   // selesai selama state loading. Karena itu setiap transisi dipompa secara
-  // eksplisit.
+  // eksplisit. Pump terakhir melewati tick konektivitas 15 detik supaya timer
+  // periodic sempat fire — tanpanya binding protes ada timer pending saat
+  // finalisasi tree (flutter_test `!timersPending`).
   Future<void> pumpFrames(WidgetTester tester) async {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
+    await tester.pump(const Duration(seconds: 16));
   }
 
   group('Beranda', () {
+    testWidgets('tanpa pengguna yang masuk menampilkan empty state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            deviceRepositoryProvider.overrideWithValue(repository),
+            currentUserProvider.overrideWithValue(null),
+          ],
+          child: const MaterialApp(
+            locale: Locale('id'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: HomeScreen(),
+          ),
+        ),
+      );
+      await pumpFrames(tester);
+
+      expect(find.text('Belum ada perangkat'), findsOneWidget);
+    });
+
     testWidgets('menampilkan skeleton saat memuat', (tester) async {
       await pumpHome(tester);
       await pumpFrames(tester);
 
-      // Ringkasan belum tampil karena data belum pernah datang.
-      expect(find.text('Ringkasan validasi'), findsNothing);
+      // Bento belum tampil karena data belum pernah datang.
+      expect(find.text('Menunggu'), findsNothing);
       expect(find.text('Belum ada perangkat'), findsNothing);
     });
 
@@ -117,21 +151,24 @@ void main() {
       );
     });
 
-    testWidgets('menampilkan ringkasan dan kartu perangkat', (tester) async {
+    testWidgets('menampilkan hero dan bento perangkat', (tester) async {
       final now = DateTime(2026, 10, 8, 12);
       await pumpHome(tester);
       repository.emit([
         Device(
           deviceId: 'dev-1',
-          name: 'Kacamata Kamar',
+          name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
         ),
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Ringkasan validasi'), findsOneWidget);
-      expect(find.text('Kacamata Kamar'), findsOneWidget);
+      expect(find.text('Kacamata Cerdas'), findsOneWidget);
+      expect(find.text('Menunggu'), findsOneWidget);
+      expect(find.text('Akurasi'), findsOneWidget);
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
+      expect(find.text('QR Wi-Fi'), findsOneWidget);
     });
 
     testWidgets('perangkat terputus menampilkan warna status merah', (
@@ -141,7 +178,7 @@ void main() {
       repository.emit([
         Device(
           deviceId: 'dev-1',
-          name: 'Kacamata Dapur',
+          name: 'Kacamata Cerdas 2',
           connectivity: DeviceConnectivity.offline,
           // Status akhir dihitung ulang dari lastSeen, jadi test harus
           // memberi nilai yang benar-benar sudah melewati ambang 90 detik.

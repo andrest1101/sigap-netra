@@ -40,6 +40,11 @@ const int kHistoryPageSize = 25;
 /// Jumlah entri yang diminta saat menghitung agregat badge dan akurasi.
 const int kAggregationCountLimit = 1000;
 
+/// Versi aplikasi yang ditampilkan di Pengaturan → Tentang.
+///
+/// Sinkronkan manual dengan `version:` di `pubspec.yaml` setiap rilis.
+const String kAppVersionDisplay = '1.0.0+1';
+
 /// Kode QR-Fi saat ini belum dapat ditentukan.
 ///
 /// Format payload final harus diekstrak dari aplikasi Kotlin lama / firmware

@@ -5,25 +5,11 @@ import '../theme/status_colors.dart';
 
 /// Semantik status yang dipakai seluruh aplikasi.
 ///
-/// Warna ditentukan di satu tempat agar tidak pernah berbeda antar layar:
-/// hijau untuk online/Cocok, merah untuk terputus/Tidak cocok/error,
-/// amber untuk menunggu/peringatan, abu untuk Belum/tidak diketahui.
-enum AppStatusTone { success, error, warning, neutral, info }
-
-/// Pilihan label yang sering dipakai bersama nada status tertentu.
-enum StatusLabelStyle {
-  /// Green: online / Cocok.
-  online,
-
-  /// Red: offline-terputus / Tidak cocok / error.
-  offline,
-
-  /// Amber: warning / menunggu.
-  waiting,
-
-  /// Grey: Belum / unknown.
-  unknown,
-}
+/// Nada mengikuti `ui_spec.md` v3: ok = Terhubung/Cocok, bad =
+/// Terputus/Tidak cocok/error, warn = Menunggu/peringatan,
+/// neutral = Belum/tidak diketahui. `info` memakai `tertiary` skema
+/// (Lensa Amber) untuk informasi netral seperti perintah terkirim.
+enum AppStatusTone { ok, bad, warn, neutral, info }
 
 /// Badge kecil berisi teks status dengan warna yang konsisten.
 class StatusPill extends StatelessWidget {
@@ -35,35 +21,35 @@ class StatusPill extends StatelessWidget {
     this.isDense = false,
   });
 
-  /// Label online dengan nada hijau.
+  /// Label terhubung/Cocok dengan nada ok.
   factory StatusPill.online(String label, {Key? key, bool isDense = false}) =>
       StatusPill(
         key: key,
         label: label,
-        tone: AppStatusTone.success,
+        tone: AppStatusTone.ok,
         isDense: isDense,
       );
 
-  /// Label terputus dengan nada merah.
+  /// Label terputus dengan nada bad.
   factory StatusPill.offline(String label, {Key? key, bool isDense = false}) =>
       StatusPill(
         key: key,
         label: label,
-        tone: AppStatusTone.error,
-        icon: Icons.cloud_off,
+        tone: AppStatusTone.bad,
+        icon: Icons.cloud_off_rounded,
         isDense: isDense,
       );
 
-  /// Label menunggu dengan nada amber.
+  /// Label menunggu dengan nada warn.
   factory StatusPill.waiting(String label, {Key? key, bool isDense = false}) =>
       StatusPill(
         key: key,
         label: label,
-        tone: AppStatusTone.warning,
+        tone: AppStatusTone.warn,
         isDense: isDense,
       );
 
-  /// Label belum/tidak diketahui dengan nada abu.
+  /// Label belum/tidak diketahui dengan nada neutral.
   factory StatusPill.unknown(String label, {Key? key, bool isDense = false}) =>
       StatusPill(
         key: key,
@@ -81,15 +67,19 @@ class StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = StatusColors.of(context);
     final background = switch (tone) {
-      AppStatusTone.success => palette.success,
-      AppStatusTone.error => palette.error,
-      AppStatusTone.warning => palette.warning,
+      AppStatusTone.ok => palette.ok,
+      AppStatusTone.bad => palette.bad,
+      AppStatusTone.warn => palette.warn,
       AppStatusTone.neutral => palette.neutral,
-      AppStatusTone.info => palette.info,
+      AppStatusTone.info => null,
     };
 
+    final colorScheme = Theme.of(context).colorScheme;
+    final container = background?.container ?? colorScheme.tertiaryContainer;
+    final content = background?.content ?? colorScheme.onTertiaryContainer;
+
     final textStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
-      color: background.content,
+      color: content,
       fontWeight: FontWeight.w600,
     );
 
@@ -102,14 +92,14 @@ class StatusPill extends StatelessWidget {
           vertical: isDense ? 2 : DesignTokens.spaceXs + 1,
         ),
         decoration: BoxDecoration(
-          color: background.container,
+          color: container,
           borderRadius: BorderRadius.circular(DesignTokens.radiusBadge),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: isDense ? 12 : 14, color: background.content),
+              Icon(icon, size: isDense ? 12 : 14, color: content),
               SizedBox(width: isDense ? 4 : DesignTokens.spaceXs),
             ],
             Text(label, style: textStyle),

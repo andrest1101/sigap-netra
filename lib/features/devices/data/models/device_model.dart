@@ -43,8 +43,41 @@ abstract final class DeviceModel {
       wifiSsid: _readString(fields['wifiSsid']),
       lastSeen: lastSeen,
       bootCount: _readInt(fields['bootCount']),
+      batteryPct: _readBatteryPct(fields['batteryPct']),
+      members: _readMembers(fields['members']),
+      createdAt: _readTimestamp(fields['createdAt']),
+      updatedAt: _readTimestamp(fields['updatedAt']),
       settings: _readSettings(fields['settings']),
     );
+  }
+
+  /// Membaca persentase baterai 0-100.
+  ///
+  /// Nilai di luar rentang dianggap data rusak dan dipetakan ke null supaya
+  /// UI menampilkan "-", bukan angka yang menyesatkan.
+  static int? _readBatteryPct(Object? raw) {
+    final value = _readInt(raw);
+    if (value == null) return null;
+    if (value < 0 || value > 100) return null;
+    return value;
+  }
+
+  /// Membaca map keanggotaan UID ke role.
+  ///
+  /// Hanya entri dengan kunci dan nilai string yang dipakai; sisanya
+  /// diabaikan secara defensif. Nilai role tidak diinterpretasikan di sini
+  /// (lihat catatan `[PERLU KONFIRMASI]` pada entity).
+  static Map<String, String> _readMembers(Object? raw) {
+    if (raw is! Map) return const <String, String>{};
+    final result = <String, String>{};
+    for (final entry in raw.entries) {
+      final key = entry.key;
+      final value = entry.value;
+      if (key is String && value is String) {
+        result[key] = value;
+      }
+    }
+    return result;
   }
 
   static DeviceSettings _readSettings(Object? raw) {

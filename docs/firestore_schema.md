@@ -1,6 +1,6 @@
-# Skema Firestore - SiGap Netra App
+# Skema Firestore - SIGAP-NETRA App
 
-Dokumen ini adalah **satu-satunya definisi** koleksi, field, dan tipe data Cloud Firestore untuk SiGap Netra App. Dart model, Security Rules (`firebase/firestore.rules`), indeks (`firebase/firestore.indexes.json`), dan kode device harus mengikuti dokumen ini.
+Dokumen ini adalah **satu-satunya definisi** koleksi, field, dan tipe data Cloud Firestore untuk SIGAP-NETRA App. Dart model, Security Rules (`firebase/firestore.rules`), indeks (`firebase/firestore.indexes.json`), dan kode device harus mengikuti dokumen ini.
 
 ## 0. Status dokumen
 

@@ -12,18 +12,18 @@ void main() {
         ..addDevices([
           Device(
             deviceId: 'dev-1',
-            name: 'Kacamata Kamar',
+            name: 'Kacamata Cerdas',
             connectivity: DeviceConnectivity.online,
             lastSeen: DateTime(2026, 10, 8, 12),
           ),
         ]);
       final repository = DeviceRepositoryImpl(source);
 
-      final devices = await repository.watchMyDevices().first;
+      final devices = await repository.watchMyDevices(uid: 'user-1').first;
 
       expect(devices, hasLength(1));
       expect(devices.single.deviceId, 'dev-1');
-      expect(devices.single.name, 'Kacamata Kamar');
+      expect(devices.single.name, 'Kacamata Cerdas');
     });
 
     test('meneruskan detail perangkat yang ditemukan', () async {
@@ -31,7 +31,7 @@ void main() {
         ..addDevices([
           Device(
             deviceId: 'dev-1',
-            name: 'Kacamata Kamar',
+            name: 'Kacamata Cerdas',
             connectivity: DeviceConnectivity.offline,
             lastSeen: DateTime(2026, 10, 8, 6),
           ),
@@ -49,18 +49,18 @@ void main() {
       final source = _ControlledDeviceDataSource();
       final repository = DeviceRepositoryImpl(source);
 
-      expect(await repository.watchMyDevices().first, isEmpty);
+      expect(await repository.watchMyDevices(uid: 'user-1').first, isEmpty);
 
       source.addDevices([
         Device(
           deviceId: 'dev-2',
-          name: 'Kacamata Dapur',
+          name: 'Kacamata Cerdas 2',
           connectivity: DeviceConnectivity.online,
           lastSeen: DateTime(2026, 10, 8, 12),
         ),
       ]);
 
-      final updated = await repository.watchMyDevices().first;
+      final updated = await repository.watchMyDevices(uid: 'user-1').first;
       expect(updated.single.deviceId, 'dev-2');
     });
   });
@@ -80,7 +80,7 @@ class _ControlledDeviceDataSource implements DeviceDataSource {
   }
 
   @override
-  Stream<List<Device>> watchMyDevices() async* {
+  Stream<List<Device>> watchMyDevices({required String uid}) async* {
     yield List<Device>.unmodifiable(_devices);
     yield* _updates.stream;
   }

@@ -12,10 +12,12 @@ import '../../features/events/presentation/screens/connection_logs_screen.dart';
 import '../../features/history/presentation/screens/history_detail_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/monitoring/presentation/providers/monitoring_providers.dart';
 import '../../features/provisioning/presentation/screens/wifi_provisioning_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../widgets/lens_ring.dart';
 
 /// Nama path route sebagai konstanta.
 ///
@@ -54,32 +56,28 @@ class AppNavDestination {
   final IconData icon;
   final IconData selectedIcon;
 
-  /// Daftar lima tab sesuai urutan di `docs/ui_spec.md`.
+  /// Daftar empat tab sesuai identitas v3: Beranda, Validasi, Riwayat,
+  /// Perangkat. Pengaturan dibuka lewat avatar (`/pengaturan`), bukan tab.
   static const List<AppNavDestination> all = [
     AppNavDestination(
       path: AppRoutes.home,
       icon: Icons.home_outlined,
-      selectedIcon: Icons.home,
+      selectedIcon: Icons.home_rounded,
     ),
     AppNavDestination(
       path: AppRoutes.validation,
       icon: Icons.fact_check_outlined,
-      selectedIcon: Icons.fact_check,
+      selectedIcon: Icons.fact_check_rounded,
     ),
     AppNavDestination(
       path: AppRoutes.history,
       icon: Icons.history_outlined,
-      selectedIcon: Icons.history,
+      selectedIcon: Icons.history_rounded,
     ),
     AppNavDestination(
       path: AppRoutes.devices,
       icon: Icons.devices_other_outlined,
-      selectedIcon: Icons.devices_other,
-    ),
-    AppNavDestination(
-      path: AppRoutes.settings,
-      icon: Icons.settings_outlined,
-      selectedIcon: Icons.settings,
+      selectedIcon: Icons.devices_other_rounded,
     ),
   ];
 }
@@ -120,17 +118,68 @@ class DeviceDetailPath {
       GoRouter.of(context).go('${AppRoutes.devices}/$deviceId');
 }
 
-/// Shell lima tab dengan `NavigationBar`.
+/// Navigasi ke tab Validasi.
+class ValidationPath {
+  const ValidationPath();
+
+  void go(BuildContext context) =>
+      GoRouter.of(context).go(AppRoutes.validation);
+}
+
+/// Navigasi ke tab Riwayat.
+class HistoryPath {
+  const HistoryPath();
+
+  void go(BuildContext context) => GoRouter.of(context).go(AppRoutes.history);
+}
+
+/// Navigasi ke layar Pengaturan.
+class SettingsPath {
+  const SettingsPath();
+
+  void go(BuildContext context) => GoRouter.of(context).go(AppRoutes.settings);
+}
+
+/// Navigasi ke layar QR Wi-Fi satu perangkat.
+class DeviceWifiPath {
+  const DeviceWifiPath(this.deviceId);
+
+  final String deviceId;
+
+  void go(BuildContext context) =>
+      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/wifi');
+}
+
+/// Navigasi ke layar perintah satu perangkat.
+class DeviceCommandsPath {
+  const DeviceCommandsPath(this.deviceId);
+
+  final String deviceId;
+
+  void go(BuildContext context) =>
+      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/perintah');
+}
+
+/// Navigasi ke layar log koneksi (semua perangkat).
+class ConnectionLogsPath {
+  const ConnectionLogsPath();
+
+  void go(BuildContext context) =>
+      GoRouter.of(context).go(AppRoutes.settingsConnection);
+}
+
+/// Shell empat tab dengan `NavigationBar` standar M3 (label selalu tampil).
 ///
 /// `StatefulShellRoute.indexedStack` dipakai agar posisi scroll dan filter tiap
-/// tab bertahan saat berpindah tab.
-class AppBottomNavShell extends StatelessWidget {
+/// tab bertahan saat berpindah tab. Badge angka kecil (warna warn, batas
+/// "99+") hanya pada tab Validasi sesuai identitas v3.
+class AppBottomNavShell extends ConsumerWidget {
   const AppBottomNavShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
 
     final labels = <String, String>{
@@ -138,8 +187,14 @@ class AppBottomNavShell extends StatelessWidget {
       AppRoutes.validation: l10n.navValidation,
       AppRoutes.history: l10n.navHistory,
       AppRoutes.devices: l10n.navDevices,
-      AppRoutes.settings: l10n.navSettings,
     };
+
+    final pendingCount = ref.watch(pendingDetectionsProvider).length;
+    final badge = pendingCount <= 0
+        ? null
+        : pendingCount > 99
+        ? '99+'
+        : '$pendingCount';
 
     return Scaffold(
       body: navigationShell,
@@ -152,8 +207,16 @@ class AppBottomNavShell extends StatelessWidget {
         destinations: [
           for (final destination in AppNavDestination.all)
             NavigationDestination(
-              icon: Icon(destination.icon),
-              selectedIcon: Icon(destination.selectedIcon),
+              icon: badge != null && destination.path == AppRoutes.validation
+                  ? Badge(label: Text(badge), child: Icon(destination.icon))
+                  : Icon(destination.icon),
+              selectedIcon:
+                  badge != null && destination.path == AppRoutes.validation
+                  ? Badge(
+                      label: Text(badge),
+                      child: Icon(destination.selectedIcon),
+                    )
+                  : Icon(destination.selectedIcon),
               label: labels[destination.path] ?? '',
             ),
         ],
@@ -251,56 +314,91 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.settings,
-                builder: (context, state) => const SettingsScreen(),
-              ),
-              GoRoute(
-                path: AppRoutes.settingsConnection,
-                builder: (context, state) => const ConnectionLogsScreen(),
-              ),
-              GoRoute(
-                path: AppRoutes.settingsConnectionDevice,
-                builder: (context, state) => ConnectionLogsScreen(
-                  deviceId: state.pathParameters['deviceId'],
-                ),
-              ),
-            ],
-          ),
         ],
+      ),
+      // Pengaturan (v3): bukan tab — dibuka lewat avatar, route top-level.
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settingsConnection,
+        builder: (context, state) => const ConnectionLogsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settingsConnectionDevice,
+        builder: (context, state) =>
+            ConnectionLogsScreen(deviceId: state.pathParameters['deviceId']),
       ),
     ],
   );
 });
 
-/// Layar boot sederhana yang hanya menunggu status autentikasi.
+/// Layar boot identitas SIGAP-NETRA.
 ///
-/// Nanti akan menampilkan inisialisasi Firebase dan Pemeriksaan perangkat.
+/// Logo lensa (cincin diafragma) dengan animasi "memfokus" + nama aplikasi +
+/// indikator loading. Hanya menunggu status autentikasi.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.visibility_outlined,
-              size: 72,
-              color: Theme.of(context).colorScheme.primary,
+            Semantics(
+              label: l10n.appTitle,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const LensRing(diameter: 120, mode: LensRingMode.focusing),
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: ShapeDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: const CircleBorder(),
+                    ),
+                    child: Icon(
+                      Icons.visibility_rounded,
+                      size: 40,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             Text(
               l10n.appTitle,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: textTheme.headlineSmall?.copyWith(
+                letterSpacing: 2,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.splashLoading,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 32),
-            const CircularProgressIndicator(),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(
+                color: colorScheme.primary,
+                strokeWidth: 3,
+              ),
+            ),
           ],
         ),
       ),

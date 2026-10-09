@@ -1,8 +1,8 @@
-# PRD — SiGap Netra App (Pendamping: Monitoring, Validasi, Provisioning)
+# PRD — SIGAP-NETRA App (Pendamping: Monitoring, Validasi, Provisioning)
 
 |                          |                                                                                                            |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Produk**               | SiGap Netra — kacamata cerdas untuk tunanetra                                                              |
+| **Produk**               | SIGAP-NETRA — kacamata cerdas untuk tunanetra                                                              |
 | **Dokumen ini mencakup** | Aplikasi Flutter _companion_ (refactor dari aplikasi Kotlin) + lapisan cloud + klien telemetri di MaixCAM  |
 | **Versi / tanggal**      | 1.1 — 8 Oktober 2026 (menggantikan 1.0; menambahkan fitur dari aplikasi lama: Validasi, Riwayat, QR Wi-Fi) |
 | **Owner**                | Andre (divisi programming)                                                                                 |
@@ -13,13 +13,13 @@
 
 ## 1. Ringkasan
 
-Alat SiGap Netra sudah berfungsi dan membaca **uang** (YOLO) serta **menu/teks** (OCR) lalu menyebutkannya lewat suara. Aplikasi Kotlin lama dipakai pendamping untuk memantau alat, **memvalidasi** hasil bacaan (Cocok / Tidak cocok), melihat riwayat, dan **menyambungkan alat ke Wi-Fi lewat QR** — tetapi hanya jalan dalam jaringan yang sama.
+Alat SIGAP-NETRA sudah berfungsi dan membaca **uang** (YOLO) serta **menu/teks** (OCR) lalu menyebutkannya lewat suara. Aplikasi Kotlin lama dipakai pendamping untuk memantau alat, **memvalidasi** hasil bacaan (Cocok / Tidak cocok), melihat riwayat, dan **menyambungkan alat ke Wi-Fi lewat QR** — tetapi hanya jalan dalam jaringan yang sama.
 
 Rilis ini membangun ulang aplikasi dengan **Flutter** dan menambah kemampuan lintas jaringan:
 
 1. **Lintas jaringan & realtime** — alat di rumah user, pendamping/tim memantau dari mana saja.
 2. **Fungsi lama dipertahankan** — Beranda, Validasi, Riwayat, Pengaturan, QR Wi-Fi.
-3. **Tampilan lebih profesional** (Material 3, teal, mode gelap) — isi dan fungsi tetap.
+3. **Tampilan lebih profesional** (Material 3, Netra Indigo `#4A47D6`, mode gelap) — isi dan fungsi tetap.
 4. **Fitur baru:** log error/baterai realtime, kontrol jarak jauh, share hasil ke media sosial, statistik.
 5. **Validasi = data kebenaran lapangan** (_ground truth_) untuk mengukur akurasi model dan memutuskan kapan dataset perlu diperbarui.
 
@@ -202,7 +202,7 @@ Cloud: Firebase Spark = Rp 0.
 
 | Minggu  | Tanggal       | Fokus                                         | Output                                                                                                |
 | ------- | ------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| M4–M5   | 2–15 Okt      | **Fase 0 Discovery** + 4.1.1 Riset arsitektur | Checklist §14 terjawab; Firebase project; schema + rules; `flutter create`; design system (tema teal) |
+| M4–M5   | 2–15 Okt      | **Fase 0 Discovery** + 4.1.1 Riset arsitektur | Checklist §14 terjawab; Firebase project; schema + rules; `flutter create`; design system (tema Netra Indigo) |
 | M6–M7   | 16–29 Okt     | 4.1.2 Sinkron cloud                           | Klien telemetri alat (DV1–DV7, DV9); F1, F2, F6 (dasar), F7                                           |
 | M8      | 30 Okt–5 Nov  | 4.1.3 Uji realtime + 4.2.1 riset share        | **Uji lintas jaringan**; F3 (QR Wi-Fi) + DV8; F4 Validasi + F8 consent + DV3; ukur latensi/kuota      |
 | M9      | 6–12 Nov      | 4.2.2 Implementasi share                      | F5 Riwayat penuh; F9 kontrol jarak jauh; F10 Share                                                    |

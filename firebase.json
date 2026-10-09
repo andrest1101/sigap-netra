@@ -1,0 +1,7 @@
+{
+  "firestore": {
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  },
+  "comment": "Belum ada project Firebase terhubung (firebase_options.dart belum ada). File ini menyiapkan deploy rules + indexes setelah `flutterfire configure` dijalankan."
+}

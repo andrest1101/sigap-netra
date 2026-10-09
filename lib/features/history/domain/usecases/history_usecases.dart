@@ -1,5 +1,5 @@
-import '../../../monitoring/domain/entities/detection.dart';
 import '../entities/detection_filter.dart';
+import '../entities/detection_page.dart';
 import '../repositories/history_repository.dart';
 
 /// Kontrak pengambilan halaman riwayat.
@@ -8,10 +8,10 @@ class GetDetectionsPage {
 
   final HistoryRepository _repository;
 
-  Future<List<Detection>> call({
+  Future<DetectionPage> call({
     required DetectionFilter filter,
     int limit = 25,
-    Detection? startAfter,
+    DetectionPageCursor? startAfter,
   }) {
     return _repository.getDetectionsPage(
       filter: filter,
@@ -27,8 +27,16 @@ class DeleteDetection {
 
   final HistoryRepository _repository;
 
-  Future<void> call({required Detection detection}) {
-    return _repository.deleteDetection(detection: detection);
+  Future<void> call({
+    required String deviceId,
+    required String detectionId,
+    required String? thumbnailId,
+  }) {
+    return _repository.deleteDetection(
+      deviceId: deviceId,
+      detectionId: detectionId,
+      thumbnailId: thumbnailId,
+    );
   }
 }
 
@@ -38,7 +46,29 @@ class ResetValidation {
 
   final HistoryRepository _repository;
 
-  Future<void> call({required String detectionId}) {
-    return _repository.resetValidation(detectionId: detectionId);
+  Future<void> call({
+    required String deviceId,
+    required String detectionId,
+    required String? validatedBy,
+  }) {
+    return _repository.resetValidation(
+      deviceId: deviceId,
+      detectionId: detectionId,
+      validatedBy: validatedBy,
+    );
+  }
+}
+
+/// Kontrak reset seluruh validasi satu perangkat (batch + konfirmasi di UI).
+class ResetAllValidations {
+  const ResetAllValidations(this._repository);
+
+  final HistoryRepository _repository;
+
+  Future<void> call({required String deviceId, required String? validatedBy}) {
+    return _repository.resetAllValidations(
+      deviceId: deviceId,
+      validatedBy: validatedBy,
+    );
   }
 }

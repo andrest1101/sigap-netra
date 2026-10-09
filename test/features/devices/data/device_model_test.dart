@@ -84,6 +84,51 @@ void main() {
 
       expect(device.bootCount, 7);
     });
+
+    test('batteryPct valid dipetakan, di luar rentang menjadi null', () {
+      final ok = DeviceModel.fromData(
+        data: {'batteryPct': 82},
+        deviceId: 'dev-1',
+        now: now,
+      );
+      expect(ok.batteryPct, 82);
+
+      final over = DeviceModel.fromData(
+        data: {'batteryPct': 150},
+        deviceId: 'dev-1',
+        now: now,
+      );
+      expect(over.batteryPct, isNull);
+
+      final missing = DeviceModel.fromData(
+        data: const <String, dynamic>{},
+        deviceId: 'dev-1',
+        now: now,
+      );
+      expect(missing.batteryPct, isNull);
+    });
+
+    test('members hanya memakai entri string ke string', () {
+      final device = DeviceModel.fromData(
+        data: {
+          'members': {'user-1': 'owner', 'user-2': 42, 7: 'viewer'},
+        },
+        deviceId: 'dev-1',
+        now: now,
+      );
+
+      expect(device.members, {'user-1': 'owner'});
+    });
+
+    test('members bukan map menjadi kosong', () {
+      final device = DeviceModel.fromData(
+        data: {'members': 'bukan-map'},
+        deviceId: 'dev-1',
+        now: now,
+      );
+
+      expect(device.members, isEmpty);
+    });
   });
 
   group('data null', () {
