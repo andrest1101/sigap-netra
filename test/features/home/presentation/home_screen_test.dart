@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/errors/app_failure.dart';
+import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
+import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
 import 'package:sigap_netra_app/features/devices/domain/repositories/device_repository.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
@@ -20,7 +22,7 @@ class FakeDeviceRepository implements DeviceRepository {
   Object? errorToEmit;
 
   @override
-  Stream<List<Device>> watchMyDevices() {
+  Stream<List<Device>> watchMyDevices({required String uid}) {
     final error = errorToEmit;
     if (error != null) {
       return Stream<List<Device>>.error(error);
@@ -50,7 +52,14 @@ void main() {
   Future<void> pumpHome(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [deviceRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          deviceRepositoryProvider.overrideWithValue(repository),
+          // Daftar perangkat membutuhkan UID (filter keanggotaan), jadi test
+          // mem-pump sebagai pengguna yang sudah masuk.
+          currentUserProvider.overrideWithValue(
+            const AppUser(uid: 'user-1', email: 'user@example.com'),
+          ),
+        ],
         child: const MaterialApp(
           locale: Locale('id'),
           supportedLocales: AppLocalizations.supportedLocales,
@@ -71,6 +80,28 @@ void main() {
   }
 
   group('Beranda', () {
+    testWidgets('tanpa pengguna yang masuk menampilkan empty state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            deviceRepositoryProvider.overrideWithValue(repository),
+            currentUserProvider.overrideWithValue(null),
+          ],
+          child: const MaterialApp(
+            locale: Locale('id'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: HomeScreen(),
+          ),
+        ),
+      );
+      await pumpFrames(tester);
+
+      expect(find.text('Belum ada perangkat'), findsOneWidget);
+    });
+
     testWidgets('menampilkan skeleton saat memuat', (tester) async {
       await pumpHome(tester);
       await pumpFrames(tester);

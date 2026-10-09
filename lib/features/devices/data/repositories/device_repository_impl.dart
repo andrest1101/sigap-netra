@@ -9,7 +9,8 @@ class DeviceRepositoryImpl implements DeviceRepository {
   final DeviceDataSource _dataSource;
 
   @override
-  Stream<List<Device>> watchMyDevices() => _dataSource.watchMyDevices();
+  Stream<List<Device>> watchMyDevices({required String uid}) =>
+      _dataSource.watchMyDevices(uid: uid);
 
   @override
   Stream<Device?> watchDevice(String deviceId) =>

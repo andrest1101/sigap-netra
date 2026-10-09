@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/retry_policy.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/repositories/device_repository.dart';
 import '../../domain/usecases/watch_devices.dart';
@@ -56,11 +57,15 @@ final tickProvider = StreamProvider.autoDispose<int>((ref) {
 /// tidak dibuat ulang setiap detak; membuatnya ulang berarti kehilangan event
 /// dan membakar kuota baca.
 ///
+/// Tanpa pengguna yang masuk, stream kosong dikembalikan (bukan error) karena
+/// daftar perangkat memang tidak boleh dibaca non-anggota (skema bagian 3).
+///
 /// Retry otomatis dimatikan agar state error benar-benar tampil di UI.
-final rawDevicesProvider = StreamProvider.autoDispose<List<Device>>(
-  (ref) => ref.watch(watchMyDevicesProvider).call(),
-  retry: noRetry,
-);
+final rawDevicesProvider = StreamProvider.autoDispose<List<Device>>((ref) {
+  final uid = ref.watch(currentUserProvider)?.uid;
+  if (uid == null) return Stream<List<Device>>.value(const <Device>[]);
+  return ref.watch(watchMyDevicesProvider).call(uid: uid);
+}, retry: noRetry);
 
 /// Daftar perangkat milik pengguna dengan status konektivitas yang dihitung
 /// ulang setiap detak.

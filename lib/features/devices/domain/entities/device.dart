@@ -77,6 +77,10 @@ class Device extends Equatable {
     this.wifiSsid,
     this.lastSeen,
     this.bootCount,
+    this.batteryPct,
+    this.members = const <String, String>{},
+    this.createdAt,
+    this.updatedAt,
     this.settings = const DeviceSettings(),
   });
 
@@ -92,6 +96,24 @@ class Device extends Equatable {
 
   final DateTime? lastSeen;
   final int? bootCount;
+
+  /// Persentase baterai 0-100, atau null bila tidak ada sensor.
+  ///
+  /// [PERLU KONFIRMASI] Keberadaan baterai belum dikonfirmasi tim hardware
+  /// (`docs/firestore_schema.md` bagian 4.1). Field ini opsional dan UI wajib
+  /// menampilkan "-" bila null; jangan pernah memalsukan nilai.
+  final int? batteryPct;
+
+  /// Keanggotaan perangkat: map UID ke role.
+  ///
+  /// [PERLU KONFIRMASI] Daftar role final dan siapa yang menulis `members`
+  /// belum diputuskan owner (`docs/firestore_schema.md` bagian 6). Sampai
+  /// itu, kode aplikasi hanya memakai kunci (UID) untuk filter query, bukan
+  /// nilai role sebagai sumber kebenaran otorisasi.
+  final Map<String, String> members;
+
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final DeviceSettings settings;
 
   /// Menghitung ulang status konektivitas terhadap waktu [now].
@@ -107,6 +129,10 @@ class Device extends Equatable {
     String? wifiSsid,
     DateTime? lastSeen,
     int? bootCount,
+    int? batteryPct,
+    Map<String, String>? members,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     DeviceSettings? settings,
   }) {
     return Device(
@@ -118,6 +144,10 @@ class Device extends Equatable {
       wifiSsid: wifiSsid ?? this.wifiSsid,
       lastSeen: lastSeen ?? this.lastSeen,
       bootCount: bootCount ?? this.bootCount,
+      batteryPct: batteryPct ?? this.batteryPct,
+      members: members ?? this.members,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       settings: settings ?? this.settings,
     );
   }
@@ -132,6 +162,10 @@ class Device extends Equatable {
     wifiSsid,
     lastSeen,
     bootCount,
+    batteryPct,
+    members,
+    createdAt,
+    updatedAt,
     settings,
   ];
 }

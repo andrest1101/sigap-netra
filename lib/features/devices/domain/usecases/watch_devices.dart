@@ -7,7 +7,8 @@ class WatchMyDevices {
 
   final DeviceRepository _repository;
 
-  Stream<List<Device>> call() => _repository.watchMyDevices();
+  Stream<List<Device>> call({required String uid}) =>
+      _repository.watchMyDevices(uid: uid);
 }
 
 /// Memantau satu perangkat untuk layar detail.

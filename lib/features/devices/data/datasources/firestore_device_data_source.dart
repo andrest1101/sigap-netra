@@ -21,15 +21,21 @@ class FirestoreDeviceDataSource implements DeviceDataSource {
   FirebaseFirestore get firestore => _firestore;
 
   @override
-  Stream<List<Device>> watchMyDevices() {
-    return _firestore.collection(kDevicesCollection).limit(50).snapshots().map((
-      snapshot,
-    ) {
-      final now = DateTime.now();
-      return snapshot.docs
-          .map((doc) => DeviceModel.fromDocument(doc, now: now))
-          .toList(growable: false);
-    });
+  Stream<List<Device>> watchMyDevices({required String uid}) {
+    // Filter keanggotaan per skema bagian 3: hanya perangkat yang anggotanya
+    // mencakup UID pengguna. Nilai role tidak diinterpretasikan di sini
+    // (lihat catatan `[PERLU KONFIRMASI]` pada entity `Device.members`).
+    return _firestore
+        .collection(kDevicesCollection)
+        .where('members.$uid', isNull: false)
+        .limit(50)
+        .snapshots()
+        .map((snapshot) {
+          final now = DateTime.now();
+          return snapshot.docs
+              .map((doc) => DeviceModel.fromDocument(doc, now: now))
+              .toList(growable: false);
+        });
   }
 
   @override

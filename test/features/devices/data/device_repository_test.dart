@@ -19,7 +19,7 @@ void main() {
         ]);
       final repository = DeviceRepositoryImpl(source);
 
-      final devices = await repository.watchMyDevices().first;
+      final devices = await repository.watchMyDevices(uid: 'user-1').first;
 
       expect(devices, hasLength(1));
       expect(devices.single.deviceId, 'dev-1');
@@ -49,7 +49,7 @@ void main() {
       final source = _ControlledDeviceDataSource();
       final repository = DeviceRepositoryImpl(source);
 
-      expect(await repository.watchMyDevices().first, isEmpty);
+      expect(await repository.watchMyDevices(uid: 'user-1').first, isEmpty);
 
       source.addDevices([
         Device(
@@ -60,7 +60,7 @@ void main() {
         ),
       ]);
 
-      final updated = await repository.watchMyDevices().first;
+      final updated = await repository.watchMyDevices(uid: 'user-1').first;
       expect(updated.single.deviceId, 'dev-2');
     });
   });
@@ -80,7 +80,7 @@ class _ControlledDeviceDataSource implements DeviceDataSource {
   }
 
   @override
-  Stream<List<Device>> watchMyDevices() async* {
+  Stream<List<Device>> watchMyDevices({required String uid}) async* {
     yield List<Device>.unmodifiable(_devices);
     yield* _updates.stream;
   }

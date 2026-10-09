@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../../core/constants/demo_ids.dart';
 import 'device_data_source.dart';
 
 import '../../domain/entities/device.dart';
@@ -12,10 +13,10 @@ import '../../domain/repositories/device_repository.dart';
 /// Data disimpan in-memory dan hilang saat aplikasi ditutup, sesuai sifat
 /// simulasi.
 class FakeDeviceDataSource implements DeviceDataSource {
-  // ID perangkat demo lokal. Bukan format `deviceId` Firestore final dan
-  // tidak boleh dipakai sebagai sumber kebenaran pairing.
-  static const String _deviceId = 'simulasi-maixcam-1';
-  static const String _deviceName = 'Kacamata Kamar';
+  // ID perangkat demo lokal dari `demo_ids.dart`. Bukan format `deviceId`
+  // Firestore final dan tidak boleh dipakai sebagai sumber kebenaran pairing.
+  static const String _deviceId = kDemoDeviceId;
+  static const String _deviceName = kDemoDeviceName;
   static const String _deviceModel = 'MaixCAM';
 
   final StreamController<List<Device>> _devicesController =
@@ -54,13 +55,21 @@ class FakeDeviceDataSource implements DeviceDataSource {
       wifiSsid: 'Jaringan-Rumah',
       lastSeen: _lastSeen,
       bootCount: 42,
+      members: const <String, String>{kDemoUserId: 'owner'},
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: _lastSeen,
       settings: const DeviceSettings(uploadThumbnails: false, uploadText: true),
       connectivity: deriveConnectivity(lastSeen: _lastSeen, now: now),
     );
   }
 
   @override
-  Stream<List<Device>> watchMyDevices() {
+  Stream<List<Device>> watchMyDevices({required String uid}) {
+    // Simulasi meniru filter keanggotaan Firestore: UID yang bukan anggota
+    // tidak melihat perangkat apa pun.
+    if (uid != kDemoUserId) {
+      return Stream<List<Device>>.value(const <Device>[]);
+    }
     start();
     final now = DateTime.now();
     return Stream<List<Device>>.multi((controller) {
@@ -99,7 +108,8 @@ class FakeDeviceRepositoryImpl implements DeviceRepository {
   final FakeDeviceDataSource _dataSource;
 
   @override
-  Stream<List<Device>> watchMyDevices() => _dataSource.watchMyDevices();
+  Stream<List<Device>> watchMyDevices({required String uid}) =>
+      _dataSource.watchMyDevices(uid: uid);
 
   @override
   Stream<Device?> watchDevice(String deviceId) =>
