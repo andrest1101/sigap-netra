@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 
 /// Warna status dengan makna yang sudah pasti di seluruh aplikasi.
 ///
-/// Aturan warna ini berasal dari `AGENTS.md` dan tidak boleh diubah per widget:
+/// Shades mengikuti `ui_spec.md` v3 (identitas visual baru SIGAP-NETRA).
+/// Makna tetap: ok = Terhubung/Cocok, bad = Terputus/Tidak cocok/error,
+/// warn = Menunggu/Peringatan, neutral = Belum/tidak tersedia.
 ///
-/// | Warna | Makna                                                                 |
-/// | ----- | --------------------------------------------------------------------- |
-/// | Hijau | Online / Cocok                                                     |
-/// | Merah | Offline-terputus / Tidak cocok / error                              |
-/// | Amber | Peringatan / menunggu                                              |
-/// | Abu   | Belum / tidak diketahui                                            |
-///
-/// Setiap warna punya tiga varian agar kontrasnya tetap aman di light maupun
-/// dark: `solid` untuk ikon/garis, `container` untuk latar, `content` untuk teks
-/// di atas `container`.
+/// Didefinisikan sebagai `ThemeExtension` supaya mengikuti tema light/dark
+/// secara otomatis. Jangan memakai warna mentah di widget; selalu baca lewat
+/// `StatusColors.of(context)`. Warna tidak boleh menjadi satu-satunya pembawa
+/// makna: selalu sertakan ikon atau label.
 @immutable
 class StatusPalette {
   const StatusPalette({
@@ -25,105 +21,127 @@ class StatusPalette {
   final Color solid;
   final Color container;
   final Color content;
+
+  StatusPalette copyWith({Color? solid, Color? container, Color? content}) {
+    return StatusPalette(
+      solid: solid ?? this.solid,
+      container: container ?? this.container,
+      content: content ?? this.content,
+    );
+  }
+
+  StatusPalette lerp(StatusPalette? other, double t) {
+    if (other == null) return this;
+    return StatusPalette(
+      solid: Color.lerp(solid, other.solid, t)!,
+      container: Color.lerp(container, other.container, t)!,
+      content: Color.lerp(content, other.content, t)!,
+    );
+  }
 }
 
-/// Kumpulan palet status yang sadar tema.
+/// Kumpulan palet status sebagai `ThemeExtension`.
 @immutable
-class StatusColors {
+class StatusColors extends ThemeExtension<StatusColors> {
   const StatusColors({
-    required this.success,
-    required this.error,
-    required this.warning,
+    required this.ok,
+    required this.bad,
+    required this.warn,
     required this.neutral,
-    required this.info,
   });
 
-  /// Hijau: perangkat online, pembacaan Cocok.
-  final StatusPalette success;
+  /// Terhubung, Cocok, berhasil.
+  final StatusPalette ok;
 
-  /// Merah: perangkat terputus, Tidak cocok, error.
-  final StatusPalette error;
+  /// Terputus, Tidak cocok, error.
+  final StatusPalette bad;
 
-  /// Amber: menunggu, perlu perhatian.
-  final StatusPalette warning;
+  /// Menunggu, peringatan.
+  final StatusPalette warn;
 
-  /// Abu: Belum, tidak diketahui.
+  /// Belum, tidak diketahui.
   final StatusPalette neutral;
-
-  /// Biru: informasi netral (perintah terkirim, sinkronisasi).
-  final StatusPalette info;
 
   /// Palet status untuk tema terang.
   static const StatusColors light = StatusColors(
-    success: StatusPalette(
-      solid: Color(0xFF2E7D32),
-      container: Color(0xFFE8F5E9),
-      content: Color(0xFF1B5E20),
+    ok: StatusPalette(
+      solid: Color(0xFF1E9E63),
+      container: Color(0xFFDFF5E9),
+      content: Color(0xFF0C5C36),
     ),
-    error: StatusPalette(
-      solid: Color(0xFFC62828),
-      container: Color(0xFFFDECEA),
-      content: Color(0xFFB71C1C),
+    bad: StatusPalette(
+      solid: Color(0xFFD64550),
+      container: Color(0xFFFBE3E6),
+      content: Color(0xFF8C1D28),
     ),
-    warning: StatusPalette(
-      solid: Color(0xFFEF6C00),
-      container: Color(0xFFFFF3E0),
-      content: Color(0xFFE65100),
+    warn: StatusPalette(
+      solid: Color(0xFFE5A00D),
+      container: Color(0xFFFFF1D1),
+      content: Color(0xFF7A5200),
     ),
     neutral: StatusPalette(
-      solid: Color(0xFF9E9E9E),
-      container: Color(0xFFF5F5F5),
-      content: Color(0xFF616161),
-    ),
-    info: StatusPalette(
-      solid: Color(0xFF0277BD),
-      container: Color(0xFFE1F5FE),
-      content: Color(0xFF01579B),
+      solid: Color(0xFF6B6F80),
+      container: Color(0xFFE9EAF0),
+      content: Color(0xFF41454F),
     ),
   );
 
   /// Palet status untuk tema gelap.
   static const StatusColors dark = StatusColors(
-    success: StatusPalette(
-      solid: Color(0xFF66BB6A),
-      container: Color(0xFF1B3A1E),
-      content: Color(0xFFA5D6A7),
+    ok: StatusPalette(
+      solid: Color(0xFF5FD39A),
+      container: Color(0xFF123626),
+      content: Color(0xFFA9E8C6),
     ),
-    error: StatusPalette(
-      solid: Color(0xFFEF5350),
-      container: Color(0xFF3E1C1C),
-      content: Color(0xFFEF9A9A),
+    bad: StatusPalette(
+      solid: Color(0xFFFF8A92),
+      container: Color(0xFF3D151B),
+      content: Color(0xFFFFB3B9),
     ),
-    warning: StatusPalette(
-      solid: Color(0xFFFFB74D),
-      container: Color(0xFF3D2E1A),
-      content: Color(0xFFFFCC80),
+    warn: StatusPalette(
+      solid: Color(0xFFFFC857),
+      container: Color(0xFF3A2C0E),
+      content: Color(0xFFFFDD94),
     ),
     neutral: StatusPalette(
-      solid: Color(0xFFBDBDBD),
-      container: Color(0xFF2A2A2A),
-      content: Color(0xFFE0E0E0),
-    ),
-    info: StatusPalette(
-      solid: Color(0xFF4FC3F7),
-      container: Color(0xFF17343F),
-      content: Color(0xFF81D4FA),
+      solid: Color(0xFF9EA3B5),
+      container: Color(0xFF23262F),
+      content: Color(0xFFC6CAD6),
     ),
   );
 
-  /// Mengambil palet sesuai kecerahan tema saat ini.
-  static StatusColors of(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? dark : light;
-}
+  /// Mengambil palet dari tema aktif.
+  ///
+  /// Dipertahankan sebagai accessor kompatibel: pemanggil lama
+  /// `StatusColors.of(context)` tetap jalan tanpa perubahan.
+  static StatusColors of(BuildContext context) {
+    return Theme.of(context).extension<StatusColors>() ??
+        (Theme.of(context).brightness == Brightness.dark ? dark : light);
+  }
 
-/// Warna seed dan gradien header yang konsisten di seluruh aplikasi.
-abstract final class BrandColors {
-  /// Warna seed Material 3.
-  static const Color seed = Color(0xFF00897B);
+  @override
+  StatusColors copyWith({
+    StatusPalette? ok,
+    StatusPalette? bad,
+    StatusPalette? warn,
+    StatusPalette? neutral,
+  }) {
+    return StatusColors(
+      ok: ok ?? this.ok,
+      bad: bad ?? this.bad,
+      warn: warn ?? this.warn,
+      neutral: neutral ?? this.neutral,
+    );
+  }
 
-  /// Awal gradien header.
-  static const Color gradientStart = Color(0xFF009688);
-
-  /// Akhir gradien header.
-  static const Color gradientEnd = Color(0xFF00796B);
+  @override
+  StatusColors lerp(ThemeExtension<StatusColors>? other, double t) {
+    if (other is! StatusColors) return this;
+    return StatusColors(
+      ok: ok.lerp(other.ok, t),
+      bad: bad.lerp(other.bad, t),
+      warn: warn.lerp(other.warn, t),
+      neutral: neutral.lerp(other.neutral, t),
+    );
+  }
 }

@@ -1,7 +1,7 @@
 {
   "@@locale": "id",
 
-  "appTitle": "SiGap Netra",
+  "appTitle": "SIGAP-NETRA",
   "appSubtitle": "Pendamping kacamata pintar",
 
   "commonRetry": "Coba lagi",
@@ -45,8 +45,9 @@
   "navDevices": "Perangkat",
   "navSettings": "Pengaturan",
 
+  "loginOrDivider": "atau",
   "loginTitle": "Masuk",
-  "loginSubtitle": "Masuk untuk memantau perangkat SiGap Netra.",
+  "loginSubtitle": "Masuk untuk memantau perangkat SIGAP-NETRA.",
   "loginEmailLabel": "Email",
   "loginPasswordLabel": "Kata sandi",
   "loginSignInWithEmail": "Masuk dengan email",
@@ -214,8 +215,127 @@
   "sharingConsentTitle": "Izinkan berbagi data ini?",
   "sharingConsentBody": "Teks hasil pengenalan dapat memuat informasi pribadi. Data yang dibagikan tidak menyimpan foto, video, atau lokasi.",
   "sharingAction": "Bagikan",
-  "sharingShareText": "Hasil pengenalan SiGap Netra",
+  "sharingShareText": "Hasil pengenalan SIGAP-NETRA",
   "sharingEmpty": "Tidak ada data untuk dibagikan.",
+
+  "homeDeviceHero": "Perangkat",
+  "homeConnectedNow": "Terhubung",
+  "homeDisconnectedSince": "Terputus",
+  "homeBatteryLabel": "Baterai",
+  "homeBatteryUnavailable": "Baterai tidak tersedia",
+  "homePendingReview": "Periksa",
+  "homeAccuracySemantic": "Kecocokan {value} persen",
+  "homeSyncedLabel": "Sinkron terakhir",
+  "homeTodayLabel": "Hari ini",
+  "homeReadingsToday": "{count} pembacaan",
+  "homeOfflineSetupTitle": "Perangkat belum tersambung",
+  "homeOfflineStepOne": "Nyalakan hotspot atau Wi-Fi",
+  "homeOfflineStepTwo": "Tampilkan QR Wi-Fi",
+  "homeOfflineStepThree": "Arahkan ke kamera SIGAP-NETRA",
+  "homeWifiQrAction": "QR Wi-Fi",
+  "homeSyncing": "Menyinkronkan...",
+  "homeSyncFailed": "Sinkronisasi gagal. Coba lagi.",
+  "homeNoDeviceHeroTitle": "Belum ada perangkat terhubung",
+  "homeNoDeviceHeroBody": "Hubungkan kacamata untuk mulai memantau.",
+  "@homeReadingsToday": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@homeAccuracySemantic": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+
+  "validationQueueTitle": "Antrean validasi",
+  "validationProgressValue": "{current} dari {total}",
+  "validationFilterAll": "Gabungan",
+  "validationFilterMoney": "Uang",
+  "validationFilterText": "Menu/Teks",
+  "validationReadAs": "TERBACA SEBAGAI",
+  "validationProcessingLabel": "Waktu proses",
+  "validationNoImageTitle": "Gambar tidak diunggah",
+  "validationNoImageBody": "Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.",
+  "validationNoImageAction": "Buka pengaturan privasi",
+  "validationAllDoneTitle": "Semua pembacaan sudah diperiksa",
+  "validationAllDoneBody": "Lihat kembali hasil sebelumnya di Riwayat.",
+  "validationGoHistory": "Buka Riwayat",
+  "validationUndoAction": "Urungkan",
+  "validationSaved": "Validasi tersimpan.",
+  "@validationProgressValue": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "historyListTab": "Daftar",
+  "historyStatsTab": "Statistik",
+  "historyFilterAll": "Semua",
+  "historyFilterMatch": "Cocok",
+  "historyFilterMismatch": "Tidak cocok",
+  "historyFilterPending": "Belum",
+  "historyYesterday": "Kemarin",
+  "historyReadNumber": "No. {number}",
+  "historyStatsComingSoonTitle": "Statistik segera hadir",
+  "historyStatsComingSoonBody": "Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.",
+  "historyResetMenu": "Reset status validasi...",
+  "historyExportCsv": "Ekspor CSV",
+  "historyShareSummary": "Bagikan ringkasan",
+  "historyExportComingSoon": "Ekspor CSV segera hadir.",
+  "@historyReadNumber": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+
+  "deviceConnectTitle": "Hubungkan",
+  "deviceConnectBody": "Tampilkan QR Wi-Fi ke kamera kacamata untuk menghubungkan perangkat ke jaringan.",
+  "deviceShowQr": "Tampilkan QR Wi-Fi",
+  "deviceControlTitle": "Kontrol",
+  "deviceActivityTitle": "Aktivitas dan error",
+  "deviceLastSeenLabel": "Terakhir terlihat",
+  "deviceFirmwareShort": "Firmware {version}",
+  "deviceModelShort": "Model {model}",
+  "deviceIdLabel": "ID perangkat",
+  "@deviceFirmwareShort": {
+    "placeholders": {
+      "version": { "type": "String" }
+    }
+  },
+  "@deviceModelShort": {
+    "placeholders": {
+      "model": { "type": "String" }
+    }
+  },
+
+  "provisioningStepNetwork": "Jaringan",
+  "provisioningStepQr": "Tampilkan QR",
+  "provisioningStepWaiting": "Menunggu alat",
+  "provisioningHotspot": "Hotspot ponsel",
+  "provisioningHomeWifi": "Wi-Fi rumah",
+  "provisioningRememberSsid": "Ingat nama jaringan",
+  "provisioningCountdown": "Menunggu {seconds} dtk",
+  "@provisioningCountdown": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+
+  "settingsDisplayTitle": "Tampilan",
+  "settingsPrivacyTitle": "Privasi dan data",
+  "settingsAdvancedTitle": "Lanjutan",
+  "settingsAccountTitle": "Akun",
+  "settingsAboutTitle": "Tentang",
+  "settingsSourceTitle": "Sumber data",
+  "settingsShowTechnicalIds": "Tampilkan ID teknis",
+  "settingsRetentionTitle": "Retensi data",
+  "settingsRetentionBody": "Pembacaan dan thumbnail disimpan maksimal 30 hari.",
+  "settingsDeleteAllTitle": "Hapus semua data perangkat",
+  "settingsDeleteAllBody": "Segera hadir.",
+  "settingsOpenTitle": "Buka pengaturan",
+  "splashLoading": "Menyiapkan SIGAP-NETRA...",
 
   "timeJustNow": "Baru saja",
   "timeMinutesAgo": "{count} menit lalu",

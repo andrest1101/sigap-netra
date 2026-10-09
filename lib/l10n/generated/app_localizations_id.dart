@@ -9,7 +9,7 @@ class AppLocalizationsId extends AppLocalizations {
   AppLocalizationsId([String locale = 'id']) : super(locale);
 
   @override
-  String get appTitle => 'SiGap Netra';
+  String get appTitle => 'SIGAP-NETRA';
 
   @override
   String get appSubtitle => 'Pendamping kacamata pintar';
@@ -130,10 +130,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get navSettings => 'Pengaturan';
 
   @override
+  String get loginOrDivider => 'atau';
+
+  @override
   String get loginTitle => 'Masuk';
 
   @override
-  String get loginSubtitle => 'Masuk untuk memantau perangkat SiGap Netra.';
+  String get loginSubtitle => 'Masuk untuk memantau perangkat SIGAP-NETRA.';
 
   @override
   String get loginEmailLabel => 'Email';
@@ -615,10 +618,260 @@ class AppLocalizationsId extends AppLocalizations {
   String get sharingAction => 'Bagikan';
 
   @override
-  String get sharingShareText => 'Hasil pengenalan SiGap Netra';
+  String get sharingShareText => 'Hasil pengenalan SIGAP-NETRA';
 
   @override
   String get sharingEmpty => 'Tidak ada data untuk dibagikan.';
+
+  @override
+  String get homeDeviceHero => 'Perangkat';
+
+  @override
+  String get homeConnectedNow => 'Terhubung';
+
+  @override
+  String get homeDisconnectedSince => 'Terputus';
+
+  @override
+  String get homeBatteryLabel => 'Baterai';
+
+  @override
+  String get homeBatteryUnavailable => 'Baterai tidak tersedia';
+
+  @override
+  String get homePendingReview => 'Periksa';
+
+  @override
+  String homeAccuracySemantic(String value) {
+    return 'Kecocokan $value persen';
+  }
+
+  @override
+  String get homeSyncedLabel => 'Sinkron terakhir';
+
+  @override
+  String get homeTodayLabel => 'Hari ini';
+
+  @override
+  String homeReadingsToday(int count) {
+    return '$count pembacaan';
+  }
+
+  @override
+  String get homeOfflineSetupTitle => 'Perangkat belum tersambung';
+
+  @override
+  String get homeOfflineStepOne => 'Nyalakan hotspot atau Wi-Fi';
+
+  @override
+  String get homeOfflineStepTwo => 'Tampilkan QR Wi-Fi';
+
+  @override
+  String get homeOfflineStepThree => 'Arahkan ke kamera SIGAP-NETRA';
+
+  @override
+  String get homeWifiQrAction => 'QR Wi-Fi';
+
+  @override
+  String get homeSyncing => 'Menyinkronkan...';
+
+  @override
+  String get homeSyncFailed => 'Sinkronisasi gagal. Coba lagi.';
+
+  @override
+  String get homeNoDeviceHeroTitle => 'Belum ada perangkat terhubung';
+
+  @override
+  String get homeNoDeviceHeroBody => 'Hubungkan kacamata untuk mulai memantau.';
+
+  @override
+  String get validationQueueTitle => 'Antrean validasi';
+
+  @override
+  String validationProgressValue(int current, int total) {
+    return '$current dari $total';
+  }
+
+  @override
+  String get validationFilterAll => 'Gabungan';
+
+  @override
+  String get validationFilterMoney => 'Uang';
+
+  @override
+  String get validationFilterText => 'Menu/Teks';
+
+  @override
+  String get validationReadAs => 'TERBACA SEBAGAI';
+
+  @override
+  String get validationProcessingLabel => 'Waktu proses';
+
+  @override
+  String get validationNoImageTitle => 'Gambar tidak diunggah';
+
+  @override
+  String get validationNoImageBody =>
+      'Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.';
+
+  @override
+  String get validationNoImageAction => 'Buka pengaturan privasi';
+
+  @override
+  String get validationAllDoneTitle => 'Semua pembacaan sudah diperiksa';
+
+  @override
+  String get validationAllDoneBody =>
+      'Lihat kembali hasil sebelumnya di Riwayat.';
+
+  @override
+  String get validationGoHistory => 'Buka Riwayat';
+
+  @override
+  String get validationUndoAction => 'Urungkan';
+
+  @override
+  String get validationSaved => 'Validasi tersimpan.';
+
+  @override
+  String get historyListTab => 'Daftar';
+
+  @override
+  String get historyStatsTab => 'Statistik';
+
+  @override
+  String get historyFilterAll => 'Semua';
+
+  @override
+  String get historyFilterMatch => 'Cocok';
+
+  @override
+  String get historyFilterMismatch => 'Tidak cocok';
+
+  @override
+  String get historyFilterPending => 'Belum';
+
+  @override
+  String get historyYesterday => 'Kemarin';
+
+  @override
+  String historyReadNumber(int number) {
+    return 'No. $number';
+  }
+
+  @override
+  String get historyStatsComingSoonTitle => 'Statistik segera hadir';
+
+  @override
+  String get historyStatsComingSoonBody =>
+      'Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.';
+
+  @override
+  String get historyResetMenu => 'Reset status validasi...';
+
+  @override
+  String get historyExportCsv => 'Ekspor CSV';
+
+  @override
+  String get historyShareSummary => 'Bagikan ringkasan';
+
+  @override
+  String get historyExportComingSoon => 'Ekspor CSV segera hadir.';
+
+  @override
+  String get deviceConnectTitle => 'Hubungkan';
+
+  @override
+  String get deviceConnectBody =>
+      'Tampilkan QR Wi-Fi ke kamera kacamata untuk menghubungkan perangkat ke jaringan.';
+
+  @override
+  String get deviceShowQr => 'Tampilkan QR Wi-Fi';
+
+  @override
+  String get deviceControlTitle => 'Kontrol';
+
+  @override
+  String get deviceActivityTitle => 'Aktivitas dan error';
+
+  @override
+  String get deviceLastSeenLabel => 'Terakhir terlihat';
+
+  @override
+  String deviceFirmwareShort(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String deviceModelShort(String model) {
+    return 'Model $model';
+  }
+
+  @override
+  String get deviceIdLabel => 'ID perangkat';
+
+  @override
+  String get provisioningStepNetwork => 'Jaringan';
+
+  @override
+  String get provisioningStepQr => 'Tampilkan QR';
+
+  @override
+  String get provisioningStepWaiting => 'Menunggu alat';
+
+  @override
+  String get provisioningHotspot => 'Hotspot ponsel';
+
+  @override
+  String get provisioningHomeWifi => 'Wi-Fi rumah';
+
+  @override
+  String get provisioningRememberSsid => 'Ingat nama jaringan';
+
+  @override
+  String provisioningCountdown(int seconds) {
+    return 'Menunggu $seconds dtk';
+  }
+
+  @override
+  String get settingsDisplayTitle => 'Tampilan';
+
+  @override
+  String get settingsPrivacyTitle => 'Privasi dan data';
+
+  @override
+  String get settingsAdvancedTitle => 'Lanjutan';
+
+  @override
+  String get settingsAccountTitle => 'Akun';
+
+  @override
+  String get settingsAboutTitle => 'Tentang';
+
+  @override
+  String get settingsSourceTitle => 'Sumber data';
+
+  @override
+  String get settingsShowTechnicalIds => 'Tampilkan ID teknis';
+
+  @override
+  String get settingsRetentionTitle => 'Retensi data';
+
+  @override
+  String get settingsRetentionBody =>
+      'Pembacaan dan thumbnail disimpan maksimal 30 hari.';
+
+  @override
+  String get settingsDeleteAllTitle => 'Hapus semua data perangkat';
+
+  @override
+  String get settingsDeleteAllBody => 'Segera hadir.';
+
+  @override
+  String get settingsOpenTitle => 'Buka pengaturan';
+
+  @override
+  String get splashLoading => 'Menyiapkan SIGAP-NETRA...';
 
   @override
   String get timeJustNow => 'Baru saja';

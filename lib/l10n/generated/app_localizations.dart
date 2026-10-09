@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In id, this message translates to:
-  /// **'SiGap Netra'**
+  /// **'SIGAP-NETRA'**
   String get appTitle;
 
   /// No description provided for @appSubtitle.
@@ -328,6 +328,12 @@ abstract class AppLocalizations {
   /// **'Pengaturan'**
   String get navSettings;
 
+  /// No description provided for @loginOrDivider.
+  ///
+  /// In id, this message translates to:
+  /// **'atau'**
+  String get loginOrDivider;
+
   /// No description provided for @loginTitle.
   ///
   /// In id, this message translates to:
@@ -337,7 +343,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSubtitle.
   ///
   /// In id, this message translates to:
-  /// **'Masuk untuk memantau perangkat SiGap Netra.'**
+  /// **'Masuk untuk memantau perangkat SIGAP-NETRA.'**
   String get loginSubtitle;
 
   /// No description provided for @loginEmailLabel.
@@ -1255,7 +1261,7 @@ abstract class AppLocalizations {
   /// No description provided for @sharingShareText.
   ///
   /// In id, this message translates to:
-  /// **'Hasil pengenalan SiGap Netra'**
+  /// **'Hasil pengenalan SIGAP-NETRA'**
   String get sharingShareText;
 
   /// No description provided for @sharingEmpty.
@@ -1263,6 +1269,468 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tidak ada data untuk dibagikan.'**
   String get sharingEmpty;
+
+  /// No description provided for @homeDeviceHero.
+  ///
+  /// In id, this message translates to:
+  /// **'Perangkat'**
+  String get homeDeviceHero;
+
+  /// No description provided for @homeConnectedNow.
+  ///
+  /// In id, this message translates to:
+  /// **'Terhubung'**
+  String get homeConnectedNow;
+
+  /// No description provided for @homeDisconnectedSince.
+  ///
+  /// In id, this message translates to:
+  /// **'Terputus'**
+  String get homeDisconnectedSince;
+
+  /// No description provided for @homeBatteryLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Baterai'**
+  String get homeBatteryLabel;
+
+  /// No description provided for @homeBatteryUnavailable.
+  ///
+  /// In id, this message translates to:
+  /// **'Baterai tidak tersedia'**
+  String get homeBatteryUnavailable;
+
+  /// No description provided for @homePendingReview.
+  ///
+  /// In id, this message translates to:
+  /// **'Periksa'**
+  String get homePendingReview;
+
+  /// No description provided for @homeAccuracySemantic.
+  ///
+  /// In id, this message translates to:
+  /// **'Kecocokan {value} persen'**
+  String homeAccuracySemantic(String value);
+
+  /// No description provided for @homeSyncedLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Sinkron terakhir'**
+  String get homeSyncedLabel;
+
+  /// No description provided for @homeTodayLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Hari ini'**
+  String get homeTodayLabel;
+
+  /// No description provided for @homeReadingsToday.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} pembacaan'**
+  String homeReadingsToday(int count);
+
+  /// No description provided for @homeOfflineSetupTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Perangkat belum tersambung'**
+  String get homeOfflineSetupTitle;
+
+  /// No description provided for @homeOfflineStepOne.
+  ///
+  /// In id, this message translates to:
+  /// **'Nyalakan hotspot atau Wi-Fi'**
+  String get homeOfflineStepOne;
+
+  /// No description provided for @homeOfflineStepTwo.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan QR Wi-Fi'**
+  String get homeOfflineStepTwo;
+
+  /// No description provided for @homeOfflineStepThree.
+  ///
+  /// In id, this message translates to:
+  /// **'Arahkan ke kamera SIGAP-NETRA'**
+  String get homeOfflineStepThree;
+
+  /// No description provided for @homeWifiQrAction.
+  ///
+  /// In id, this message translates to:
+  /// **'QR Wi-Fi'**
+  String get homeWifiQrAction;
+
+  /// No description provided for @homeSyncing.
+  ///
+  /// In id, this message translates to:
+  /// **'Menyinkronkan...'**
+  String get homeSyncing;
+
+  /// No description provided for @homeSyncFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Sinkronisasi gagal. Coba lagi.'**
+  String get homeSyncFailed;
+
+  /// No description provided for @homeNoDeviceHeroTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perangkat terhubung'**
+  String get homeNoDeviceHeroTitle;
+
+  /// No description provided for @homeNoDeviceHeroBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Hubungkan kacamata untuk mulai memantau.'**
+  String get homeNoDeviceHeroBody;
+
+  /// No description provided for @validationQueueTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Antrean validasi'**
+  String get validationQueueTitle;
+
+  /// No description provided for @validationProgressValue.
+  ///
+  /// In id, this message translates to:
+  /// **'{current} dari {total}'**
+  String validationProgressValue(int current, int total);
+
+  /// No description provided for @validationFilterAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Gabungan'**
+  String get validationFilterAll;
+
+  /// No description provided for @validationFilterMoney.
+  ///
+  /// In id, this message translates to:
+  /// **'Uang'**
+  String get validationFilterMoney;
+
+  /// No description provided for @validationFilterText.
+  ///
+  /// In id, this message translates to:
+  /// **'Menu/Teks'**
+  String get validationFilterText;
+
+  /// No description provided for @validationReadAs.
+  ///
+  /// In id, this message translates to:
+  /// **'TERBACA SEBAGAI'**
+  String get validationReadAs;
+
+  /// No description provided for @validationProcessingLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Waktu proses'**
+  String get validationProcessingLabel;
+
+  /// No description provided for @validationNoImageTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Gambar tidak diunggah'**
+  String get validationNoImageTitle;
+
+  /// No description provided for @validationNoImageBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.'**
+  String get validationNoImageBody;
+
+  /// No description provided for @validationNoImageAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka pengaturan privasi'**
+  String get validationNoImageAction;
+
+  /// No description provided for @validationAllDoneTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua pembacaan sudah diperiksa'**
+  String get validationAllDoneTitle;
+
+  /// No description provided for @validationAllDoneBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat kembali hasil sebelumnya di Riwayat.'**
+  String get validationAllDoneBody;
+
+  /// No description provided for @validationGoHistory.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Riwayat'**
+  String get validationGoHistory;
+
+  /// No description provided for @validationUndoAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Urungkan'**
+  String get validationUndoAction;
+
+  /// No description provided for @validationSaved.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi tersimpan.'**
+  String get validationSaved;
+
+  /// No description provided for @historyListTab.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar'**
+  String get historyListTab;
+
+  /// No description provided for @historyStatsTab.
+  ///
+  /// In id, this message translates to:
+  /// **'Statistik'**
+  String get historyStatsTab;
+
+  /// No description provided for @historyFilterAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua'**
+  String get historyFilterAll;
+
+  /// No description provided for @historyFilterMatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Cocok'**
+  String get historyFilterMatch;
+
+  /// No description provided for @historyFilterMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak cocok'**
+  String get historyFilterMismatch;
+
+  /// No description provided for @historyFilterPending.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum'**
+  String get historyFilterPending;
+
+  /// No description provided for @historyYesterday.
+  ///
+  /// In id, this message translates to:
+  /// **'Kemarin'**
+  String get historyYesterday;
+
+  /// No description provided for @historyReadNumber.
+  ///
+  /// In id, this message translates to:
+  /// **'No. {number}'**
+  String historyReadNumber(int number);
+
+  /// No description provided for @historyStatsComingSoonTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Statistik segera hadir'**
+  String get historyStatsComingSoonTitle;
+
+  /// No description provided for @historyStatsComingSoonBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.'**
+  String get historyStatsComingSoonBody;
+
+  /// No description provided for @historyResetMenu.
+  ///
+  /// In id, this message translates to:
+  /// **'Reset status validasi...'**
+  String get historyResetMenu;
+
+  /// No description provided for @historyExportCsv.
+  ///
+  /// In id, this message translates to:
+  /// **'Ekspor CSV'**
+  String get historyExportCsv;
+
+  /// No description provided for @historyShareSummary.
+  ///
+  /// In id, this message translates to:
+  /// **'Bagikan ringkasan'**
+  String get historyShareSummary;
+
+  /// No description provided for @historyExportComingSoon.
+  ///
+  /// In id, this message translates to:
+  /// **'Ekspor CSV segera hadir.'**
+  String get historyExportComingSoon;
+
+  /// No description provided for @deviceConnectTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hubungkan'**
+  String get deviceConnectTitle;
+
+  /// No description provided for @deviceConnectBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan QR Wi-Fi ke kamera kacamata untuk menghubungkan perangkat ke jaringan.'**
+  String get deviceConnectBody;
+
+  /// No description provided for @deviceShowQr.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan QR Wi-Fi'**
+  String get deviceShowQr;
+
+  /// No description provided for @deviceControlTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kontrol'**
+  String get deviceControlTitle;
+
+  /// No description provided for @deviceActivityTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Aktivitas dan error'**
+  String get deviceActivityTitle;
+
+  /// No description provided for @deviceLastSeenLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Terakhir terlihat'**
+  String get deviceLastSeenLabel;
+
+  /// No description provided for @deviceFirmwareShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Firmware {version}'**
+  String deviceFirmwareShort(String version);
+
+  /// No description provided for @deviceModelShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Model {model}'**
+  String deviceModelShort(String model);
+
+  /// No description provided for @deviceIdLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'ID perangkat'**
+  String get deviceIdLabel;
+
+  /// No description provided for @provisioningStepNetwork.
+  ///
+  /// In id, this message translates to:
+  /// **'Jaringan'**
+  String get provisioningStepNetwork;
+
+  /// No description provided for @provisioningStepQr.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan QR'**
+  String get provisioningStepQr;
+
+  /// No description provided for @provisioningStepWaiting.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu alat'**
+  String get provisioningStepWaiting;
+
+  /// No description provided for @provisioningHotspot.
+  ///
+  /// In id, this message translates to:
+  /// **'Hotspot ponsel'**
+  String get provisioningHotspot;
+
+  /// No description provided for @provisioningHomeWifi.
+  ///
+  /// In id, this message translates to:
+  /// **'Wi-Fi rumah'**
+  String get provisioningHomeWifi;
+
+  /// No description provided for @provisioningRememberSsid.
+  ///
+  /// In id, this message translates to:
+  /// **'Ingat nama jaringan'**
+  String get provisioningRememberSsid;
+
+  /// No description provided for @provisioningCountdown.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu {seconds} dtk'**
+  String provisioningCountdown(int seconds);
+
+  /// No description provided for @settingsDisplayTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilan'**
+  String get settingsDisplayTitle;
+
+  /// No description provided for @settingsPrivacyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Privasi dan data'**
+  String get settingsPrivacyTitle;
+
+  /// No description provided for @settingsAdvancedTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjutan'**
+  String get settingsAdvancedTitle;
+
+  /// No description provided for @settingsAccountTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Akun'**
+  String get settingsAccountTitle;
+
+  /// No description provided for @settingsAboutTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tentang'**
+  String get settingsAboutTitle;
+
+  /// No description provided for @settingsSourceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Sumber data'**
+  String get settingsSourceTitle;
+
+  /// No description provided for @settingsShowTechnicalIds.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan ID teknis'**
+  String get settingsShowTechnicalIds;
+
+  /// No description provided for @settingsRetentionTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Retensi data'**
+  String get settingsRetentionTitle;
+
+  /// No description provided for @settingsRetentionBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan dan thumbnail disimpan maksimal 30 hari.'**
+  String get settingsRetentionBody;
+
+  /// No description provided for @settingsDeleteAllTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Hapus semua data perangkat'**
+  String get settingsDeleteAllTitle;
+
+  /// No description provided for @settingsDeleteAllBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Segera hadir.'**
+  String get settingsDeleteAllBody;
+
+  /// No description provided for @settingsOpenTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka pengaturan'**
+  String get settingsOpenTitle;
+
+  /// No description provided for @splashLoading.
+  ///
+  /// In id, this message translates to:
+  /// **'Menyiapkan SIGAP-NETRA...'**
+  String get splashLoading;
 
   /// No description provided for @timeJustNow.
   ///
