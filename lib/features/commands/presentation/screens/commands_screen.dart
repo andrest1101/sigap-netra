@@ -308,6 +308,7 @@ class _CommandTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [

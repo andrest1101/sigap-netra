@@ -40,6 +40,7 @@ class BentoTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,19 +113,25 @@ class BentoNumber extends StatelessWidget {
 
 /// Kepala seksi: judul + aksi opsional di kanan.
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({required this.title, super.key, this.action});
+  const SectionHeader({required this.title, super.key, this.action})
+    : compact = false;
+
+  /// Varian rapat untuk layar yang sudah padat (mis. Beranda).
+  const SectionHeader.compact({required this.title, super.key, this.action})
+    : compact = true;
 
   final String title;
   final Widget? action;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         DesignTokens.spacePage,
-        DesignTokens.spaceSection,
+        compact ? DesignTokens.spaceMd : DesignTokens.spaceSection,
         DesignTokens.spacePage,
-        DesignTokens.spaceMd,
+        DesignTokens.spaceSm,
       ),
       child: Row(
         children: [

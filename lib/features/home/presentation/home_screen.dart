@@ -56,7 +56,7 @@ class HomeScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   DesignTokens.spacePage,
-                  DesignTokens.spaceSm,
+                  0,
                   DesignTokens.spacePage,
                   0,
                 ),
@@ -129,30 +129,34 @@ class DeviceHeroCard extends ConsumerWidget {
     final pill = device.connectivity.toPillData(l10n);
     final isOnline = device.connectivity == DeviceConnectivity.online;
 
+    // Hero ber-background `primaryContainer`: seluruh teks langsung di sini
+    // wajib `onPrimaryContainer`. Hairline `outlineVariant` menegaskan batas
+    // kartu di atas scaffold terang (bukan shadow).
     return Container(
-      padding: const EdgeInsets.all(DesignTokens.spacePage),
+      padding: const EdgeInsets.all(DesignTokens.spaceLg),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(DesignTokens.radiusHero),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Stack(
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 48,
+                    height: 48,
                     decoration: ShapeDecoration(
                       color: colorScheme.surface,
                       shape: const CircleBorder(),
                     ),
                     child: Icon(
                       Icons.visibility_rounded,
-                      size: 32,
+                      size: 28,
                       color: colorScheme.onSurface,
                     ),
                   ),
@@ -166,12 +170,19 @@ class DeviceHeroCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(width: DesignTokens.spaceLg),
+              const SizedBox(width: DesignTokens.spaceMd),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(device.name, style: textTheme.titleLarge),
+                    Text(
+                      device.name,
+                      style: textTheme.titleLarge?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: DesignTokens.spaceXs),
                     StatusChip(
                       label:
@@ -183,11 +194,11 @@ class DeviceHeroCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: DesignTokens.spaceMd),
+              const SizedBox(width: DesignTokens.spaceSm),
               _BatteryRing(device: device),
             ],
           ),
-          const SizedBox(height: DesignTokens.spaceLg),
+          const SizedBox(height: DesignTokens.spaceMd),
           Row(
             children: [
               Expanded(child: _SyncButton(device: device)),
@@ -223,18 +234,24 @@ class _BatteryRing extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final battery = device.batteryPct;
 
+    // Di dalam Hero (`primaryContainer`): angka + label wajib
+    // `onPrimaryContainer` agar tidak menyatu dengan background.
+    final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         LensRing(
-          diameter: 64,
+          diameter: 56,
           value: battery == null ? null : battery / 100,
+          trackColor: onHero.withValues(alpha: 0.25),
+          progressColor: onHero,
           semanticsLabel: battery == null
               ? l10n.homeBatteryUnavailable
               : '${l10n.homeBatteryLabel} $battery persen',
           center: Text(
             battery == null ? '–' : '$battery',
             style: textTheme.titleMedium?.copyWith(
+              color: onHero,
               fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
@@ -242,9 +259,7 @@ class _BatteryRing extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           l10n.homeBatteryLabel,
-          style: textTheme.labelSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
+          style: textTheme.labelSmall?.copyWith(color: onHero),
         ),
       ],
     );
@@ -287,10 +302,13 @@ class _OfflineSteps extends StatelessWidget {
       l10n.homeOfflineStepThree,
     ];
 
+    // Panel di dalam Hero: background = `onPrimaryContainer` transparan,
+    // teks = `onPrimaryContainer`. Pasangan konsisten di dua mode.
+    final onHero = colorScheme.onPrimaryContainer;
     return Container(
       padding: const EdgeInsets.all(DesignTokens.spaceMd),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.6),
+        color: onHero.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
       ),
       child: Column(
@@ -298,9 +316,7 @@ class _OfflineSteps extends StatelessWidget {
         children: [
           Text(
             l10n.homeOfflineSetupTitle,
-            style: textTheme.labelMedium?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
+            style: textTheme.labelMedium?.copyWith(color: onHero),
           ),
           const SizedBox(height: DesignTokens.spaceSm),
           for (var i = 0; i < steps.length; i++)
@@ -312,16 +328,14 @@ class _OfflineSteps extends StatelessWidget {
                   Text(
                     '${i + 1}. ',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onPrimaryContainer,
+                      color: onHero,
                       fontFeatures: [FontFeature.tabularFigures()],
                     ),
                   ),
                   Expanded(
                     child: Text(
                       steps[i],
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
+                      style: textTheme.bodyMedium?.copyWith(color: onHero),
                     ),
                   ),
                 ],
@@ -359,7 +373,7 @@ class _HomeBento extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         DesignTokens.spacePage,
-        DesignTokens.spaceSection,
+        DesignTokens.spaceMd,
         DesignTokens.spacePage,
         0,
       ),
@@ -447,7 +461,7 @@ class _RecentActivitySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(
+        SectionHeader.compact(
           title: l10n.homeRecentActivity,
           action: TextButton(
             onPressed: () => const HistoryPath().go(context),

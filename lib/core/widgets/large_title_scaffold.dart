@@ -17,6 +17,7 @@ class LargeTitleScaffold extends StatelessWidget {
     this.actions = const [],
     this.bottom,
     this.floatingActionButton,
+    this.fillRemaining = false,
   });
 
   final String title;
@@ -28,6 +29,13 @@ class LargeTitleScaffold extends StatelessWidget {
   final List<Widget> actions;
   final PreferredSizeWidget? bottom;
   final Widget? floatingActionButton;
+
+  /// Bila true, body mengisi sisa viewport dengan tinggi terbatas.
+  ///
+  /// Wajib dipakai layar yang butuh `Expanded` di dalam body (mis. antrean
+  /// Validasi): `Expanded` di dalam `SliverToBoxAdapter` tidak punya batas
+  /// tinggi sehingga melempar layout exception dan layar gagal render total.
+  final bool fillRemaining;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +73,10 @@ class LargeTitleScaffold extends StatelessWidget {
                 ),
               ),
             ),
-          SliverToBoxAdapter(child: body),
+          if (fillRemaining)
+            SliverFillRemaining(hasScrollBody: true, child: body)
+          else
+            SliverToBoxAdapter(child: body),
         ],
       ),
     );

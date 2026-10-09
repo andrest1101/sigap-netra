@@ -173,6 +173,7 @@ class _EventTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+          border: Border.all(color: colorScheme.outlineVariant),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,6 +222,7 @@ class _CommandTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [

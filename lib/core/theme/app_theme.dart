@@ -67,11 +67,15 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
+      // Kartu tonal v3: tanpa shadow, dengan hairline `outlineVariant` agar
+      // batas kartu tetap terbaca di atas scaffold terang (bukan kartu putih
+      // bershadow yang dilarang identitas v3).
       cardTheme: CardThemeData(
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+          side: BorderSide(color: colorScheme.outlineVariant),
         ),
         color: colorScheme.surfaceContainerLow,
       ),
