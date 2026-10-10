@@ -288,6 +288,29 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeLastSeenLabel => 'Terakhir terlihat';
 
   @override
+  String homeAccuracyFromCount(int count) {
+    return 'dari $count validasi';
+  }
+
+  @override
+  String get homeNoValidation => 'Belum ada validasi';
+
+  @override
+  String homeTodayBreakdown(int money, int text) {
+    return '$money uang · $text teks';
+  }
+
+  @override
+  String get homeEmptyActivityTitle => 'Belum ada aktivitas';
+
+  @override
+  String get homeEmptyActivityBody =>
+      'Pembacaan terbaru dari perangkat akan muncul di sini.';
+
+  @override
+  String get homeEmptyActivityAction => 'Periksa antrean';
+
+  @override
   String get statusOnline => 'Online';
 
   @override

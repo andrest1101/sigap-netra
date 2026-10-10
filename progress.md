@@ -25,6 +25,18 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-10 Refactor Beranda: hero seimbang, bento informatif, aktivitas bernilai
+
+Permintaan user: Beranda polos/AI-slop — refactor seprofesional mungkin (proporsi, ritme, nilai tiap widget).
+
+- H1 Hero seimbang: avatar 48→56 (token), StatusDot 14→12, ring 64→56 + caption "Baterai" dihapus total (ring + angka saja; label aksesibilitas dari LensRing internal, tanpa Semantics ganda yang menggabungkan label); InkWell dalam radius 28. Baris info kini 56 vs 56.
+- H2 Bento: `IntrinsicHeight` + stretch (dua tile atas selalu sama tinggi); ring akurasi 56→72 + footer mikro ("dari N validasi" / "Belum ada validasi"); tile Sinkron jadi jam absolut `RelativeTime.timeAndDate` ("14.32 · 10 Okt" — duplikasi relatif dengan chip Hero hilang); tile Hari ini + footer breakdown ("3 uang · 2 teks", dihitung lokal); `BentoTile.footer` slot baru (labelSmall 1 baris).
+- H3 Aktivitas: sumber 5 terbaru semua status (bukan pending saja); chip `#N` → chip status validasi (Cocok/Tidak/…); ikon kategori uang/teks ganti ikon generik; subjudul `conf · waktu` (nama perangkat disembunyikan bila 1 perangkat); tap → detail pembacaan (push); empty khusus Beranda (ikon + teks + tombol ke Validasi) ganti copy Validasi.
+- H4 Ritme: Hero top 0→8, Bento top 12→24 (ritme 8-24-12-24); angka mentah ke token.
+- l10n baru 6 kunci (regen via `flutter build bundle` — gen-l10n/analyze tidak regen).
+- Test: update golden home+device (ring 56, tanpa caption) + PNG diinspeksi; assertion baru (jam absolut, breakdown, footer, chip status); grup BatteryRing di lens_ring_test (tanpa caption + semantik null). Pelajaran: `find.textContaining` gagal bukan karena teks hilang melainkan golden mismatch di baris berikutnya — baca nomor baris dengan teliti; Semantics bersarang menggabungkan label (jangan bungkus ganda).
+- Verifikasi: format bersih, analyze No issues, test **148 lulus**, build Windows sukses + smoke ALIVE.
+
 ## 2026-10-10 Logo Google resmi sebagai aset
 
 Laporan user: ikon tombol Google (`g_mobiledata`) bukan logo Google; logo resmi disediakan di `assets/foto/` (nama folder kurang profesional).

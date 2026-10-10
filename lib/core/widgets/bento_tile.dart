@@ -14,6 +14,7 @@ class BentoTile extends StatelessWidget {
     super.key,
     this.action,
     this.onTap,
+    this.footer,
   });
 
   /// Tile ringkas: label + nilai sebaris.
@@ -23,12 +24,17 @@ class BentoTile extends StatelessWidget {
     super.key,
     this.action,
     this.onTap,
+    this.footer,
   }) : child = _SmallValue(value: value);
 
   final String label;
   final Widget child;
   final Widget? action;
   final VoidCallback? onTap;
+
+  /// Teks mikro di bawah nilai (mis. "3 uang · 2 teks"): memberi konteks
+  /// tanpa menambah tinggi tile secara berarti.
+  final String? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +60,17 @@ class BentoTile extends StatelessWidget {
           ),
           const SizedBox(height: DesignTokens.spaceSm),
           child,
+          if (footer != null) ...[
+            const SizedBox(height: DesignTokens.spaceXs),
+            Text(
+              footer!,
+              style: textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           if (action != null) ...[
             const SizedBox(height: DesignTokens.spaceMd),
             action!,

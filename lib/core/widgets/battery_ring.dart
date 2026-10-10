@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'lens_ring.dart';
 
-/// Indikator baterai: cincin + label, dipakai identik di Beranda (Hero) dan
-/// tab Perangkat agar tidak ada lagi dua versi yang divergen.
+/// Indikator baterai: cincin + angka saja, dipakai identik di Beranda (Hero)
+/// dan tab Perangkat agar tidak ada lagi dua versi yang divergen.
+///
+/// Satu fungsi satu tampilan: persen sudah terbaca di tengah cincin, jadi
+/// caption "Baterai" dihapus. Label aksesibilitas datang dari
+/// `LensRing.battery` sendiri (`availableLabel`/`unavailableLabel`), jadi
+/// tidak dibungkus `Semantics` ganda yang menggabungkan label. Ukuran
+/// default 56 agar sejajar avatar perangkat.
 ///
 /// [numberColor]/[trackColor]: override untuk konteks background khusus
 /// (mis. Hero `primaryContainer` → `onPrimaryContainer`). Bila null memakai
@@ -13,7 +19,7 @@ class BatteryRing extends StatelessWidget {
   const BatteryRing({
     required this.batteryPct,
     super.key,
-    this.diameter = 64,
+    this.diameter = 56,
     this.numberColor,
     this.trackColor,
   });
@@ -26,28 +32,14 @@ class BatteryRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final defaultLabelColor = Theme.of(context).colorScheme.onSurfaceVariant;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LensRing.battery(
-          diameter: diameter,
-          batteryPct: batteryPct,
-          availableLabel: l10n.homeBatteryLabel,
-          unavailableLabel: l10n.homeBatteryUnavailable,
-          color: numberColor,
-          trackColor: trackColor,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          l10n.homeBatteryLabel,
-          style: textTheme.labelSmall?.copyWith(
-            color: numberColor ?? defaultLabelColor,
-          ),
-        ),
-      ],
+    return LensRing.battery(
+      diameter: diameter,
+      batteryPct: batteryPct,
+      availableLabel: l10n.homeBatteryLabel,
+      unavailableLabel: l10n.homeBatteryUnavailable,
+      color: numberColor,
+      trackColor: trackColor,
     );
   }
 }

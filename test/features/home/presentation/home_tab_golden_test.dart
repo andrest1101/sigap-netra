@@ -99,11 +99,13 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Kacamata Cerdas'), findsOneWidget);
       expect(find.text('82'), findsOneWidget);
+      // Caption "Baterai" dihapus: ring + angka saja.
+      expect(find.text('Baterai'), findsNothing);
 
-      // Widget yang sama dengan tab Perangkat: diameter + data identik.
+      // Widget yang sama dengan tab Perangkat: ukuran + data identik.
       final rings = tester.widgetList<BatteryRing>(find.byType(BatteryRing));
       expect(rings, hasLength(1));
-      expect(rings.first.diameter, 64);
+      expect(rings.first.diameter, 56);
       expect(rings.first.batteryPct, 82);
       // Satu-satunya beda yang sah: warna diangka menyesuaikan konteks
       // Hero `primaryContainer` (bukan putih paksa).
@@ -111,6 +113,10 @@ void main() {
         tester.element(find.byType(HomeScreen)),
       ).colorScheme;
       expect(rings.first.numberColor, scheme.onPrimaryContainer);
+
+      // Bento informatif: jam absolut + breakdown kategori + footer akurasi.
+      expect(find.textContaining('·'), findsWidgets);
+      expect(find.textContaining('uang ·'), findsOneWidget);
 
       await expectLater(
         find.byType(HomeScreen),

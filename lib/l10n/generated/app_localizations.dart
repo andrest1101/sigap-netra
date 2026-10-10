@@ -634,6 +634,42 @@ abstract class AppLocalizations {
   /// **'Terakhir terlihat'**
   String get homeLastSeenLabel;
 
+  /// No description provided for @homeAccuracyFromCount.
+  ///
+  /// In id, this message translates to:
+  /// **'dari {count} validasi'**
+  String homeAccuracyFromCount(int count);
+
+  /// No description provided for @homeNoValidation.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada validasi'**
+  String get homeNoValidation;
+
+  /// No description provided for @homeTodayBreakdown.
+  ///
+  /// In id, this message translates to:
+  /// **'{money} uang · {text} teks'**
+  String homeTodayBreakdown(int money, int text);
+
+  /// No description provided for @homeEmptyActivityTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada aktivitas'**
+  String get homeEmptyActivityTitle;
+
+  /// No description provided for @homeEmptyActivityBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan terbaru dari perangkat akan muncul di sini.'**
+  String get homeEmptyActivityBody;
+
+  /// No description provided for @homeEmptyActivityAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Periksa antrean'**
+  String get homeEmptyActivityAction;
+
   /// No description provided for @statusOnline.
   ///
   /// In id, this message translates to:

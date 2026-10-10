@@ -193,9 +193,9 @@ class _DeviceHead extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: DesignTokens.spaceMd),
-              // Widget bersama yang sama dengan Hero Beranda (diameter
-              // disamakan 64 agar proporsinya identik).
-              BatteryRing(batteryPct: battery, diameter: 64),
+              // Widget bersama yang sama dengan Hero Beranda (ukuran
+              // default 56 di kedua tempat agar proporsinya identik).
+              BatteryRing(batteryPct: battery),
             ],
           ),
         ),

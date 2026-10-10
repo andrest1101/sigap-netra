@@ -100,7 +100,8 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Kacamata Cerdas'), findsOneWidget);
       expect(find.text('82'), findsOneWidget);
-      expect(find.text('Baterai'), findsWidgets);
+      // Caption "Baterai" dihapus: ring + angka saja.
+      expect(find.text('Baterai'), findsNothing);
 
       await expectLater(
         find.byType(DeviceListScreen),
@@ -129,11 +130,11 @@ void main() {
 
       // Regression: ring baterai Beranda dan Perangkat pernah divergen
       // (cincin abu rusak vs cincin hijau). Keduanya wajib memakai widget
-      // bersama BatteryRing dengan diameter sama.
+      // bersama BatteryRing dengan ukuran sama (56, tanpa caption).
       final rings = tester.widgetList<BatteryRing>(find.byType(BatteryRing));
       expect(rings, isNotEmpty);
       for (final ring in rings) {
-        expect(ring.diameter, 64);
+        expect(ring.diameter, 56);
         expect(ring.batteryPct, 82);
       }
       // Angka tengah memakai warna angka default tema (bukan putih paksa).
