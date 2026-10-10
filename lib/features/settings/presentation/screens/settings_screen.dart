@@ -231,12 +231,20 @@ class _AccountHeader extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final currentUser = ref.watch(currentUserProvider);
     final email = currentUser?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-    final subtitle = currentUser == null
+    final displayName = currentUser?.displayName?.trim() ?? '';
+    // Identitas utama: nama tampilan bila ada (pendaftaran / Google),
+    // lalu email tersamar, lalu UID untuk tamu anonim.
+    final identity = displayName.isNotEmpty
+        ? displayName
+        : currentUser == null
         ? l10n.settingsSignedOutAsGuest
         : email.isNotEmpty
         ? maskEmail(email)
         : currentUser.uid;
+    final initialSource = displayName.isNotEmpty ? displayName : email;
+    final initial = initialSource.isNotEmpty
+        ? initialSource[0].toUpperCase()
+        : '?';
 
     return Container(
       padding: const EdgeInsets.all(DesignTokens.spaceLg),
@@ -270,7 +278,7 @@ class _AccountHeader extends ConsumerWidget {
                 ),
                 const SizedBox(height: DesignTokens.spaceXs),
                 Text(
-                  subtitle,
+                  identity,
                   style: textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.w600,
