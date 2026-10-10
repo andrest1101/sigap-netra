@@ -25,6 +25,19 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-10 Login profesional: daftar + tamu + hero
+
+Laporan user: halaman login terlalu polos; Google langsung masuk tanpa pilih akun; minta alur profesional (tamu bebas, daftar bagi yang belum punya akun) mengikuti referensi tanpa meniru 100% dan tanpa Apple.
+
+- Layar baru: `LoginHero` (LensRing focusing 88 + SIGAP-NETRA + kartu 3 poin nilai), judul "Selamat datang kembali", `AuthTextField` (label di atas field pil + toggle intip sandi + error inline), tombol Masuk penuh, `OrDivider`, tombol Google outlined, "Lanjutkan sebagai tamu", link "Belum punya akun? Daftar", footer privasi. `login_form.dart` lama dihapus.
+- Sheet daftar (`SignUpSheet`, bottom sheet radiusSheet): Nama opsional + Email + Kata sandi + Konfirmasi; validasi berlapis (field + use case); error Firebase tampil di dalam sheet.
+- Domain: `AuthRepository` + `signUpWithEmail`/`signInAnonymously`; use case `SignUpWithEmail` (email valid + min 6 + konfirmasi cocok) dan `SignInAnonymously`; `isValidEmail` bersama; `SignInWithEmail` kini menolak format salah dengan kunci l10n.
+- Data: `FirebaseAuthDataSource` + create user (isi displayName) / signInAnonymously; `AuthRepositoryImpl` + fake mengikuti (tamu = `guest-demo` tanpa email). PERLU: aktifkan provider Anonymous di Firebase console.
+- Header akun Pengaturan: identitas utama = displayName → email tersamar → UID (tamu).
+- l10n baru ±20 kunci (ID). Regen via `flutter build bundle` (catatan: `flutter gen-l10n` menolak karena l10n.yaml; regen otomatis test/analyze tidak selalu jalan).
+- Test: use case (email/daftar/tamu, 16 lulus di file domain), widget login (hero, validasi, sheet buka/tolak/berhasil, tamu) + golden light/dark baru (PNG diinspeksi). Stub auth di test validasi ditambah 2 method.
+- Verifikasi: format bersih, analyze No issues, test **144 lulus**, build Windows sukses + smoke ALIVE.
+
 ## 2026-10-10 UI/UX menyeluruh: pintu Pengaturan tunggal + poles 4 tab
 
 Laporan user: (1) kartu Akun & Pengaturan muncul di 3 tab (ramai), (2) lanjutkan peningkatan UI/UX per halaman secara profesional.
