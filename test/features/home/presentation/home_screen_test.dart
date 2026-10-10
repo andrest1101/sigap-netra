@@ -165,7 +165,8 @@ void main() {
       await pumpFrames(tester);
 
       expect(find.text('Kacamata Cerdas'), findsOneWidget);
-      expect(find.text('Menunggu'), findsOneWidget);
+      // "Menunggu" muncul di tile bento + chip status tiap baris aktivitas.
+      expect(find.text('Menunggu'), findsWidgets);
       expect(find.text('Akurasi'), findsOneWidget);
       expect(find.text('Sinkronkan'), findsOneWidget);
       expect(find.text('QR Wi-Fi'), findsOneWidget);
@@ -268,6 +269,47 @@ void main() {
 
       expect(find.text('Sinkronkan'), findsOneWidget);
       expect(find.text('Sinkronkan sekarang'), findsNothing);
+    });
+
+    testWidgets('bento menampilkan jam absolut + breakdown hari ini', (
+      tester,
+    ) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      // Tile Sinkron: jam absolut, bukan hitungan relatif ganda.
+      expect(find.textContaining('·'), findsWidgets);
+      // Tile Hari ini: breakdown kategori dari data demo (3 uang · 2 teks).
+      expect(find.textContaining('uang ·'), findsOneWidget);
+      // Footer akurasi: state kosong informatif (demo belum divalidasi).
+      expect(find.text('Belum ada validasi'), findsOneWidget);
+    });
+
+    testWidgets('aktivitas memakai chip status validasi', (tester) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      // Demo 5 item pending: chip status "Menunggu", bukan nomor #1..#5.
+      expect(find.text('Menunggu'), findsWidgets);
+      expect(find.text('#1'), findsNothing);
     });
   });
 }
