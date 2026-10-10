@@ -43,6 +43,31 @@ class FirebaseAuthDataSource {
     return _auth.signInWithCredential(credential);
   }
 
+  /// Mendaftarkan akun baru; mengisi nama tampilan bila diberikan.
+  Future<UserCredential> signUpWithEmail({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    final name = displayName?.trim();
+    if (credential.user != null && name != null && name.isNotEmpty) {
+      await credential.user!.updateDisplayName(name);
+      await credential.user!.reload();
+    }
+    return credential;
+  }
+
+  /// Masuk anonim sebagai tamu.
+  ///
+  /// Gagal dengan `operation-not-allowed` bila provider Anonymous belum
+  /// diaktifkan di Firebase console — dipetakan ke `AppFailure` oleh
+  /// repository agar presentation menampilkan pesan ramah.
+  Future<UserCredential> signInAnonymously() => _auth.signInAnonymously();
+
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
