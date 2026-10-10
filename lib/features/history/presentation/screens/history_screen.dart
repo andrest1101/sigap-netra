@@ -221,6 +221,7 @@ class _HistoryList extends StatelessWidget {
           ),
           child: Wrap(
             spacing: DesignTokens.spaceSm,
+            runSpacing: DesignTokens.spaceSm,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               ChoiceChip(

@@ -171,7 +171,8 @@ class DeviceHeroCard extends ConsumerWidget {
               const SizedBox(width: DesignTokens.spaceMd),
               Expanded(
                 child: FilledButton.tonalIcon(
-                  onPressed: () => DeviceWifiPath(device.deviceId).go(context),
+                  onPressed: () =>
+                      DeviceWifiPath(device.deviceId).push(context),
                   icon: const Icon(Icons.qr_code_rounded),
                   label: Text(l10n.homeWifiQrAction),
                 ),
@@ -222,7 +223,7 @@ class _SyncButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return FilledButton.icon(
-      onPressed: () => DeviceCommandsPath(device.deviceId).go(context),
+      onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
       icon: const Icon(Icons.sync_rounded),
       // Label pendek satu baris: "Sinkronkan sekarang" selalu wrap dua baris
       // di setengah lebar Hero dan terlihat rusak di screenshot.

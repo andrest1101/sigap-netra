@@ -112,76 +112,92 @@ class _DeviceHead extends StatelessWidget {
     final pill = device.connectivity.toPillData(l10n);
     final battery = device.batteryPct;
 
-    return Container(
-      padding: const EdgeInsets.all(DesignTokens.spacePage),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
-        border: Border.all(color: colorScheme.outlineVariant),
+    // Tap kepala perangkat membuka Detail (push agar bisa kembali).
+    // Seluruh konten kartu interaktif sekaligus: satu pintu ke detail.
+    final borderRadius = BorderRadius.circular(DesignTokens.radiusCard);
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: () => DeviceDetailPath(device.deviceId).push(context),
+        child: Padding(
+          padding: const EdgeInsets.all(DesignTokens.spacePage),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusDot(
-                      tone: device.connectivity == DeviceConnectivity.online
-                          ? AppStatusTone.ok
-                          : AppStatusTone.bad,
-                      size: 12,
+                    Row(
+                      children: [
+                        StatusDot(
+                          tone: device.connectivity == DeviceConnectivity.online
+                              ? AppStatusTone.ok
+                              : AppStatusTone.bad,
+                          size: 12,
+                        ),
+                        const SizedBox(width: DesignTokens.spaceSm),
+                        Expanded(
+                          child: Text(
+                            device.name,
+                            style: textTheme.titleLarge,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: DesignTokens.spaceSm),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: DesignTokens.spaceSm),
-                    Expanded(
-                      child: Text(
-                        device.name,
-                        style: textTheme.titleLarge,
+                    const SizedBox(height: DesignTokens.spaceXs),
+                    Text(
+                      '${l10n.deviceLastSeenLabel}: ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (device.firmwareVersion != null ||
+                        device.model != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        [
+                          if (device.model != null)
+                            l10n.deviceModelShort(device.model!),
+                          if (device.firmwareVersion != null)
+                            l10n.deviceFirmwareShort(device.firmwareVersion!),
+                        ].join(' · '),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                    ],
+                    const SizedBox(height: DesignTokens.spaceSm),
+                    StatusChip(
+                      label: pill.label,
+                      tone: pill.tone,
+                      icon: pill.icon,
+                      isDense: true,
                     ),
                   ],
                 ),
-                const SizedBox(height: DesignTokens.spaceXs),
-                Text(
-                  '${l10n.deviceLastSeenLabel}: ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (device.firmwareVersion != null || device.model != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    [
-                      if (device.model != null)
-                        l10n.deviceModelShort(device.model!),
-                      if (device.firmwareVersion != null)
-                        l10n.deviceFirmwareShort(device.firmwareVersion!),
-                    ].join(' · '),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                const SizedBox(height: DesignTokens.spaceSm),
-                StatusChip(
-                  label: pill.label,
-                  tone: pill.tone,
-                  icon: pill.icon,
-                  isDense: true,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: DesignTokens.spaceMd),
+              // Widget bersama yang sama dengan Hero Beranda (diameter
+              // disamakan 64 agar proporsinya identik).
+              BatteryRing(batteryPct: battery, diameter: 64),
+            ],
           ),
-          const SizedBox(width: DesignTokens.spaceMd),
-          // Widget bersama yang sama dengan Hero Beranda (diameter disamakan
-          // 64 agar proporsinya identik).
-          BatteryRing(batteryPct: battery, diameter: 64),
-        ],
+        ),
       ),
     );
   }
@@ -225,7 +241,8 @@ class _ConnectCard extends StatelessWidget {
                 ),
                 const SizedBox(height: DesignTokens.spaceMd),
                 FilledButton.tonalIcon(
-                  onPressed: () => DeviceWifiPath(device.deviceId).go(context),
+                  onPressed: () =>
+                      DeviceWifiPath(device.deviceId).push(context),
                   icon: const Icon(Icons.qr_code_rounded),
                   label: Text(l10n.deviceShowQr),
                 ),
@@ -254,7 +271,7 @@ class _ControlCard extends StatelessWidget {
         SectionHeader(
           title: l10n.deviceControlTitle,
           action: TextButton(
-            onPressed: () => DeviceCommandsPath(device.deviceId).go(context),
+            onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
             child: Text(l10n.commonSeeAll),
           ),
         ),
@@ -269,22 +286,22 @@ class _ControlCard extends StatelessWidget {
               _ControlChip(
                 icon: Icons.sync_rounded,
                 label: l10n.commandsSyncNow,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.volume_up_rounded,
                 label: l10n.commandsSetVolume,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.record_voice_over_rounded,
                 label: l10n.commandsSpeakText,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.restart_alt_rounded,
                 label: l10n.commandsRestart,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
             ],
           ),
@@ -353,7 +370,7 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
         SectionHeader(
           title: l10n.deviceActivityTitle,
           action: TextButton(
-            onPressed: () => const ConnectionLogsPath().go(context),
+            onPressed: () => const ConnectionLogsPath().push(context),
             child: Text(l10n.commonSeeAll),
           ),
         ),
@@ -366,6 +383,7 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
           ),
           child: Wrap(
             spacing: DesignTokens.spaceSm,
+            runSpacing: DesignTokens.spaceSm,
             children: [
               ChoiceChip(
                 label: Text(l10n.historyFilterAll),
