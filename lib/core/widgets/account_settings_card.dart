@@ -77,7 +77,9 @@ class AccountSettingsCard extends ConsumerWidget {
             ),
             const SizedBox(width: DesignTokens.spaceMd),
             FilledButton.tonalIcon(
-              onPressed: () => const SettingsPath().go(context),
+              // Layar daun: push (bukan go) agar tombol kembali Pengaturan
+              // punya stack untuk pulang.
+              onPressed: () => const SettingsPath().push(context),
               icon: const Icon(Icons.settings_outlined, size: 18),
               label: Text(l10n.settingsTitle),
             ),
