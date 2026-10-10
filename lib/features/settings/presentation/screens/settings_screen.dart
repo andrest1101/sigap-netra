@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/utils/mask_email.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -274,19 +275,4 @@ class _AboutSection extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Menampilkan email dalam bentuk tersamar.
-///
-/// Privasi: UI tidak pernah menampilkan alamat penuh.
-String maskEmail(String email) {
-  final parts = email.split('@');
-  if (parts.length != 2 || parts.first.isEmpty || parts.last.isEmpty) {
-    return email;
-  }
-
-  final local = parts.first;
-  final domain = parts.last;
-  final visible = local.length <= 2 ? local : local.substring(0, 2);
-  return '$visible***@$domain';
 }
