@@ -24,6 +24,32 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Bug 4 (Validasi crash layout, bukan data): `Expanded` dalam sliver tak terbatas → `LargeTitleScaffold.fillRemaining` (`SliverFillRemaining`); layar lain aman (audit: hanya Validasi). Regression test: render kartu + filter + Cocok/snackbar + Urungkan (+ auth stub).
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
+
+## 2026-10-09 Fix warna chip + unifikasi ring baterai (Beranda ↔ Perangkat)
+
+Laporan user: (1) warna font putih menyatu background di tab **Perangkat & Riwayat**, (2) ring baterai Beranda berbeda dengan ring di tab Perangkat.
+
+- Akar masalah warna chip ketemu lewat audit runtime: label chip tidak pernah punya `Text.style.color` (selalu `null`) karena warnanya diwariskan lewat `DefaultTextStyle` internal chip. Tanpa `chipTheme.labelStyle` eksplisit, warna itu jatuh ke warisan sekitar → tampak putih di kartu terang. Perbaikan permanen di `app_theme.dart`: `chipTheme` eksplisit (background `surfaceContainerLow`, selected `secondaryContainer`, `labelStyle` dengan `WidgetStateColor.resolveWith` → disabled `onSurface` .38 / selected `onSecondaryContainer` / default `onSurfaceVariant`; `iconTheme` eksplisit). Terbukti: warna efektif sekarang `rgb(71,70,79)` (default) dan `rgb(26,26,44)` (selected) — gelap.
+- Ring baterai: widget bersama baru `core/widgets/battery_ring.dart` (`BatteryRing({batteryPct, diameter=64, numberColor, trackColor})`) memakai `LensRing.battery` + label "Baterai". Hero Beranda (`_BatteryRing`) dan DeviceHead Perangkat keduanya memakai widget yang sama, diameter sama 64; satu-satunya beda yang sah = warna angka menyesuaikan konteks Hero `primaryContainer` (`onPrimaryContainer`).
+- Bukti visual (bukan tebakan): golden test baru untuk 3 tab — `test/features/{devices,history,home}/.../*_tab_golden_test.dart` + PNG di `*/goldens/`. File PNG diinspeksi manual.
+- Regression test: teks chip wajib luminance < 0.5 (baca warna efektif = `Text.style?.color ?? DefaultTextStyle.of(element).style.color`, resolve `WidgetStateColor`); `BatteryRing` wajib diameter 64 + `batteryPct` sama; angka Hero = `onPrimaryContainer`.
+- Audit menyeluruh 3 tab (Beranda/Perangkat/Riwayat) terhadap semua `Text` tampak: satu-satunya teks terang = label tombol bermaterial indigo (`FilledButton` putih di atas indigo) — benar, bukan bug.
+- Verifikasi: format bersih, `flutter analyze` No issues, `flutter test` **114 lulus** (dari 105), `flutter build windows --debug` sukses + exe ALIVE.
+- Catatan teknis: `matchesGoldenFile()` resolusi path relatif **file test** (`../goldens/...`), sedangkan `Directory()/File()` relatif **cwd** — beda; `expect()` tidak mempromosi `Color?` jadi non-null (perlu `!`).
+
+## 2026-10-09 Polish presentasi (header rapat, kartu akun, baterai, warna)
+
+Laporan user + screenshot: (1) header terdorong ke bawah di semua tab, (2) avatar "D" menggantung, (3) ring baterai terlihat rusak, (4) teks putih tab Perangkat, plus tombol "Sinkronkan sekarang" wrap dua baris.
+
+- App bar rapat: `LargeTitleScaffold` default `SliverAppBar` biasa ±64 (judul 20/SemiBold); varian `.large` dipertahankan. Konten naik ±90px di 4 tab.
+- Avatar app bar dihapus total (param `avatar` dihapus dari scaffold; class `_SettingsAvatar` mati dihapus di 3 layar). Pengganti: `AccountSettingsCard` bersama (inisial + email tersamar + tombol Pengaturan) di Beranda, Riwayat, Perangkat. `maskEmail` dipindah ke `core/utils/mask_email.dart` (hapus duplikat settings).
+- Baterai: `LensRing.battery` factory (warna adaptif ok≥30/warn≥15/bad dari `StatusColors` tema via `BatteryAdaptiveLevel`; null → 4 segmen mata angin + ikon, bukan cincin abu penuh); Hero + DeviceHead pakai factory; demo `batteryPct: 82` (jelas demo).
+- Tombol Hero: label `homeSyncShort` "Sinkronkan" satu baris (test mengunci).
+- `_NoDeviceState` teks ke `onPrimaryContainer` + hairline.
+- Bug laten ditemukan test: `LensRing._controller` lazy → crash "deactivated ancestor" saat dispose; diperbaiki ke initState.
+- Audit warna: login, history swipe, validasi, settings, QR, detail, koneksi, semua widget bersama — semua pasangan container/on-container konsisten; tidak ada yang diubah selain yang di atas.
+- Verifikasi: format bersih, analyze No issues, test 105 lulus, build Windows sukses + exe ALIVE.
+- Catatan: factory tidak bisa `const` di test; `BatteryAdaptiveLevel` enum publik sebagai penanda internal factory.
 - Catatan: `package_info_plus` belum dipakai (perlu persetujuan package); versi Tentang via `kAppVersionDisplay` sinkron manual dengan pubspec.
 
 Tanggal: 2026-10-08

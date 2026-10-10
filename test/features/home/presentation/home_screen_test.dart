@@ -167,7 +167,7 @@ void main() {
       expect(find.text('Kacamata Cerdas'), findsOneWidget);
       expect(find.text('Menunggu'), findsOneWidget);
       expect(find.text('Akurasi'), findsOneWidget);
-      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
+      expect(find.text('Sinkronkan'), findsOneWidget);
       expect(find.text('QR Wi-Fi'), findsOneWidget);
     });
 
@@ -188,6 +188,86 @@ void main() {
       await pumpFrames(tester);
 
       expect(find.textContaining('Terputus'), findsWidgets);
+    });
+
+    testWidgets('nama perangkat Hero memakai onPrimaryContainer', (
+      tester,
+    ) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      final context = tester.element(find.text('Kacamata Cerdas'));
+      final scheme = Theme.of(context).colorScheme;
+      final text = tester.widget<Text>(find.text('Kacamata Cerdas'));
+      // Regression: teks di atas `primaryContainer` pernah memakai `onSurface`
+      // sehingga menyatu dengan background.
+      expect(text.style?.color, scheme.onPrimaryContainer);
+    });
+
+    testWidgets('nama perangkat Hero terbaca di mode gelap', (tester) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            deviceRepositoryProvider.overrideWithValue(repository),
+            currentUserProvider.overrideWithValue(
+              const AppUser(uid: 'user-1', email: 'user@example.com'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('id'),
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            theme: ThemeData.light(useMaterial3: true),
+            darkTheme: ThemeData.dark(useMaterial3: true),
+            themeMode: ThemeMode.dark,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      final context = tester.element(find.text('Kacamata Cerdas'));
+      final scheme = Theme.of(context).colorScheme;
+      expect(Theme.of(context).brightness, Brightness.dark);
+      final text = tester.widget<Text>(find.text('Kacamata Cerdas'));
+      expect(text.style?.color, scheme.onPrimaryContainer);
+    });
+
+    testWidgets('tombol sinkron Hero memakai label pendek satu baris', (
+      tester,
+    ) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      expect(find.text('Sinkronkan'), findsOneWidget);
+      expect(find.text('Sinkronkan sekarang'), findsNothing);
     });
   });
 }

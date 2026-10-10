@@ -185,6 +185,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeSyncNow => 'Sinkronkan sekarang';
 
   @override
+  String get homeSyncShort => 'Sinkronkan';
+
+  @override
   String get homeSyncSent => 'Permintaan sinkronisasi dikirim.';
 
   @override

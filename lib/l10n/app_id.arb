@@ -64,6 +64,7 @@
 
   "homeTitle": "Beranda",
   "homeSyncNow": "Sinkronkan sekarang",
+  "homeSyncShort": "Sinkronkan",
   "homeSyncSent": "Permintaan sinkronisasi dikirim.",
   "homeRecentActivity": "Aktivitas terbaru",
   "homeValidationSummary": "Ringkasan validasi",

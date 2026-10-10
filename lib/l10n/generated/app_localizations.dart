@@ -436,6 +436,12 @@ abstract class AppLocalizations {
   /// **'Sinkronkan sekarang'**
   String get homeSyncNow;
 
+  /// No description provided for @homeSyncShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Sinkronkan'**
+  String get homeSyncShort;
+
   /// No description provided for @homeSyncSent.
   ///
   /// In id, this message translates to:
