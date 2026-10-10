@@ -109,13 +109,32 @@ class DevicesPath {
 }
 
 /// Navigasi ke detail satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceDetailPath {
   const DeviceDetailPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId');
+  String get location => '${AppRoutes.devices}/$deviceId';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
+}
+
+/// Navigasi ke detail satu pembacaan riwayat.
+class HistoryDetailPath {
+  const HistoryDetailPath(this.detectionId);
+
+  final String detectionId;
+
+  String get location => '${AppRoutes.history}/$detectionId';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke tab Validasi.
@@ -134,38 +153,62 @@ class HistoryPath {
 }
 
 /// Navigasi ke layar Pengaturan.
+///
+/// Layar daun top-level: selalu [push] agar tombol kembali tersedia. [go]
+/// hanya untuk fallback (tidak ada stack kembali).
 class SettingsPath {
   const SettingsPath();
 
   void go(BuildContext context) => GoRouter.of(context).go(AppRoutes.settings);
+
+  void push(BuildContext context) =>
+      GoRouter.of(context).push(AppRoutes.settings);
 }
 
 /// Navigasi ke layar QR Wi-Fi satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceWifiPath {
   const DeviceWifiPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/wifi');
+  String get location => '${AppRoutes.devices}/$deviceId/wifi';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke layar perintah satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceCommandsPath {
   const DeviceCommandsPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/perintah');
+  String get location => '${AppRoutes.devices}/$deviceId/perintah';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke layar log koneksi (semua perangkat).
+///
+/// Layar daun top-level: selalu [push] agar tombol kembali tersedia. [go]
+/// hanya untuk fallback (tidak ada stack kembali).
 class ConnectionLogsPath {
   const ConnectionLogsPath();
 
   void go(BuildContext context) =>
       GoRouter.of(context).go(AppRoutes.settingsConnection);
+
+  void push(BuildContext context) =>
+      GoRouter.of(context).push(AppRoutes.settingsConnection);
 }
 
 /// Shell empat tab dengan `NavigationBar` standar M3 (label selalu tampil).

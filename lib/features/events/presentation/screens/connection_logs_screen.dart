@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -64,8 +66,9 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
     final now = DateTime.now();
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: BackAppBar(
         title: Text(l10n.eventsTitle),
+        fallbackRoute: AppRoutes.devices,
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -89,6 +92,7 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
                 ),
                 child: Wrap(
                   spacing: DesignTokens.spaceSm,
+                  runSpacing: DesignTokens.spaceSm,
                   children: [
                     ChoiceChip(
                       label: Text(l10n.historyFilterAll),

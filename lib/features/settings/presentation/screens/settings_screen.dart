@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/mask_email.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -23,7 +25,10 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
+      appBar: BackAppBar(
+        title: Text(l10n.settingsTitle),
+        fallbackRoute: AppRoutes.home,
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           DesignTokens.spacePage,

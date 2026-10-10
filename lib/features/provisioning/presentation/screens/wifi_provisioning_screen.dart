@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
@@ -66,7 +68,10 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.provisioningTitle)),
+      appBar: BackAppBar(
+        title: Text(l10n.provisioningTitle),
+        fallbackRoute: AppRoutes.devices,
+      ),
       body: Stepper(
         currentStep: _step,
         onStepTapped: (index) {
