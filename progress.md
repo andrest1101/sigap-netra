@@ -25,6 +25,16 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-10 P0 navigasi kembali + chip dempet + detail yatim
+
+Laporan user: (1) chip severity Perangkat (Semua/Info/Peringatan/Gangguan) terlalu dempet, (2) QR Wi-Fi & Pengaturan tanpa tombol back (terjebak), (3) Pengaturan di 3 tab terlalu ramai, plus audit menyeluruh.
+
+- Navigasi (kritis): semua helper memakai `.go()` (replace, stack hilang) → AppBar polos tanpa `leading` → back = keluar aplikasi; Log koneksi dari Perangkat paling parah (bottom-nav hilang + terjebak). Perbaikan: widget bersama baru `core/widgets/back_app_bar.dart` (`BackAppBar`: `BackButton` eksplisit + guard `canPop()` → fallback route induk bila deep-link); method `push()` ditambahkan ke `DeviceWifiPath/DeviceCommandsPath/ConnectionLogsPath/DeviceDetailPath/SettingsPath` (+ helper baru `HistoryDetailPath`); 8 pemanggil layar anak `.go()` → `.push()` (Beranda→QR, Beranda→Perintah, Perangkat→QR/Kontrol/Log, Commands→QR, kartu akun→Pengaturan); `BackAppBar` dipasang di 6 layar (wifi, perintah, log, pengaturan, detail, detail riwayat) dengan fallback `/perangkat` (Pengaturan → `/beranda`, detail riwayat → `/riwayat`).
+- Chip dempet (konkret): 3 Wrap filter tanpa `runSpacing` (baris 2 jarak 0) → tambah `runSpacing: spaceSm` di Perangkat, Log koneksi, Riwayat.
+- Detail yatim: `DeviceDetailScreen` + `DeviceDetailPath` terdaftar tapi tidak terjangkau UI → `_DeviceHead` kini `Material+InkWell` (tap → detail via push) + chevron; chip aksi detail juga diganti ke path helper + ikon `hub_outlined` (sebelumnya label Event/Koneksi pakai ikon `sync_alt` — salah makna).
+- Test: `test/core/navigation_back_test.dart` (7 test: BackButton di 4 layar anak, runSpacing 2 Wrap filter, chevron/tap detail). `shared_preferences` sudah di dependencies (dipakai langsung untuk mock, tanpa tambah package).
+- Verifikasi: format bersih, analyze No issues, test **121 lulus**, golden Perangkat di-regenerate (struktur InkWell + chevron), build Windows sukses + smoke ALIVE (LNK1168 sempat terjadi karena exe lama masih jalan — dimatikan lalu build ulang).
+
 ## 2026-10-09 Fix warna chip + unifikasi ring baterai (Beranda ↔ Perangkat)
 
 Laporan user: (1) warna font putih menyatu background di tab **Perangkat & Riwayat**, (2) ring baterai Beranda berbeda dengan ring di tab Perangkat.
