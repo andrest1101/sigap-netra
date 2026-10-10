@@ -35,6 +35,20 @@ class _StubAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AppUser> signUpWithEmail({
+    required String email,
+    required String password,
+    String? displayName,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AppUser> signInAnonymously() {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> signOut() async {}
 }
 

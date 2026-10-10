@@ -179,6 +179,78 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginRequiredField => 'Wajib diisi.';
 
   @override
+  String get loginWelcomeBack => 'Selamat datang kembali';
+
+  @override
+  String get loginWelcomeSubtitle =>
+      'Masuk untuk memantau perangkat SIGAP-NETRA.';
+
+  @override
+  String get loginHeroPointMoney => 'Bacaan uang & teks';
+
+  @override
+  String get loginHeroPointValidate => 'Validasi oleh pendamping';
+
+  @override
+  String get loginHeroPointPrivate => 'Tanpa video, audio, GPS';
+
+  @override
+  String get loginNoAccount => 'Belum punya akun?';
+
+  @override
+  String get loginSignUpLink => 'Daftar';
+
+  @override
+  String get loginContinueAsGuest => 'Lanjutkan sebagai tamu';
+
+  @override
+  String get loginPasswordMismatch => 'Konfirmasi kata sandi tidak cocok.';
+
+  @override
+  String get loginPasswordTooShort => 'Kata sandi minimal 6 karakter.';
+
+  @override
+  String get loginSignUpTitle => 'Buat akun';
+
+  @override
+  String get loginSignUpSubtitle =>
+      'Daftar untuk memantau perangkat SIGAP-NETRA.';
+
+  @override
+  String get loginNameLabel => 'Nama (opsional)';
+
+  @override
+  String get loginNameHint => 'Nama panggilan Anda';
+
+  @override
+  String get loginConfirmPasswordLabel => 'Konfirmasi kata sandi';
+
+  @override
+  String get loginCreateAccount => 'Buat akun';
+
+  @override
+  String get loginHaveAccount => 'Sudah punya akun?';
+
+  @override
+  String get loginSignInLink => 'Masuk';
+
+  @override
+  String get loginPrivacyNote =>
+      'Hanya email untuk login perangkat. Tanpa video, audio, atau lokasi.';
+
+  @override
+  String get loginGuestFailed => 'Masuk tamu gagal. Coba lagi nanti.';
+
+  @override
+  String get loginSignUpFailed => 'Pendaftaran gagal. Coba lagi nanti.';
+
+  @override
+  String get loginShowPassword => 'Tampilkan kata sandi';
+
+  @override
+  String get loginHidePassword => 'Sembunyikan kata sandi';
+
+  @override
   String get homeTitle => 'Beranda';
 
   @override
