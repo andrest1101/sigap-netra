@@ -25,6 +25,18 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-10 Logo Google resmi sebagai aset
+
+Laporan user: ikon tombol Google (`g_mobiledata`) bukan logo Google; logo resmi disediakan di `assets/foto/` (nama folder kurang profesional).
+
+- Verifikasi biner: PNG 3840x3840 dengan alpha 0 di keempat sudut = transparan penuh, langsung layak pakai tanpa edit.
+- Rename: `assets/foto/` → `assets/images/`, `Google_G_logo.svg.png` → `google_g_logo.png` (snake_case). Struktur kini `assets/{fonts,images}/` yang konvensional.
+- Pubspec: daftarkan `assets/images/google_g_logo.png` (sebelumnya tidak ada section `assets` sama sekali — hanya fonts).
+- Konstanta baru `kGoogleLogoAsset` di `app_constants.dart` (+ komentar larangan memakai `g_mobiledata` sebagai logo).
+- Tombol Google memakai `Image.asset` 20dp + `cacheWidth/cacheHeight 80` (sumber 3840px tidak dimuat penuh) + `semanticLabel` l10n untuk screen reader.
+- Test: logo aset tampil tepat 1x, `g_mobiledata` hilang total. Pelajaran test: `OutlinedButton.icon` merender tipe internal (temuan lama yang sama seperti `FilledButton.icon`) dan `cacheWidth` membungkus provider dalam `ResizeImage` — predicate harus mengupas `ResizeImage.imageProvider`.
+- Verifikasi: format bersih, analyze No issues, test **144 lulus** (tetap), build Windows sukses + smoke ALIVE.
+
 ## 2026-10-10 Login profesional: daftar + tamu + hero
 
 Laporan user: halaman login terlalu polos; Google langsung masuk tanpa pilih akun; minta alur profesional (tamu bebas, daftar bagi yang belum punya akun) mengikuti referensi tanpa meniru 100% dan tanpa Apple.
