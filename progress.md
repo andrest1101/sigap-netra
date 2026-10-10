@@ -25,6 +25,17 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-10 UI/UX menyeluruh: pintu Pengaturan tunggal + poles 4 tab
+
+Laporan user: (1) kartu Akun & Pengaturan muncul di 3 tab (ramai), (2) lanjutkan peningkatan UI/UX per halaman secara profesional.
+
+- Batch A (Pengaturan tunggal): widget bersama baru `core/widgets/settings_gear_button.dart` (ikon gear → `SettingsPath().push()`); gear dipasang di app bar 4 tab (Beranda, Validasi, Riwayat, Perangkat); `AccountSettingsCard` dihapus dari 3 tab + file dihapus (tidak ada test yang memakainya); seksi Akun di Pengaturan dilebur menjadi `_AccountHeader` (avatar inisial 24 + email tersamar + Keluar, tanpa judul seksi ganda); `_SectionTitle(isFirst)` menghapus dobel 32px; subtitle mode pengembang tidak lagi paksa 3 baris (`'\n'` → `' · '`).
+- Batch B (Beranda + Perangkat): Hero bisa di-tap → detail (InkWell + chevron, konsisten dengan kepala Perangkat); `StatusChip` teks dibungkus `Flexible` + ellipsis (label panjang tidak dorong layout 360dp); `_SmallValue` bento maxLines 1 (dua tile sejajar); `Divider` aktivitas pakai token + endIndent; widget bersama baru `core/widgets/filter_chip_row.dart` (`FilterChipRow<T>` generik) dipakai di Perangkat + Log koneksi (opsi Info yang hilang kini ada di Log); literal off-grid → token (`SizedBox 2` → spaceXs, `EdgeInsets.all(6)` → spaceSm, konektor 20 → spacePage).
+- Batch C (Validasi + Riwayat): token tipografi baru (`displayLabelSize 24`, `displayLabelMaxLines 4`, `letterSpacingLabel/Brand`); ukuran label bacaan disamakan 24 di Validasi (26) + Detail riwayat + maxLines 4; letterSpacing splash/login/detail via token; baris meta Riwayat full l10n (`historyConfidenceValue`, `historyDistanceValue` baru — regen otomatis via analyze).
+- Ditunda sadar: `OfflineBanner` tidak dipasang (butuh sinyal `isFromCache` nyata; simulasi tidak punya); `StatusPill` tidak dihapus (hanya `StatusPillData`/enum yang dipakai — hapus file = rename lintas 10 file, risiko > manfaat); `DeviceCard` mati + layar yatim lain dicatat untuk batch hapus kode mati.
+- Test: gear di 4 tab + kartu hilang + header akun (`navigation_back_test.dart`, 13 lulus di file itu); golden 3 tab di-regenerate + PNG diinspeksi.
+- Verifikasi: format bersih, analyze No issues, test **127 lulus**, golden Riwayat berubah sesuai ekspektasi (1.52% — teks meta baru), build Windows sukses + smoke ALIVE.
+
 ## 2026-10-10 P0 navigasi kembali + chip dempet + detail yatim
 
 Laporan user: (1) chip severity Perangkat (Semua/Info/Peringatan/Gangguan) terlalu dempet, (2) QR Wi-Fi & Pengaturan tanpa tombol back (terjebak), (3) Pengaturan di 3 tab terlalu ramai, plus audit menyeluruh.
