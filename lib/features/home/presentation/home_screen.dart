@@ -6,7 +6,6 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/relative_time.dart';
-import '../../../../core/widgets/account_settings_card.dart';
 import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
@@ -14,6 +13,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -38,6 +38,7 @@ class HomeScreen extends ConsumerWidget {
 
     return LargeTitleScaffold(
       title: l10n.homeTitle,
+      actions: const [SettingsGearButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
@@ -64,7 +65,6 @@ class HomeScreen extends ConsumerWidget {
               ),
               _HomeBento(devices: list, now: now),
               const _RecentActivitySection(),
-              const AccountSettingsCard(),
               const SizedBox(height: DesignTokens.spaceSection),
             ],
           );
@@ -108,61 +108,79 @@ class DeviceHeroCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: ShapeDecoration(
-                      color: colorScheme.surface,
-                      shape: const CircleBorder(),
-                    ),
-                    child: Icon(
-                      Icons.visibility_rounded,
-                      size: 28,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: StatusDot(
-                      tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
-                      size: 14,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: DesignTokens.spaceMd),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Area info bisa di-tap → detail perangkat (konsisten dengan
+          // kepala tab Perangkat). Tombol aksi di bawah tetap terpisah.
+          InkWell(
+            borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+            onTap: () => DeviceDetailPath(device.deviceId).push(context),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Stack(
                   children: [
-                    Text(
-                      device.name,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: ShapeDecoration(
+                        color: colorScheme.surface,
+                        shape: const CircleBorder(),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(
+                        Icons.visibility_rounded,
+                        size: 28,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
-                    const SizedBox(height: DesignTokens.spaceXs),
-                    StatusChip(
-                      label:
-                          '${pill.label} · ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
-                      tone: pill.tone,
-                      icon: pill.icon,
-                      isDense: true,
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: StatusDot(
+                        tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
+                        size: 14,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: DesignTokens.spaceSm),
-              _BatteryRing(device: device),
-            ],
+                const SizedBox(width: DesignTokens.spaceMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              device.name,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: DesignTokens.spaceXs),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 20,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DesignTokens.spaceXs),
+                      StatusChip(
+                        label:
+                            '${pill.label} · ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
+                        tone: pill.tone,
+                        icon: pill.icon,
+                        isDense: true,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: DesignTokens.spaceSm),
+                _BatteryRing(device: device),
+              ],
+            ),
           ),
           const SizedBox(height: DesignTokens.spaceMd),
           Row(
@@ -438,7 +456,12 @@ class _RecentActivitySection extends ConsumerWidget {
                 l10n: l10n,
               ),
             ),
-            if (i < items.length - 1) const Divider(height: 1, indent: 20),
+            if (i < items.length - 1)
+              const Divider(
+                height: 1,
+                indent: DesignTokens.spacePage,
+                endIndent: DesignTokens.spacePage,
+              ),
           ],
       ],
     );

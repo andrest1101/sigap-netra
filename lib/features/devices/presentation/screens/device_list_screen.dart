@@ -5,13 +5,14 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
-import '../../../../core/widgets/account_settings_card.dart';
 import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/filter_chip_row.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -51,6 +52,7 @@ class DeviceListScreen extends ConsumerWidget {
           icon: const Icon(Icons.refresh_rounded),
           tooltip: l10n.commonRefresh,
         ),
+        const SettingsGearButton(),
       ],
       body: devices.when(
         loading: () => const _DevicesLoading(),
@@ -87,7 +89,6 @@ class DeviceListScreen extends ConsumerWidget {
               _ConnectCard(device: device),
               _ControlCard(device: device),
               _ActivityTimeline(deviceId: device.deviceId),
-              const AccountSettingsCard(),
               const SizedBox(height: DesignTokens.spaceSection),
             ],
           );
@@ -166,7 +167,7 @@ class _DeviceHead extends StatelessWidget {
                     ),
                     if (device.firmwareVersion != null ||
                         device.model != null) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: DesignTokens.spaceXs),
                       Text(
                         [
                           if (device.model != null)
@@ -381,35 +382,25 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             DesignTokens.spacePage,
             DesignTokens.spaceSm,
           ),
-          child: Wrap(
-            spacing: DesignTokens.spaceSm,
-            runSpacing: DesignTokens.spaceSm,
-            children: [
-              ChoiceChip(
-                label: Text(l10n.historyFilterAll),
-                selected: _severity == null,
-                onSelected: (_) => setState(() => _severity = null),
+          child: FilterChipRow<EventSeverity>(
+            selected: _severity,
+            onChanged: (value) => setState(() => _severity = value),
+            options: [
+              (label: l10n.historyFilterAll, icon: null, value: null),
+              (
+                label: l10n.eventsSeverityInfo,
+                icon: Icons.info_outline_rounded,
+                value: EventSeverity.info,
               ),
-              ChoiceChip(
-                avatar: const Icon(Icons.info_outline_rounded, size: 16),
-                label: Text(l10n.eventsSeverityInfo),
-                selected: _severity == EventSeverity.info,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.info),
+              (
+                label: l10n.eventsSeverityWarning,
+                icon: Icons.warning_amber_rounded,
+                value: EventSeverity.warning,
               ),
-              ChoiceChip(
-                avatar: const Icon(Icons.warning_amber_rounded, size: 16),
-                label: Text(l10n.eventsSeverityWarning),
-                selected: _severity == EventSeverity.warning,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.warning),
-              ),
-              ChoiceChip(
-                avatar: const Icon(Icons.error_outline_rounded, size: 16),
-                label: Text(l10n.eventsSeverityError),
-                selected: _severity == EventSeverity.error,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.error),
+              (
+                label: l10n.eventsSeverityError,
+                icon: Icons.error_outline_rounded,
+                value: EventSeverity.error,
               ),
             ],
           ),
@@ -476,7 +467,7 @@ class _EventRow extends StatelessWidget {
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(DesignTokens.spaceSm),
                 decoration: ShapeDecoration(
                   color: colorScheme.surfaceContainerHigh,
                   shape: const CircleBorder(),
@@ -486,7 +477,7 @@ class _EventRow extends StatelessWidget {
               if (!isLast)
                 Container(
                   width: 1,
-                  height: 20,
+                  height: DesignTokens.spacePage,
                   color: colorScheme.outlineVariant,
                 ),
             ],

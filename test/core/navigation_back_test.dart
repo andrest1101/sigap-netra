@@ -14,8 +14,12 @@ import 'package:sigap_netra_app/features/devices/presentation/providers/devices_
 import 'package:sigap_netra_app/features/devices/presentation/screens/device_list_screen.dart';
 import 'package:sigap_netra_app/features/events/presentation/screens/connection_logs_screen.dart';
 import 'package:sigap_netra_app/features/provisioning/presentation/screens/wifi_provisioning_screen.dart';
+import 'package:sigap_netra_app/core/widgets/settings_gear_button.dart';
+import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
+import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
+import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 /// Repository tiruan: satu perangkat online agar tab Perangkat terisi penuh
@@ -146,6 +150,40 @@ void main() {
           reason: 'Wrap filter log koneksi wajib punya runSpacing',
         );
       }
+    });
+  });
+
+  group('Pintu Pengaturan tunggal via gear', () {
+    for (final entry in <(String, Widget)>[
+      ('Beranda', const HomeScreen()),
+      ('Validasi', const ValidationScreen()),
+      ('Riwayat', const HistoryScreen()),
+      ('Perangkat', const DeviceListScreen()),
+    ]) {
+      testWidgets('tab ${entry.$1} punya ikon gear Pengaturan', (tester) async {
+        await pumpScreen(tester, entry.$2);
+        expect(tester.takeException(), isNull);
+        expect(find.byType(SettingsGearButton), findsOneWidget);
+      });
+    }
+
+    testWidgets('kartu akun tidak lagi disebar di tab', (tester) async {
+      await pumpScreen(tester, const DeviceListScreen());
+      expect(tester.takeException(), isNull);
+      // Tombol pil "Pengaturan" milik kartu lama harus hilang; yang ada
+      // hanyalah gear di app bar.
+      expect(find.byType(SettingsGearButton), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+    });
+
+    testWidgets('Pengaturan menampilkan header akun + tombol kembali', (
+      tester,
+    ) async {
+      await pumpScreen(tester, const SettingsScreen());
+      expect(tester.takeException(), isNull);
+      expect(find.byType(BackButton), findsOneWidget);
+      // Email tersamar tampil di header akun.
+      expect(find.textContaining('***'), findsOneWidget);
     });
   });
 

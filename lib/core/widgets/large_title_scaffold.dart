@@ -9,8 +9,8 @@ import '../theme/design_tokens.dart';
 /// tetap tersedia lewat [LargeTitleScaffold.large] bila suatu layar
 /// menginginkannya.
 ///
-/// Pengaturan dibuka lewat kartu [AccountSettingsCard] di dalam body, bukan
-/// avatar menggantung di app bar.
+/// Pengaturan dibuka lewat [SettingsGearButton] di app bar tiap tab —
+/// satu pintu yang konsisten, bukan kartu di dalam body.
 class LargeTitleScaffold extends StatelessWidget {
   const LargeTitleScaffold({
     required this.title,

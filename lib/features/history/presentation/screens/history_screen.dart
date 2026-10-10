@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/design_tokens.dart';
-import '../../../../core/widgets/account_settings_card.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
@@ -53,6 +53,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       title: l10n.historyTitle,
       subtitle: '${l10n.historySummaryTitle} · ${items.length}',
       actions: [
+        const SettingsGearButton(),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
           onSelected: (value) => _onMenu(value),
@@ -257,7 +258,6 @@ class _HistoryList extends StatelessWidget {
           )
         else
           _DayGroupedList(items: items),
-        const AccountSettingsCard(),
         const SizedBox(height: DesignTokens.spaceSection),
       ],
     );
@@ -427,7 +427,7 @@ class _HistoryRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      '${l10n.historyReadNumber(number)} · conf ${detection.confidence == null ? '–' : NumberFormatId.percentWithSign(detection.confidence! * 100)}${detection.distanceCm == null ? '' : ' · ${detection.distanceCm} cm'}',
+                      '${l10n.historyReadNumber(number)} · ${detection.confidence == null ? '–' : l10n.historyConfidenceValue(NumberFormatId.percentWithSign(detection.confidence! * 100))}${detection.distanceCm == null ? '' : ' · ${l10n.historyDistanceValue(detection.distanceCm!)}'}',
                       style: textTheme.labelMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

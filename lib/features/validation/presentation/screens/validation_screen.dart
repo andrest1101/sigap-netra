@@ -9,6 +9,7 @@ import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
@@ -48,6 +49,7 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
       subtitle: filtered.isEmpty
           ? null
           : l10n.validationProgressValue(clamped + 1, filtered.length),
+      actions: const [SettingsGearButton()],
       // Body memakai `Expanded` (tumpukan kartu mengisi sisa layar), jadi
       // wajib `fillRemaining` agar constraint vertikal terbatas.
       fillRemaining: true,
@@ -404,13 +406,17 @@ class _ValidationCard extends StatelessWidget {
                     l10n.validationReadAs,
                     style: textTheme.labelSmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
-                      letterSpacing: 1.2,
+                      letterSpacing: DesignTokens.letterSpacingLabel,
                     ),
                   ),
                   const SizedBox(height: DesignTokens.spaceXs),
                   Text(
                     detection.displayLabel,
-                    style: textTheme.headlineSmall?.copyWith(fontSize: 26),
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontSize: DesignTokens.displayLabelSize,
+                    ),
+                    maxLines: DesignTokens.displayLabelMaxLines,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: DesignTokens.spaceMd),
                   Wrap(
