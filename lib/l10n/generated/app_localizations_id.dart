@@ -763,6 +763,16 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String historyConfidenceValue(String value) {
+    return 'Keyakinan $value';
+  }
+
+  @override
+  String historyDistanceValue(int value) {
+    return '$value cm';
+  }
+
+  @override
   String get historyStatsComingSoonTitle => 'Statistik segera hadir';
 
   @override

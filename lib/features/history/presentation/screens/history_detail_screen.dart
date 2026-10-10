@@ -78,9 +78,11 @@ class HistoryDetailScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   detection.displayLabel,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineSmall?.copyWith(fontSize: 24),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: DesignTokens.displayLabelSize,
+                  ),
+                  maxLines: DesignTokens.displayLabelMaxLines,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: DesignTokens.spaceMd),
@@ -313,7 +315,7 @@ class _OcrCardState extends State<_OcrCard> {
                   l10n.historyRecognitionResult,
                   style: textTheme.labelMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 1.2,
+                    letterSpacing: DesignTokens.letterSpacingLabel,
                   ),
                 ),
               ),

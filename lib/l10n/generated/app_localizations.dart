@@ -1528,6 +1528,18 @@ abstract class AppLocalizations {
   /// **'No. {number}'**
   String historyReadNumber(int number);
 
+  /// No description provided for @historyConfidenceValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Keyakinan {value}'**
+  String historyConfidenceValue(String value);
+
+  /// No description provided for @historyDistanceValue.
+  ///
+  /// In id, this message translates to:
+  /// **'{value} cm'**
+  String historyDistanceValue(int value);
+
   /// No description provided for @historyStatsComingSoonTitle.
   ///
   /// In id, this message translates to:

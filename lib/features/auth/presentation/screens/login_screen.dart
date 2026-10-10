@@ -123,7 +123,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     l10n.appTitle,
                     style: textTheme.headlineSmall?.copyWith(
-                      letterSpacing: 2,
+                      letterSpacing: DesignTokens.letterSpacingBrand,
                       fontWeight: FontWeight.w700,
                     ),
                     textAlign: TextAlign.center,

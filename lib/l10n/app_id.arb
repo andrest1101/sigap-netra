@@ -279,6 +279,8 @@
   "historyFilterPending": "Belum",
   "historyYesterday": "Kemarin",
   "historyReadNumber": "No. {number}",
+  "historyConfidenceValue": "Keyakinan {value}",
+  "historyDistanceValue": "{value} cm",
   "historyStatsComingSoonTitle": "Statistik segera hadir",
   "historyStatsComingSoonBody": "Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.",
   "historyResetMenu": "Reset status validasi...",
@@ -288,6 +290,16 @@
   "@historyReadNumber": {
     "placeholders": {
       "number": { "type": "int" }
+    }
+  },
+  "@historyConfidenceValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "@historyDistanceValue": {
+    "placeholders": {
+      "value": { "type": "int" }
     }
   },
 

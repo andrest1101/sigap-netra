@@ -17,6 +17,7 @@ import '../../features/provisioning/presentation/screens/wifi_provisioning_scree
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../theme/design_tokens.dart';
 import '../widgets/lens_ring.dart';
 
 /// Nama path route sebagai konstanta.
@@ -422,7 +423,7 @@ class SplashScreen extends StatelessWidget {
             Text(
               l10n.appTitle,
               style: textTheme.headlineSmall?.copyWith(
-                letterSpacing: 2,
+                letterSpacing: DesignTokens.letterSpacingBrand,
                 fontWeight: FontWeight.w700,
               ),
             ),
