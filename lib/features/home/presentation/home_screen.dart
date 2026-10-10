@@ -5,6 +5,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
@@ -21,6 +22,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../devices/domain/entities/device.dart';
 import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
+import '../../monitoring/domain/entities/detection.dart';
 import '../../monitoring/presentation/providers/monitoring_providers.dart';
 import '../../validation/domain/usecases/validation_usecases.dart';
 
@@ -57,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   DesignTokens.spacePage,
-                  0,
+                  DesignTokens.spaceSm,
                   DesignTokens.spacePage,
                   0,
                 ),
@@ -111,7 +113,7 @@ class DeviceHeroCard extends ConsumerWidget {
           // Area info bisa di-tap → detail perangkat (konsisten dengan
           // kepala tab Perangkat). Tombol aksi di bawah tetap terpisah.
           InkWell(
-            borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusHero),
             onTap: () => DeviceDetailPath(device.deviceId).push(context),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -119,8 +121,8 @@ class DeviceHeroCard extends ConsumerWidget {
                 Stack(
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: DesignTokens.deviceAvatarSize,
+                      height: DesignTokens.deviceAvatarSize,
                       decoration: ShapeDecoration(
                         color: colorScheme.surface,
                         shape: const CircleBorder(),
@@ -136,7 +138,7 @@ class DeviceHeroCard extends ConsumerWidget {
                       bottom: 0,
                       child: StatusDot(
                         tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
-                        size: 14,
+                        size: 12,
                       ),
                     ),
                   ],
@@ -216,12 +218,11 @@ class _BatteryRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Di dalam Hero (`primaryContainer`): angka + label wajib
-    // `onPrimaryContainer` agar tidak menyatu dengan background.
+    // Di dalam Hero (`primaryContainer`): angka wajib `onPrimaryContainer`
+    // agar tidak menyatu dengan background.
     final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
     return BatteryRing(
       batteryPct: device.batteryPct,
-      diameter: 64,
       numberColor: onHero,
       trackColor: onHero.withValues(alpha: 0.25),
     );
@@ -325,65 +326,74 @@ class _HomeBento extends ConsumerWidget {
     final decided = ref.watch(detectionsProvider);
     final accuracy = calculateValidationAccuracy(decided);
     final accuracyText = accuracy.isNaN ? '–' : '${(accuracy * 100).round()}%';
-    final todayCount = decided
+    final decidedCount = decided
+        .where((d) => d.validationStatus != ValidationStatus.pending)
+        .length;
+    final today = decided
         .where(
           (d) =>
               d.createdAt.year == now.year &&
               d.createdAt.month == now.month &&
               d.createdAt.day == now.day,
         )
-        .length;
+        .toList();
+    final todayMoney = today.where((d) => d.type == DetectionType.money).length;
+    final todayText = today.length - todayMoney;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         DesignTokens.spacePage,
-        DesignTokens.spaceMd,
+        DesignTokens.spaceSection,
         DesignTokens.spacePage,
         0,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: BentoTile(
-                  label: l10n.homePendingLabel,
-                  action: FilledButton.tonal(
-                    onPressed: () => const ValidationPath().go(context),
-                    child: Text(l10n.homePendingReview),
+          // Tinggi disamakan: tile kanan tidak lagi melayang walau isinya
+          // lebih pendek dari tile kiri (angka + tombol).
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: BentoTile(
+                    label: l10n.homePendingLabel,
+                    action: FilledButton.tonal(
+                      onPressed: () => const ValidationPath().go(context),
+                      child: Text(l10n.homePendingReview),
+                    ),
+                    child: BentoNumber('$pending'),
                   ),
-                  child: BentoNumber('$pending'),
                 ),
-              ),
-              const SizedBox(width: DesignTokens.spaceMd),
-              Expanded(
-                child: BentoTile(
-                  label: l10n.homeAccuracyLabel,
-                  child: Row(
-                    children: [
-                      LensRing(
-                        diameter: 56,
-                        value: accuracy.isNaN ? null : accuracy,
-                        progressColor: StatusColors.of(context).ok.solid,
-                        semanticsLabel: accuracy.isNaN
-                            ? l10n.homeAccuracyLabel
-                            : l10n.homeAccuracySemantic(accuracyText),
-                        center: Text(
-                          accuracyText,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                        ),
+                const SizedBox(width: DesignTokens.spaceMd),
+                Expanded(
+                  child: BentoTile(
+                    label: l10n.homeAccuracyLabel,
+                    footer: accuracy.isNaN
+                        ? l10n.homeNoValidation
+                        : l10n.homeAccuracyFromCount(decidedCount),
+                    child: LensRing(
+                      diameter: 72,
+                      value: accuracy.isNaN ? null : accuracy,
+                      progressColor: StatusColors.of(context).ok.solid,
+                      semanticsLabel: accuracy.isNaN
+                          ? l10n.homeAccuracyLabel
+                          : l10n.homeAccuracySemantic(accuracyText),
+                      center: Text(
+                        accuracyText,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: DesignTokens.spaceMd),
           Row(
@@ -391,9 +401,10 @@ class _HomeBento extends ConsumerWidget {
               Expanded(
                 child: BentoTile.small(
                   label: l10n.homeSyncedLabel,
-                  value: RelativeTime.format(
+                  // Jam absolut ("14.32 · 10 Okt"), bukan relatif: chip Hero
+                  // sudah menampilkan hitungan relatif presisi.
+                  value: RelativeTime.timeAndDate(
                     devices.first.lastSeen,
-                    now,
                     l10n: l10n,
                   ),
                 ),
@@ -402,7 +413,8 @@ class _HomeBento extends ConsumerWidget {
               Expanded(
                 child: BentoTile.small(
                   label: l10n.homeTodayLabel,
-                  value: l10n.homeReadingsToday(todayCount),
+                  value: l10n.homeReadingsToday(today.length),
+                  footer: l10n.homeTodayBreakdown(todayMoney, todayText),
                 ),
               ),
             ],
@@ -413,14 +425,18 @@ class _HomeBento extends ConsumerWidget {
   }
 }
 
-/// Lima aktivitas terbaru + "Lihat semua" ke Riwayat.
+/// Lima pembacaan terbaru (semua status) + "Lihat semua" ke Riwayat.
+///
+/// Tiap baris memakai chip status validasi (Cocok/Tidak cocok/Belum) dan
+/// ikon kategori (uang/teks) — bukan nomor urut generik. Tap baris membuka
+/// detail pembacaan, bukan tab Riwayat.
 class _RecentActivitySection extends ConsumerWidget {
   const _RecentActivitySection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final items = ref.watch(pendingDetectionsProvider).take(5).toList();
+    final items = ref.watch(detectionsProvider).take(5).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,23 +449,12 @@ class _RecentActivitySection extends ConsumerWidget {
           ),
         ),
         if (items.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.spacePage,
-            ),
-            child: Text(
-              l10n.validationAllDoneTitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          )
+          _EmptyActivity(l10n: l10n)
         else
           for (var i = 0; i < items.length; i++) ...[
             _ActivityRow(
-              index: i,
-              deviceName: items[i].deviceName,
-              label: items[i].displayLabel,
+              detection: items[i],
+              singleDevice: true,
               time: RelativeTime.format(
                 items[i].createdAt,
                 DateTime.now(),
@@ -468,26 +473,92 @@ class _RecentActivitySection extends ConsumerWidget {
   }
 }
 
+/// Empty khusus Beranda: ikon + ajakan ke antrean validasi.
+class _EmptyActivity extends StatelessWidget {
+  const _EmptyActivity({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignTokens.spacePage,
+        vertical: DesignTokens.spaceMd,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: ShapeDecoration(
+              color: colorScheme.surfaceContainerHigh,
+              shape: const CircleBorder(),
+            ),
+            child: Icon(
+              Icons.history_toggle_off_rounded,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: DesignTokens.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.homeEmptyActivityTitle,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  l10n.homeEmptyActivityBody,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: DesignTokens.spaceSm),
+          FilledButton.tonal(
+            onPressed: () => const ValidationPath().go(context),
+            child: Text(l10n.homeEmptyActivityAction),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ActivityRow extends StatelessWidget {
   const _ActivityRow({
-    required this.index,
-    required this.deviceName,
-    required this.label,
+    required this.detection,
+    required this.singleDevice,
     required this.time,
   });
 
-  final int index;
-  final String deviceName;
-  final String label;
+  final Detection detection;
+  final bool singleDevice;
   final String time;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final meta = detection.confidence == null
+        ? time
+        : '${NumberFormatId.percentWithSign(detection.confidence! * 100)} · $time';
 
     return InkWell(
-      onTap: () => const HistoryPath().go(context),
+      borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+      onTap: () => HistoryDetailPath(detection.id).push(context),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: DesignTokens.spacePage,
@@ -503,7 +574,9 @@ class _ActivityRow extends StatelessWidget {
                 shape: const CircleBorder(),
               ),
               child: Icon(
-                Icons.receipt_long_rounded,
+                detection.type == DetectionType.money
+                    ? Icons.payments_rounded
+                    : Icons.document_scanner_rounded,
                 size: 20,
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -514,13 +587,13 @@ class _ActivityRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label,
+                    detection.displayLabel,
                     style: textTheme.bodyMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    '$deviceName · $time',
+                    singleDevice ? meta : '${detection.deviceName} · $meta',
                     style: textTheme.labelMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -530,9 +603,18 @@ class _ActivityRow extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: DesignTokens.spaceSm),
             StatusChip(
-              label: '#${index + 1}',
-              tone: AppStatusTone.neutral,
+              label: switch (detection.validationStatus) {
+                ValidationStatus.pending => l10n.statusPending,
+                ValidationStatus.match => l10n.statusMatch,
+                ValidationStatus.mismatch => l10n.statusMismatch,
+              },
+              tone: switch (detection.validationStatus) {
+                ValidationStatus.pending => AppStatusTone.warn,
+                ValidationStatus.match => AppStatusTone.ok,
+                ValidationStatus.mismatch => AppStatusTone.bad,
+              },
               isDense: true,
             ),
           ],
