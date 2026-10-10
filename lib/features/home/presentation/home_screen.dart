@@ -6,6 +6,8 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/account_settings_card.dart';
+import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -16,7 +18,6 @@ import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../auth/presentation/providers/auth_providers.dart';
 import '../../devices/domain/entities/device.dart';
 import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
@@ -37,7 +38,6 @@ class HomeScreen extends ConsumerWidget {
 
     return LargeTitleScaffold(
       title: l10n.homeTitle,
-      avatar: _SettingsAvatar(ref: ref),
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
@@ -64,6 +64,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               _HomeBento(devices: list, now: now),
               const _RecentActivitySection(),
+              const AccountSettingsCard(),
               const SizedBox(height: DesignTokens.spaceSection),
             ],
           );
@@ -76,41 +77,6 @@ class HomeScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     if (error is AppFailure) return failureMessage(error, l10n);
     return l10n.stateErrorBody;
-  }
-}
-
-/// Avatar Pengaturan di kanan app bar (arsitektur informasi v3).
-class _SettingsAvatar extends ConsumerWidget {
-  const _SettingsAvatar({required this.ref});
-
-  final WidgetRef ref;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(currentUserProvider);
-    final email = user?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-
-    return Semantics(
-      button: true,
-      label: l10n.settingsOpenTitle,
-      child: InkWell(
-        onTap: () => const SettingsPath().go(context),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 
@@ -222,7 +188,8 @@ class DeviceHeroCard extends ConsumerWidget {
   }
 }
 
-/// Lens Ring baterai: angka di tengah, "–" bila tidak tersedia.
+/// Indikator baterai Hero Beranda: widget bersama [BatteryRing] dengan warna
+/// angka/track `onPrimaryContainer` (konteks background `primaryContainer`).
 class _BatteryRing extends StatelessWidget {
   const _BatteryRing({required this.device});
 
@@ -230,38 +197,14 @@ class _BatteryRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final battery = device.batteryPct;
-
     // Di dalam Hero (`primaryContainer`): angka + label wajib
     // `onPrimaryContainer` agar tidak menyatu dengan background.
     final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LensRing(
-          diameter: 56,
-          value: battery == null ? null : battery / 100,
-          trackColor: onHero.withValues(alpha: 0.25),
-          progressColor: onHero,
-          semanticsLabel: battery == null
-              ? l10n.homeBatteryUnavailable
-              : '${l10n.homeBatteryLabel} $battery persen',
-          center: Text(
-            battery == null ? '–' : '$battery',
-            style: textTheme.titleMedium?.copyWith(
-              color: onHero,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          l10n.homeBatteryLabel,
-          style: textTheme.labelSmall?.copyWith(color: onHero),
-        ),
-      ],
+    return BatteryRing(
+      batteryPct: device.batteryPct,
+      diameter: 64,
+      numberColor: onHero,
+      trackColor: onHero.withValues(alpha: 0.25),
     );
   }
 }
@@ -281,7 +224,9 @@ class _SyncButton extends StatelessWidget {
     return FilledButton.icon(
       onPressed: () => DeviceCommandsPath(device.deviceId).go(context),
       icon: const Icon(Icons.sync_rounded),
-      label: Text(l10n.homeSyncNow),
+      // Label pendek satu baris: "Sinkronkan sekarang" selalu wrap dua baris
+      // di setengah lebar Hero dan terlihat rusak di screenshot.
+      label: Text(l10n.homeSyncShort, maxLines: 1),
     );
   }
 }
@@ -610,18 +555,25 @@ class _NoDeviceState extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(DesignTokens.radiusHero),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
             child: Column(
               children: [
                 Text(
                   l10n.homeNoDeviceHeroTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: DesignTokens.spaceSm),
                 Text(
                   l10n.homeNoDeviceHeroBody,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

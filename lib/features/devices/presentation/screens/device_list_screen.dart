@@ -5,17 +5,17 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/account_settings_card.dart';
+import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
-import '../../../../core/widgets/lens_ring.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../commands/domain/entities/device_command.dart';
 import '../../../commands/presentation/providers/commands_providers.dart';
 import '../../../events/domain/entities/device_event.dart';
@@ -45,7 +45,6 @@ class DeviceListScreen extends ConsumerWidget {
             : '${list.length} ${l10n.devicesTitle.toLowerCase()}',
         orElse: () => null,
       ),
-      avatar: _SettingsAvatar(),
       actions: [
         IconButton(
           onPressed: () => ref.invalidate(myDevicesProvider),
@@ -88,41 +87,11 @@ class DeviceListScreen extends ConsumerWidget {
               _ConnectCard(device: device),
               _ControlCard(device: device),
               _ActivityTimeline(deviceId: device.deviceId),
+              const AccountSettingsCard(),
               const SizedBox(height: DesignTokens.spaceSection),
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-/// Avatar Pengaturan di kanan app bar.
-class _SettingsAvatar extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(currentUserProvider);
-    final email = user?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-
-    return Semantics(
-      button: true,
-      label: l10n.settingsOpenTitle,
-      child: InkWell(
-        onTap: () => const SettingsPath().go(context),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -209,19 +178,9 @@ class _DeviceHead extends StatelessWidget {
             ),
           ),
           const SizedBox(width: DesignTokens.spaceMd),
-          LensRing(
-            diameter: 72,
-            value: battery == null ? null : battery / 100,
-            semanticsLabel: battery == null
-                ? l10n.homeBatteryUnavailable
-                : '${l10n.homeBatteryLabel} $battery persen',
-            center: Text(
-              battery == null ? '–' : '$battery',
-              style: textTheme.titleMedium?.copyWith(
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-          ),
+          // Widget bersama yang sama dengan Hero Beranda (diameter disamakan
+          // 64 agar proporsinya identik).
+          BatteryRing(batteryPct: battery, diameter: 64),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
+import '../theme/status_colors.dart';
 
 /// Pengukur melingkar bersegmen seperti diafragma lensa kamera.
 ///
@@ -32,12 +33,56 @@ class LensRing extends StatefulWidget {
     this.progressColor,
     this.segments = 24,
     this.semanticsLabel,
+    this.unavailableIcon,
+    this.batteryAdaptiveLevel,
   });
+
+  /// Cincin baterai siap pakai: warna progres adaptif (ok ≥ 30%, warn 15-29%,
+  /// bad < 15% memakai palet status tema), ikon baterai saat tidak tersedia.
+  ///
+  /// [batteryPct] 0-100, atau null bila perangkat tidak melaporkan baterai.
+  /// [color] warna angka tengah; bila null memakai warna teks default tema.
+  /// [trackColor] bila null memakai warna track default ([surfaceContainerHighest]).
+  factory LensRing.battery({
+    required double diameter,
+    required int? batteryPct,
+    required String availableLabel,
+    required String unavailableLabel,
+    Key? key,
+    Color? color,
+    Color? trackColor,
+  }) {
+    final value = batteryPct == null ? null : batteryPct / 100;
+    return LensRing(
+      key: key,
+      diameter: diameter,
+      value: value,
+      trackColor: trackColor,
+      semanticsLabel: batteryPct == null
+          ? unavailableLabel
+          : '$availableLabel $batteryPct persen',
+      unavailableIcon: Icons.battery_unknown_rounded,
+      center: batteryPct == null
+          ? null
+          : _BatteryNumber(value: '$batteryPct', color: color),
+      // Penanda internal: `build` me-resolve warna progres adaptif dari tema.
+      batteryAdaptiveLevel: batteryPct == null
+          ? null
+          : batteryPct >= 30
+          ? BatteryAdaptiveLevel.ok
+          : batteryPct >= 15
+          ? BatteryAdaptiveLevel.warn
+          : BatteryAdaptiveLevel.bad,
+    );
+  }
 
   /// Diameter luar cincin.
   final double diameter;
 
   /// Progres 0.0-1.0, atau null bila tidak tersedia.
+  ///
+  /// Bila null, cincin tampil sebagai 4 segmen penanda mata angin (elegan,
+  /// jelas "tidak tersedia") — bukan 24 segmen abu penuh yang terlihat rusak.
   final double? value;
 
   final LensRingMode mode;
@@ -53,20 +98,57 @@ class LensRing extends StatefulWidget {
 
   final String? semanticsLabel;
 
+  /// Ikon tengah saat [value] null. Default ikon lensa netral.
+  final IconData? unavailableIcon;
+
+  /// Penanda internal factory baterai: `build` me-resolve warna progres
+  /// adaptif dari `StatusColors` tema aktif. Jangan diisi manual.
+  final BatteryAdaptiveLevel? batteryAdaptiveLevel;
+
   @override
   State<LensRing> createState() => _LensRingState();
 }
 
+/// Level baterai untuk pewarnaan adaptif factory [LensRing.battery].
+///
+/// Nilai ini diisi otomatis oleh factory; jangan diisi manual saat memakai
+/// konstruktor [LensRing] langsung.
+enum BatteryAdaptiveLevel { ok, warn, bad }
+
+/// Angka baterai tabular di tengah cincin.
+class _BatteryNumber extends StatelessWidget {
+  const _BatteryNumber({required this.value, this.color});
+
+  final String value;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      value,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        color: color,
+        fontFeatures: [FontFeature.tabularFigures()],
+      ),
+    );
+  }
+}
+
 class _LensRingState extends State<LensRing>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1600),
-  );
+  // Dibuat di initState (bukan lazy): field lazy yang belum pernah dipakai
+  // akan diinisialisasi saat dispose() — saat element sudah unmount — dan
+  // `createTicker` melempar "deactivated widget's ancestor is unsafe".
+  // Ini bug laten yang juga bisa crash di produksi.
+  late final AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    );
     if (widget.mode == LensRingMode.focusing) {
       _controller.repeat(reverse: true);
     }
@@ -93,8 +175,20 @@ class _LensRingState extends State<LensRing>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final track = widget.trackColor ?? colorScheme.surfaceContainerHighest;
-    final progress = widget.progressColor ?? colorScheme.primary;
+    // Factory baterai: warna progres adaptif dari palet status tema aktif.
+    final adaptive = widget.batteryAdaptiveLevel;
+    final adaptiveColor = adaptive == null
+        ? null
+        : switch (adaptive) {
+            BatteryAdaptiveLevel.ok => StatusColors.of(context).ok.solid,
+            BatteryAdaptiveLevel.warn => StatusColors.of(context).warn.solid,
+            BatteryAdaptiveLevel.bad => StatusColors.of(context).bad.solid,
+          };
+    final progress =
+        widget.progressColor ?? adaptiveColor ?? colorScheme.primary;
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final isUnavailable =
+        widget.value == null && widget.mode == LensRingMode.value;
 
     Widget ring = CustomPaint(
       size: Size.square(widget.diameter),
@@ -102,7 +196,9 @@ class _LensRingState extends State<LensRing>
         value: widget.value,
         trackColor: track,
         progressColor: progress,
-        segments: widget.segments,
+        // State tak tersedia: 4 segmen mata angin, bukan cincin penuh.
+        segments: isUnavailable ? 4 : widget.segments,
+        unavailable: isUnavailable,
         focusPulse: widget.mode == LensRingMode.focusing && !reduceMotion
             ? _controller.value
             : null,
@@ -115,13 +211,19 @@ class _LensRingState extends State<LensRing>
       ring = Semantics(label: label, value: _semanticsValue(), child: ring);
     }
 
-    if (widget.center != null) {
+    final center =
+        widget.center ??
+        (isUnavailable
+            ? Icon(
+                widget.unavailableIcon ?? Icons.lens_blur_rounded,
+                size: widget.diameter * 0.32,
+                color: track,
+              )
+            : null);
+    if (center != null) {
       return SizedBox.square(
         dimension: widget.diameter,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [ring, widget.center!],
-        ),
+        child: Stack(alignment: Alignment.center, children: [ring, center]),
       );
     }
     return ring;
@@ -143,6 +245,7 @@ class _LensRingPainter extends CustomPainter {
     this.value,
     this.focusPulse,
     this.strokeWidth = 10,
+    this.unavailable = false,
   });
 
   final double? value;
@@ -152,18 +255,23 @@ class _LensRingPainter extends CustomPainter {
   final double? focusPulse;
   final double strokeWidth;
 
+  /// State tak tersedia: gambar 4 segmen pendek di arah mata angin saja.
+  final bool unavailable;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = size.width / 2 - strokeWidth / 2;
-    // Celah antar-segmen 18% dari sudut tiap segmen.
-    final sweep = (math.pi * 2 / segments) * 0.82;
-    final gap = (math.pi * 2 / segments) * 0.18;
+    // Celah antar-segmen 18% dari sudut tiap segmen; state unavailable memakai
+    // segmen pendek (40%) agar terlihat seperti penanda, bukan cincin rusak.
+    final ratio = unavailable ? 0.4 : 0.82;
+    final sweep = (math.pi * 2 / segments) * ratio;
+    final gap = (math.pi * 2 / segments) * (1 - ratio);
 
     final trackPaint = Paint()
-      ..color = trackColor
+      ..color = unavailable ? trackColor.withValues(alpha: 0.55) : trackColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
+      ..strokeWidth = unavailable ? strokeWidth * 0.7 : strokeWidth
       ..strokeCap = StrokeCap.round;
     final progressPaint = Paint()
       ..color = progressColor
@@ -206,6 +314,7 @@ class _LensRingPainter extends CustomPainter {
         oldDelegate.focusPulse != focusPulse ||
         oldDelegate.trackColor != trackColor ||
         oldDelegate.progressColor != progressColor ||
-        oldDelegate.segments != segments;
+        oldDelegate.segments != segments ||
+        oldDelegate.unavailable != unavailable;
   }
 }
