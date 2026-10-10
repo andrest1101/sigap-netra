@@ -153,10 +153,35 @@ abstract final class AppTheme {
           vertical: DesignTokens.spaceMd,
         ),
       ),
+      // Warna chip EKSPLISIT di tema (anti putih permanen).
+      //
+      // Latar: chip Material M3 mewarisi warna label dari `DefaultTextStyle`
+      // internal bila `labelStyle.color` null — pada kasus kami itu jatuh ke
+      // warna yang salah sehingga teks chip tampak putih di atas kartu terang.
+      // Dengan warna eksplisit (termasuk varian selected/disabled via
+      // `WidgetStateColor` yang di-resolve SDK di `chip.dart`), semua
+      // ActionChip/ChoiceChip deterministik di light maupun dark.
       chipTheme: ChipThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+        selectedColor: colorScheme.secondaryContainer,
+        disabledColor: colorScheme.onSurface.withValues(alpha: 0.12),
+        checkmarkColor: colorScheme.onSecondaryContainer,
         side: BorderSide(color: colorScheme.outlineVariant),
         shape: const StadiumBorder(),
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+        labelStyle: TextStyle(
+          color: WidgetStateColor.resolveWith((states) {
+            if (states.contains(WidgetState.disabled)) {
+              return colorScheme.onSurface.withValues(alpha: 0.38);
+            }
+            if (states.contains(WidgetState.selected)) {
+              return colorScheme.onSecondaryContainer;
+            }
+            return colorScheme.onSurfaceVariant;
+          }),
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant, size: 18),
       ),
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
