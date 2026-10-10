@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/failure_message.dart';
@@ -203,7 +204,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               dimension: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Icon(Icons.g_mobiledata, size: 24),
+                          : Image.asset(
+                              kGoogleLogoAsset,
+                              width: 20,
+                              height: 20,
+                              // Dekode kecil: sumber 3840px tidak perlu
+                              // dimuat penuh untuk ikon 20dp.
+                              cacheWidth: 80,
+                              cacheHeight: 80,
+                              semanticLabel: l10n.loginSignInWithGoogle,
+                            ),
                       label: Text(
                         l10n.loginSignInWithGoogle,
                         style: textTheme.labelLarge,

@@ -62,6 +62,20 @@ void main() {
       expect(find.text('Masuk dengan Google'), findsOneWidget);
       expect(find.text('Lanjutkan sebagai tamu'), findsOneWidget);
       expect(find.text('Daftar'), findsOneWidget);
+      // Logo Google resmi (aset), bukan ikon Material g_mobiledata.
+      // `OutlinedButton.icon` merender tipe internal (bukan OutlinedButton)
+      // dan `cacheWidth` membungkus provider dalam ResizeImage — cocokkan
+      // lewat nama aset pada provider di dalamnya.
+      final logo = find.byWidgetPredicate((w) {
+        if (w is! Image) return false;
+        final provider = w.image;
+        if (provider is ResizeImage) {
+          return '${provider.imageProvider}'.contains('google_g_logo');
+        }
+        return '$provider'.contains('google_g_logo');
+      });
+      expect(logo, findsOneWidget);
+      expect(find.byIcon(Icons.g_mobiledata), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
