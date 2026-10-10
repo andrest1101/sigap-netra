@@ -24,6 +24,78 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Bug 4 (Validasi crash layout, bukan data): `Expanded` dalam sliver tak terbatas → `LargeTitleScaffold.fillRemaining` (`SliverFillRemaining`); layar lain aman (audit: hanya Validasi). Regression test: render kartu + filter + Cocok/snackbar + Urungkan (+ auth stub).
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
+
+## 2026-10-10 Logo Google resmi sebagai aset
+
+Laporan user: ikon tombol Google (`g_mobiledata`) bukan logo Google; logo resmi disediakan di `assets/foto/` (nama folder kurang profesional).
+
+- Verifikasi biner: PNG 3840x3840 dengan alpha 0 di keempat sudut = transparan penuh, langsung layak pakai tanpa edit.
+- Rename: `assets/foto/` → `assets/images/`, `Google_G_logo.svg.png` → `google_g_logo.png` (snake_case). Struktur kini `assets/{fonts,images}/` yang konvensional.
+- Pubspec: daftarkan `assets/images/google_g_logo.png` (sebelumnya tidak ada section `assets` sama sekali — hanya fonts).
+- Konstanta baru `kGoogleLogoAsset` di `app_constants.dart` (+ komentar larangan memakai `g_mobiledata` sebagai logo).
+- Tombol Google memakai `Image.asset` 20dp + `cacheWidth/cacheHeight 80` (sumber 3840px tidak dimuat penuh) + `semanticLabel` l10n untuk screen reader.
+- Test: logo aset tampil tepat 1x, `g_mobiledata` hilang total. Pelajaran test: `OutlinedButton.icon` merender tipe internal (temuan lama yang sama seperti `FilledButton.icon`) dan `cacheWidth` membungkus provider dalam `ResizeImage` — predicate harus mengupas `ResizeImage.imageProvider`.
+- Verifikasi: format bersih, analyze No issues, test **144 lulus** (tetap), build Windows sukses + smoke ALIVE.
+
+## 2026-10-10 Login profesional: daftar + tamu + hero
+
+Laporan user: halaman login terlalu polos; Google langsung masuk tanpa pilih akun; minta alur profesional (tamu bebas, daftar bagi yang belum punya akun) mengikuti referensi tanpa meniru 100% dan tanpa Apple.
+
+- Layar baru: `LoginHero` (LensRing focusing 88 + SIGAP-NETRA + kartu 3 poin nilai), judul "Selamat datang kembali", `AuthTextField` (label di atas field pil + toggle intip sandi + error inline), tombol Masuk penuh, `OrDivider`, tombol Google outlined, "Lanjutkan sebagai tamu", link "Belum punya akun? Daftar", footer privasi. `login_form.dart` lama dihapus.
+- Sheet daftar (`SignUpSheet`, bottom sheet radiusSheet): Nama opsional + Email + Kata sandi + Konfirmasi; validasi berlapis (field + use case); error Firebase tampil di dalam sheet.
+- Domain: `AuthRepository` + `signUpWithEmail`/`signInAnonymously`; use case `SignUpWithEmail` (email valid + min 6 + konfirmasi cocok) dan `SignInAnonymously`; `isValidEmail` bersama; `SignInWithEmail` kini menolak format salah dengan kunci l10n.
+- Data: `FirebaseAuthDataSource` + create user (isi displayName) / signInAnonymously; `AuthRepositoryImpl` + fake mengikuti (tamu = `guest-demo` tanpa email). PERLU: aktifkan provider Anonymous di Firebase console.
+- Header akun Pengaturan: identitas utama = displayName → email tersamar → UID (tamu).
+- l10n baru ±20 kunci (ID). Regen via `flutter build bundle` (catatan: `flutter gen-l10n` menolak karena l10n.yaml; regen otomatis test/analyze tidak selalu jalan).
+- Test: use case (email/daftar/tamu, 16 lulus di file domain), widget login (hero, validasi, sheet buka/tolak/berhasil, tamu) + golden light/dark baru (PNG diinspeksi). Stub auth di test validasi ditambah 2 method.
+- Verifikasi: format bersih, analyze No issues, test **144 lulus**, build Windows sukses + smoke ALIVE.
+
+## 2026-10-10 UI/UX menyeluruh: pintu Pengaturan tunggal + poles 4 tab
+
+Laporan user: (1) kartu Akun & Pengaturan muncul di 3 tab (ramai), (2) lanjutkan peningkatan UI/UX per halaman secara profesional.
+
+- Batch A (Pengaturan tunggal): widget bersama baru `core/widgets/settings_gear_button.dart` (ikon gear → `SettingsPath().push()`); gear dipasang di app bar 4 tab (Beranda, Validasi, Riwayat, Perangkat); `AccountSettingsCard` dihapus dari 3 tab + file dihapus (tidak ada test yang memakainya); seksi Akun di Pengaturan dilebur menjadi `_AccountHeader` (avatar inisial 24 + email tersamar + Keluar, tanpa judul seksi ganda); `_SectionTitle(isFirst)` menghapus dobel 32px; subtitle mode pengembang tidak lagi paksa 3 baris (`'\n'` → `' · '`).
+- Batch B (Beranda + Perangkat): Hero bisa di-tap → detail (InkWell + chevron, konsisten dengan kepala Perangkat); `StatusChip` teks dibungkus `Flexible` + ellipsis (label panjang tidak dorong layout 360dp); `_SmallValue` bento maxLines 1 (dua tile sejajar); `Divider` aktivitas pakai token + endIndent; widget bersama baru `core/widgets/filter_chip_row.dart` (`FilterChipRow<T>` generik) dipakai di Perangkat + Log koneksi (opsi Info yang hilang kini ada di Log); literal off-grid → token (`SizedBox 2` → spaceXs, `EdgeInsets.all(6)` → spaceSm, konektor 20 → spacePage).
+- Batch C (Validasi + Riwayat): token tipografi baru (`displayLabelSize 24`, `displayLabelMaxLines 4`, `letterSpacingLabel/Brand`); ukuran label bacaan disamakan 24 di Validasi (26) + Detail riwayat + maxLines 4; letterSpacing splash/login/detail via token; baris meta Riwayat full l10n (`historyConfidenceValue`, `historyDistanceValue` baru — regen otomatis via analyze).
+- Ditunda sadar: `OfflineBanner` tidak dipasang (butuh sinyal `isFromCache` nyata; simulasi tidak punya); `StatusPill` tidak dihapus (hanya `StatusPillData`/enum yang dipakai — hapus file = rename lintas 10 file, risiko > manfaat); `DeviceCard` mati + layar yatim lain dicatat untuk batch hapus kode mati.
+- Test: gear di 4 tab + kartu hilang + header akun (`navigation_back_test.dart`, 13 lulus di file itu); golden 3 tab di-regenerate + PNG diinspeksi.
+- Verifikasi: format bersih, analyze No issues, test **127 lulus**, golden Riwayat berubah sesuai ekspektasi (1.52% — teks meta baru), build Windows sukses + smoke ALIVE.
+
+## 2026-10-10 P0 navigasi kembali + chip dempet + detail yatim
+
+Laporan user: (1) chip severity Perangkat (Semua/Info/Peringatan/Gangguan) terlalu dempet, (2) QR Wi-Fi & Pengaturan tanpa tombol back (terjebak), (3) Pengaturan di 3 tab terlalu ramai, plus audit menyeluruh.
+
+- Navigasi (kritis): semua helper memakai `.go()` (replace, stack hilang) → AppBar polos tanpa `leading` → back = keluar aplikasi; Log koneksi dari Perangkat paling parah (bottom-nav hilang + terjebak). Perbaikan: widget bersama baru `core/widgets/back_app_bar.dart` (`BackAppBar`: `BackButton` eksplisit + guard `canPop()` → fallback route induk bila deep-link); method `push()` ditambahkan ke `DeviceWifiPath/DeviceCommandsPath/ConnectionLogsPath/DeviceDetailPath/SettingsPath` (+ helper baru `HistoryDetailPath`); 8 pemanggil layar anak `.go()` → `.push()` (Beranda→QR, Beranda→Perintah, Perangkat→QR/Kontrol/Log, Commands→QR, kartu akun→Pengaturan); `BackAppBar` dipasang di 6 layar (wifi, perintah, log, pengaturan, detail, detail riwayat) dengan fallback `/perangkat` (Pengaturan → `/beranda`, detail riwayat → `/riwayat`).
+- Chip dempet (konkret): 3 Wrap filter tanpa `runSpacing` (baris 2 jarak 0) → tambah `runSpacing: spaceSm` di Perangkat, Log koneksi, Riwayat.
+- Detail yatim: `DeviceDetailScreen` + `DeviceDetailPath` terdaftar tapi tidak terjangkau UI → `_DeviceHead` kini `Material+InkWell` (tap → detail via push) + chevron; chip aksi detail juga diganti ke path helper + ikon `hub_outlined` (sebelumnya label Event/Koneksi pakai ikon `sync_alt` — salah makna).
+- Test: `test/core/navigation_back_test.dart` (7 test: BackButton di 4 layar anak, runSpacing 2 Wrap filter, chevron/tap detail). `shared_preferences` sudah di dependencies (dipakai langsung untuk mock, tanpa tambah package).
+- Verifikasi: format bersih, analyze No issues, test **121 lulus**, golden Perangkat di-regenerate (struktur InkWell + chevron), build Windows sukses + smoke ALIVE (LNK1168 sempat terjadi karena exe lama masih jalan — dimatikan lalu build ulang).
+
+## 2026-10-09 Fix warna chip + unifikasi ring baterai (Beranda ↔ Perangkat)
+
+Laporan user: (1) warna font putih menyatu background di tab **Perangkat & Riwayat**, (2) ring baterai Beranda berbeda dengan ring di tab Perangkat.
+
+- Akar masalah warna chip ketemu lewat audit runtime: label chip tidak pernah punya `Text.style.color` (selalu `null`) karena warnanya diwariskan lewat `DefaultTextStyle` internal chip. Tanpa `chipTheme.labelStyle` eksplisit, warna itu jatuh ke warisan sekitar → tampak putih di kartu terang. Perbaikan permanen di `app_theme.dart`: `chipTheme` eksplisit (background `surfaceContainerLow`, selected `secondaryContainer`, `labelStyle` dengan `WidgetStateColor.resolveWith` → disabled `onSurface` .38 / selected `onSecondaryContainer` / default `onSurfaceVariant`; `iconTheme` eksplisit). Terbukti: warna efektif sekarang `rgb(71,70,79)` (default) dan `rgb(26,26,44)` (selected) — gelap.
+- Ring baterai: widget bersama baru `core/widgets/battery_ring.dart` (`BatteryRing({batteryPct, diameter=64, numberColor, trackColor})`) memakai `LensRing.battery` + label "Baterai". Hero Beranda (`_BatteryRing`) dan DeviceHead Perangkat keduanya memakai widget yang sama, diameter sama 64; satu-satunya beda yang sah = warna angka menyesuaikan konteks Hero `primaryContainer` (`onPrimaryContainer`).
+- Bukti visual (bukan tebakan): golden test baru untuk 3 tab — `test/features/{devices,history,home}/.../*_tab_golden_test.dart` + PNG di `*/goldens/`. File PNG diinspeksi manual.
+- Regression test: teks chip wajib luminance < 0.5 (baca warna efektif = `Text.style?.color ?? DefaultTextStyle.of(element).style.color`, resolve `WidgetStateColor`); `BatteryRing` wajib diameter 64 + `batteryPct` sama; angka Hero = `onPrimaryContainer`.
+- Audit menyeluruh 3 tab (Beranda/Perangkat/Riwayat) terhadap semua `Text` tampak: satu-satunya teks terang = label tombol bermaterial indigo (`FilledButton` putih di atas indigo) — benar, bukan bug.
+- Verifikasi: format bersih, `flutter analyze` No issues, `flutter test` **114 lulus** (dari 105), `flutter build windows --debug` sukses + exe ALIVE.
+- Catatan teknis: `matchesGoldenFile()` resolusi path relatif **file test** (`../goldens/...`), sedangkan `Directory()/File()` relatif **cwd** — beda; `expect()` tidak mempromosi `Color?` jadi non-null (perlu `!`).
+
+## 2026-10-09 Polish presentasi (header rapat, kartu akun, baterai, warna)
+
+Laporan user + screenshot: (1) header terdorong ke bawah di semua tab, (2) avatar "D" menggantung, (3) ring baterai terlihat rusak, (4) teks putih tab Perangkat, plus tombol "Sinkronkan sekarang" wrap dua baris.
+
+- App bar rapat: `LargeTitleScaffold` default `SliverAppBar` biasa ±64 (judul 20/SemiBold); varian `.large` dipertahankan. Konten naik ±90px di 4 tab.
+- Avatar app bar dihapus total (param `avatar` dihapus dari scaffold; class `_SettingsAvatar` mati dihapus di 3 layar). Pengganti: `AccountSettingsCard` bersama (inisial + email tersamar + tombol Pengaturan) di Beranda, Riwayat, Perangkat. `maskEmail` dipindah ke `core/utils/mask_email.dart` (hapus duplikat settings).
+- Baterai: `LensRing.battery` factory (warna adaptif ok≥30/warn≥15/bad dari `StatusColors` tema via `BatteryAdaptiveLevel`; null → 4 segmen mata angin + ikon, bukan cincin abu penuh); Hero + DeviceHead pakai factory; demo `batteryPct: 82` (jelas demo).
+- Tombol Hero: label `homeSyncShort` "Sinkronkan" satu baris (test mengunci).
+- `_NoDeviceState` teks ke `onPrimaryContainer` + hairline.
+- Bug laten ditemukan test: `LensRing._controller` lazy → crash "deactivated ancestor" saat dispose; diperbaiki ke initState.
+- Audit warna: login, history swipe, validasi, settings, QR, detail, koneksi, semua widget bersama — semua pasangan container/on-container konsisten; tidak ada yang diubah selain yang di atas.
+- Verifikasi: format bersih, analyze No issues, test 105 lulus, build Windows sukses + exe ALIVE.
+- Catatan: factory tidak bisa `const` di test; `BatteryAdaptiveLevel` enum publik sebagai penanda internal factory.
 - Catatan: `package_info_plus` belum dipakai (perlu persetujuan package); versi Tentang via `kAppVersionDisplay` sinkron manual dengan pubspec.
 
 Tanggal: 2026-10-08

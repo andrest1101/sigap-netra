@@ -17,6 +17,7 @@ import '../../features/provisioning/presentation/screens/wifi_provisioning_scree
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../theme/design_tokens.dart';
 import '../widgets/lens_ring.dart';
 
 /// Nama path route sebagai konstanta.
@@ -109,13 +110,32 @@ class DevicesPath {
 }
 
 /// Navigasi ke detail satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceDetailPath {
   const DeviceDetailPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId');
+  String get location => '${AppRoutes.devices}/$deviceId';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
+}
+
+/// Navigasi ke detail satu pembacaan riwayat.
+class HistoryDetailPath {
+  const HistoryDetailPath(this.detectionId);
+
+  final String detectionId;
+
+  String get location => '${AppRoutes.history}/$detectionId';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke tab Validasi.
@@ -134,38 +154,62 @@ class HistoryPath {
 }
 
 /// Navigasi ke layar Pengaturan.
+///
+/// Layar daun top-level: selalu [push] agar tombol kembali tersedia. [go]
+/// hanya untuk fallback (tidak ada stack kembali).
 class SettingsPath {
   const SettingsPath();
 
   void go(BuildContext context) => GoRouter.of(context).go(AppRoutes.settings);
+
+  void push(BuildContext context) =>
+      GoRouter.of(context).push(AppRoutes.settings);
 }
 
 /// Navigasi ke layar QR Wi-Fi satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceWifiPath {
   const DeviceWifiPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/wifi');
+  String get location => '${AppRoutes.devices}/$deviceId/wifi';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke layar perintah satu perangkat.
+///
+/// Layar anak: selalu [push] agar tombol kembali tersedia. [go] hanya untuk
+/// deep-link / fallback (tidak ada stack kembali).
 class DeviceCommandsPath {
   const DeviceCommandsPath(this.deviceId);
 
   final String deviceId;
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go('${AppRoutes.devices}/$deviceId/perintah');
+  String get location => '${AppRoutes.devices}/$deviceId/perintah';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Navigasi ke layar log koneksi (semua perangkat).
+///
+/// Layar daun top-level: selalu [push] agar tombol kembali tersedia. [go]
+/// hanya untuk fallback (tidak ada stack kembali).
 class ConnectionLogsPath {
   const ConnectionLogsPath();
 
   void go(BuildContext context) =>
       GoRouter.of(context).go(AppRoutes.settingsConnection);
+
+  void push(BuildContext context) =>
+      GoRouter.of(context).push(AppRoutes.settingsConnection);
 }
 
 /// Shell empat tab dengan `NavigationBar` standar M3 (label selalu tampil).
@@ -379,7 +423,7 @@ class SplashScreen extends StatelessWidget {
             Text(
               l10n.appTitle,
               style: textTheme.headlineSmall?.copyWith(
-                letterSpacing: 2,
+                letterSpacing: DesignTokens.letterSpacingBrand,
                 fontWeight: FontWeight.w700,
               ),
             ),

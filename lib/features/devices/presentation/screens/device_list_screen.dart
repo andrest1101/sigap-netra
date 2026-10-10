@@ -5,17 +5,18 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/filter_chip_row.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
-import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../commands/domain/entities/device_command.dart';
 import '../../../commands/presentation/providers/commands_providers.dart';
 import '../../../events/domain/entities/device_event.dart';
@@ -45,13 +46,13 @@ class DeviceListScreen extends ConsumerWidget {
             : '${list.length} ${l10n.devicesTitle.toLowerCase()}',
         orElse: () => null,
       ),
-      avatar: _SettingsAvatar(),
       actions: [
         IconButton(
           onPressed: () => ref.invalidate(myDevicesProvider),
           icon: const Icon(Icons.refresh_rounded),
           tooltip: l10n.commonRefresh,
         ),
+        const SettingsGearButton(),
       ],
       body: devices.when(
         loading: () => const _DevicesLoading(),
@@ -97,37 +98,6 @@ class DeviceListScreen extends ConsumerWidget {
   }
 }
 
-/// Avatar Pengaturan di kanan app bar.
-class _SettingsAvatar extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(currentUserProvider);
-    final email = user?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-
-    return Semantics(
-      button: true,
-      label: l10n.settingsOpenTitle,
-      child: InkWell(
-        onTap: () => const SettingsPath().go(context),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Kepala ringkasan: titik status, baterai, firmware/model, terakhir terlihat.
 class _DeviceHead extends StatelessWidget {
   const _DeviceHead({required this.device, required this.now});
@@ -143,86 +113,92 @@ class _DeviceHead extends StatelessWidget {
     final pill = device.connectivity.toPillData(l10n);
     final battery = device.batteryPct;
 
-    return Container(
-      padding: const EdgeInsets.all(DesignTokens.spacePage),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
-        border: Border.all(color: colorScheme.outlineVariant),
+    // Tap kepala perangkat membuka Detail (push agar bisa kembali).
+    // Seluruh konten kartu interaktif sekaligus: satu pintu ke detail.
+    final borderRadius = BorderRadius.circular(DesignTokens.radiusCard);
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: colorScheme.outlineVariant),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+      child: InkWell(
+        borderRadius: borderRadius,
+        onTap: () => DeviceDetailPath(device.deviceId).push(context),
+        child: Padding(
+          padding: const EdgeInsets.all(DesignTokens.spacePage),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusDot(
-                      tone: device.connectivity == DeviceConnectivity.online
-                          ? AppStatusTone.ok
-                          : AppStatusTone.bad,
-                      size: 12,
+                    Row(
+                      children: [
+                        StatusDot(
+                          tone: device.connectivity == DeviceConnectivity.online
+                              ? AppStatusTone.ok
+                              : AppStatusTone.bad,
+                          size: 12,
+                        ),
+                        const SizedBox(width: DesignTokens.spaceSm),
+                        Expanded(
+                          child: Text(
+                            device.name,
+                            style: textTheme.titleLarge,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: DesignTokens.spaceSm),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 20,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: DesignTokens.spaceSm),
-                    Expanded(
-                      child: Text(
-                        device.name,
-                        style: textTheme.titleLarge,
+                    const SizedBox(height: DesignTokens.spaceXs),
+                    Text(
+                      '${l10n.deviceLastSeenLabel}: ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (device.firmwareVersion != null ||
+                        device.model != null) ...[
+                      const SizedBox(height: DesignTokens.spaceXs),
+                      Text(
+                        [
+                          if (device.model != null)
+                            l10n.deviceModelShort(device.model!),
+                          if (device.firmwareVersion != null)
+                            l10n.deviceFirmwareShort(device.firmwareVersion!),
+                        ].join(' · '),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                    ],
+                    const SizedBox(height: DesignTokens.spaceSm),
+                    StatusChip(
+                      label: pill.label,
+                      tone: pill.tone,
+                      icon: pill.icon,
+                      isDense: true,
                     ),
                   ],
                 ),
-                const SizedBox(height: DesignTokens.spaceXs),
-                Text(
-                  '${l10n.deviceLastSeenLabel}: ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (device.firmwareVersion != null || device.model != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    [
-                      if (device.model != null)
-                        l10n.deviceModelShort(device.model!),
-                      if (device.firmwareVersion != null)
-                        l10n.deviceFirmwareShort(device.firmwareVersion!),
-                    ].join(' · '),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                const SizedBox(height: DesignTokens.spaceSm),
-                StatusChip(
-                  label: pill.label,
-                  tone: pill.tone,
-                  icon: pill.icon,
-                  isDense: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: DesignTokens.spaceMd),
-          LensRing(
-            diameter: 72,
-            value: battery == null ? null : battery / 100,
-            semanticsLabel: battery == null
-                ? l10n.homeBatteryUnavailable
-                : '${l10n.homeBatteryLabel} $battery persen',
-            center: Text(
-              battery == null ? '–' : '$battery',
-              style: textTheme.titleMedium?.copyWith(
-                fontFeatures: [FontFeature.tabularFigures()],
               ),
-            ),
+              const SizedBox(width: DesignTokens.spaceMd),
+              // Widget bersama yang sama dengan Hero Beranda (diameter
+              // disamakan 64 agar proporsinya identik).
+              BatteryRing(batteryPct: battery, diameter: 64),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -266,7 +242,8 @@ class _ConnectCard extends StatelessWidget {
                 ),
                 const SizedBox(height: DesignTokens.spaceMd),
                 FilledButton.tonalIcon(
-                  onPressed: () => DeviceWifiPath(device.deviceId).go(context),
+                  onPressed: () =>
+                      DeviceWifiPath(device.deviceId).push(context),
                   icon: const Icon(Icons.qr_code_rounded),
                   label: Text(l10n.deviceShowQr),
                 ),
@@ -295,7 +272,7 @@ class _ControlCard extends StatelessWidget {
         SectionHeader(
           title: l10n.deviceControlTitle,
           action: TextButton(
-            onPressed: () => DeviceCommandsPath(device.deviceId).go(context),
+            onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
             child: Text(l10n.commonSeeAll),
           ),
         ),
@@ -310,22 +287,22 @@ class _ControlCard extends StatelessWidget {
               _ControlChip(
                 icon: Icons.sync_rounded,
                 label: l10n.commandsSyncNow,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.volume_up_rounded,
                 label: l10n.commandsSetVolume,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.record_voice_over_rounded,
                 label: l10n.commandsSpeakText,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
               _ControlChip(
                 icon: Icons.restart_alt_rounded,
                 label: l10n.commandsRestart,
-                onTap: () => DeviceCommandsPath(device.deviceId).go(context),
+                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
               ),
             ],
           ),
@@ -394,7 +371,7 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
         SectionHeader(
           title: l10n.deviceActivityTitle,
           action: TextButton(
-            onPressed: () => const ConnectionLogsPath().go(context),
+            onPressed: () => const ConnectionLogsPath().push(context),
             child: Text(l10n.commonSeeAll),
           ),
         ),
@@ -405,34 +382,25 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             DesignTokens.spacePage,
             DesignTokens.spaceSm,
           ),
-          child: Wrap(
-            spacing: DesignTokens.spaceSm,
-            children: [
-              ChoiceChip(
-                label: Text(l10n.historyFilterAll),
-                selected: _severity == null,
-                onSelected: (_) => setState(() => _severity = null),
+          child: FilterChipRow<EventSeverity>(
+            selected: _severity,
+            onChanged: (value) => setState(() => _severity = value),
+            options: [
+              (label: l10n.historyFilterAll, icon: null, value: null),
+              (
+                label: l10n.eventsSeverityInfo,
+                icon: Icons.info_outline_rounded,
+                value: EventSeverity.info,
               ),
-              ChoiceChip(
-                avatar: const Icon(Icons.info_outline_rounded, size: 16),
-                label: Text(l10n.eventsSeverityInfo),
-                selected: _severity == EventSeverity.info,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.info),
+              (
+                label: l10n.eventsSeverityWarning,
+                icon: Icons.warning_amber_rounded,
+                value: EventSeverity.warning,
               ),
-              ChoiceChip(
-                avatar: const Icon(Icons.warning_amber_rounded, size: 16),
-                label: Text(l10n.eventsSeverityWarning),
-                selected: _severity == EventSeverity.warning,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.warning),
-              ),
-              ChoiceChip(
-                avatar: const Icon(Icons.error_outline_rounded, size: 16),
-                label: Text(l10n.eventsSeverityError),
-                selected: _severity == EventSeverity.error,
-                onSelected: (_) =>
-                    setState(() => _severity = EventSeverity.error),
+              (
+                label: l10n.eventsSeverityError,
+                icon: Icons.error_outline_rounded,
+                value: EventSeverity.error,
               ),
             ],
           ),
@@ -499,7 +467,7 @@ class _EventRow extends StatelessWidget {
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(DesignTokens.spaceSm),
                 decoration: ShapeDecoration(
                   color: colorScheme.surfaceContainerHigh,
                   shape: const CircleBorder(),
@@ -509,7 +477,7 @@ class _EventRow extends StatelessWidget {
               if (!isLast)
                 Container(
                   width: 1,
-                  height: 20,
+                  height: DesignTokens.spacePage,
                   color: colorScheme.outlineVariant,
                 ),
             ],

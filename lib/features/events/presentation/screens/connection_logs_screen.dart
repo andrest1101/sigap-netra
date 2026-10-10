@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/filter_chip_row.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -64,8 +67,9 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
     final now = DateTime.now();
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: BackAppBar(
         title: Text(l10n.eventsTitle),
+        fallbackRoute: AppRoutes.devices,
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -87,25 +91,25 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
                   DesignTokens.spacePage,
                   0,
                 ),
-                child: Wrap(
-                  spacing: DesignTokens.spaceSm,
-                  children: [
-                    ChoiceChip(
-                      label: Text(l10n.historyFilterAll),
-                      selected: _severity == null,
-                      onSelected: (_) => setState(() => _severity = null),
+                child: FilterChipRow<EventSeverity>(
+                  selected: _severity,
+                  onChanged: (value) => setState(() => _severity = value),
+                  options: [
+                    (label: l10n.historyFilterAll, icon: null, value: null),
+                    (
+                      label: l10n.eventsSeverityInfo,
+                      icon: Icons.info_outline_rounded,
+                      value: EventSeverity.info,
                     ),
-                    ChoiceChip(
-                      label: Text(l10n.eventsSeverityWarning),
-                      selected: _severity == EventSeverity.warning,
-                      onSelected: (_) =>
-                          setState(() => _severity = EventSeverity.warning),
+                    (
+                      label: l10n.eventsSeverityWarning,
+                      icon: Icons.warning_amber_rounded,
+                      value: EventSeverity.warning,
                     ),
-                    ChoiceChip(
-                      label: Text(l10n.eventsSeverityError),
-                      selected: _severity == EventSeverity.error,
-                      onSelected: (_) =>
-                          setState(() => _severity = EventSeverity.error),
+                    (
+                      label: l10n.eventsSeverityError,
+                      icon: Icons.error_outline_rounded,
+                      value: EventSeverity.error,
                     ),
                   ],
                 ),

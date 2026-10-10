@@ -61,9 +61,33 @@
   "loginEmailInUse": "Email ini sudah terdaftar.",
   "loginWeakPassword": "Kata sandi terlalu lemah.",
   "loginRequiredField": "Wajib diisi.",
+  "loginWelcomeBack": "Selamat datang kembali",
+  "loginWelcomeSubtitle": "Masuk untuk memantau perangkat SIGAP-NETRA.",
+  "loginHeroPointMoney": "Bacaan uang & teks",
+  "loginHeroPointValidate": "Validasi oleh pendamping",
+  "loginHeroPointPrivate": "Tanpa video, audio, GPS",
+  "loginNoAccount": "Belum punya akun?",
+  "loginSignUpLink": "Daftar",
+  "loginContinueAsGuest": "Lanjutkan sebagai tamu",
+  "loginPasswordMismatch": "Konfirmasi kata sandi tidak cocok.",
+  "loginPasswordTooShort": "Kata sandi minimal 6 karakter.",
+  "loginSignUpTitle": "Buat akun",
+  "loginSignUpSubtitle": "Daftar untuk memantau perangkat SIGAP-NETRA.",
+  "loginNameLabel": "Nama (opsional)",
+  "loginNameHint": "Nama panggilan Anda",
+  "loginConfirmPasswordLabel": "Konfirmasi kata sandi",
+  "loginCreateAccount": "Buat akun",
+  "loginHaveAccount": "Sudah punya akun?",
+  "loginSignInLink": "Masuk",
+  "loginPrivacyNote": "Hanya email untuk login perangkat. Tanpa video, audio, atau lokasi.",
+  "loginGuestFailed": "Masuk tamu gagal. Coba lagi nanti.",
+  "loginSignUpFailed": "Pendaftaran gagal. Coba lagi nanti.",
+  "loginShowPassword": "Tampilkan kata sandi",
+  "loginHidePassword": "Sembunyikan kata sandi",
 
   "homeTitle": "Beranda",
   "homeSyncNow": "Sinkronkan sekarang",
+  "homeSyncShort": "Sinkronkan",
   "homeSyncSent": "Permintaan sinkronisasi dikirim.",
   "homeRecentActivity": "Aktivitas terbaru",
   "homeValidationSummary": "Ringkasan validasi",
@@ -278,6 +302,8 @@
   "historyFilterPending": "Belum",
   "historyYesterday": "Kemarin",
   "historyReadNumber": "No. {number}",
+  "historyConfidenceValue": "Keyakinan {value}",
+  "historyDistanceValue": "{value} cm",
   "historyStatsComingSoonTitle": "Statistik segera hadir",
   "historyStatsComingSoonBody": "Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.",
   "historyResetMenu": "Reset status validasi...",
@@ -287,6 +313,16 @@
   "@historyReadNumber": {
     "placeholders": {
       "number": { "type": "int" }
+    }
+  },
+  "@historyConfidenceValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "@historyDistanceValue": {
+    "placeholders": {
+      "value": { "type": "int" }
     }
   },
 

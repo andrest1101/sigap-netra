@@ -6,17 +6,18 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../auth/presentation/providers/auth_providers.dart';
 import '../../devices/domain/entities/device.dart';
 import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
@@ -37,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
 
     return LargeTitleScaffold(
       title: l10n.homeTitle,
-      avatar: _SettingsAvatar(ref: ref),
+      actions: const [SettingsGearButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
@@ -79,41 +80,6 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Avatar Pengaturan di kanan app bar (arsitektur informasi v3).
-class _SettingsAvatar extends ConsumerWidget {
-  const _SettingsAvatar({required this.ref});
-
-  final WidgetRef ref;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(currentUserProvider);
-    final email = user?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-
-    return Semantics(
-      button: true,
-      label: l10n.settingsOpenTitle,
-      child: InkWell(
-        onTap: () => const SettingsPath().go(context),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Kartu Hero perangkat: status, baterai (Lens Ring), aksi Sinkronkan + QR.
 class DeviceHeroCard extends ConsumerWidget {
   const DeviceHeroCard({required this.device, required this.now, super.key});
@@ -142,61 +108,79 @@ class DeviceHeroCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: ShapeDecoration(
-                      color: colorScheme.surface,
-                      shape: const CircleBorder(),
-                    ),
-                    child: Icon(
-                      Icons.visibility_rounded,
-                      size: 28,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: StatusDot(
-                      tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
-                      size: 14,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: DesignTokens.spaceMd),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Area info bisa di-tap → detail perangkat (konsisten dengan
+          // kepala tab Perangkat). Tombol aksi di bawah tetap terpisah.
+          InkWell(
+            borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+            onTap: () => DeviceDetailPath(device.deviceId).push(context),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Stack(
                   children: [
-                    Text(
-                      device.name,
-                      style: textTheme.titleLarge?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: ShapeDecoration(
+                        color: colorScheme.surface,
+                        shape: const CircleBorder(),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      child: Icon(
+                        Icons.visibility_rounded,
+                        size: 28,
+                        color: colorScheme.onSurface,
+                      ),
                     ),
-                    const SizedBox(height: DesignTokens.spaceXs),
-                    StatusChip(
-                      label:
-                          '${pill.label} · ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
-                      tone: pill.tone,
-                      icon: pill.icon,
-                      isDense: true,
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: StatusDot(
+                        tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
+                        size: 14,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: DesignTokens.spaceSm),
-              _BatteryRing(device: device),
-            ],
+                const SizedBox(width: DesignTokens.spaceMd),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              device.name,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: DesignTokens.spaceXs),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 20,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: DesignTokens.spaceXs),
+                      StatusChip(
+                        label:
+                            '${pill.label} · ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
+                        tone: pill.tone,
+                        icon: pill.icon,
+                        isDense: true,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: DesignTokens.spaceSm),
+                _BatteryRing(device: device),
+              ],
+            ),
           ),
           const SizedBox(height: DesignTokens.spaceMd),
           Row(
@@ -205,7 +189,8 @@ class DeviceHeroCard extends ConsumerWidget {
               const SizedBox(width: DesignTokens.spaceMd),
               Expanded(
                 child: FilledButton.tonalIcon(
-                  onPressed: () => DeviceWifiPath(device.deviceId).go(context),
+                  onPressed: () =>
+                      DeviceWifiPath(device.deviceId).push(context),
                   icon: const Icon(Icons.qr_code_rounded),
                   label: Text(l10n.homeWifiQrAction),
                 ),
@@ -222,7 +207,8 @@ class DeviceHeroCard extends ConsumerWidget {
   }
 }
 
-/// Lens Ring baterai: angka di tengah, "–" bila tidak tersedia.
+/// Indikator baterai Hero Beranda: widget bersama [BatteryRing] dengan warna
+/// angka/track `onPrimaryContainer` (konteks background `primaryContainer`).
 class _BatteryRing extends StatelessWidget {
   const _BatteryRing({required this.device});
 
@@ -230,38 +216,14 @@ class _BatteryRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final battery = device.batteryPct;
-
     // Di dalam Hero (`primaryContainer`): angka + label wajib
     // `onPrimaryContainer` agar tidak menyatu dengan background.
     final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LensRing(
-          diameter: 56,
-          value: battery == null ? null : battery / 100,
-          trackColor: onHero.withValues(alpha: 0.25),
-          progressColor: onHero,
-          semanticsLabel: battery == null
-              ? l10n.homeBatteryUnavailable
-              : '${l10n.homeBatteryLabel} $battery persen',
-          center: Text(
-            battery == null ? '–' : '$battery',
-            style: textTheme.titleMedium?.copyWith(
-              color: onHero,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          l10n.homeBatteryLabel,
-          style: textTheme.labelSmall?.copyWith(color: onHero),
-        ),
-      ],
+    return BatteryRing(
+      batteryPct: device.batteryPct,
+      diameter: 64,
+      numberColor: onHero,
+      trackColor: onHero.withValues(alpha: 0.25),
     );
   }
 }
@@ -279,9 +241,11 @@ class _SyncButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return FilledButton.icon(
-      onPressed: () => DeviceCommandsPath(device.deviceId).go(context),
+      onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
       icon: const Icon(Icons.sync_rounded),
-      label: Text(l10n.homeSyncNow),
+      // Label pendek satu baris: "Sinkronkan sekarang" selalu wrap dua baris
+      // di setengah lebar Hero dan terlihat rusak di screenshot.
+      label: Text(l10n.homeSyncShort, maxLines: 1),
     );
   }
 }
@@ -492,7 +456,12 @@ class _RecentActivitySection extends ConsumerWidget {
                 l10n: l10n,
               ),
             ),
-            if (i < items.length - 1) const Divider(height: 1, indent: 20),
+            if (i < items.length - 1)
+              const Divider(
+                height: 1,
+                indent: DesignTokens.spacePage,
+                endIndent: DesignTokens.spacePage,
+              ),
           ],
       ],
     );
@@ -610,18 +579,25 @@ class _NoDeviceState extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(DesignTokens.radiusHero),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
             child: Column(
               children: [
                 Text(
                   l10n.homeNoDeviceHeroTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: DesignTokens.spaceSm),
                 Text(
                   l10n.homeNoDeviceHeroBody,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

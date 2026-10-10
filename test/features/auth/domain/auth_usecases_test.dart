@@ -41,6 +41,103 @@ void main() {
     });
   });
 
+  group('isValidEmail', () {
+    test('menerima alamat umum', () {
+      expect(isValidEmail('user@example.com'), isTrue);
+      expect(isValidEmail('  user@example.com  '), isTrue);
+    });
+
+    test('menolak format rusak', () {
+      expect(isValidEmail(''), isFalse);
+      expect(isValidEmail('userexample.com'), isFalse);
+      expect(isValidEmail('user@com'), isFalse);
+      expect(isValidEmail('@example.com'), isFalse);
+      expect(isValidEmail('user@example.'), isFalse);
+    });
+  });
+
+  group('SignInWithEmail', () {
+    test('menolak format email salah', () {
+      expect(
+        () => signInWithEmail(email: 'bukan-email', password: 'rahasia123'),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
+  group('SignUpWithEmail', () {
+    late SignUpWithEmail signUp;
+
+    setUp(() => signUp = SignUpWithEmail(repository));
+
+    test('menolak email kosong', () {
+      expect(
+        () => signUp(
+          email: '  ',
+          password: 'rahasia123',
+          confirmPassword: 'rahasia123',
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+
+    test('menolak email tidak valid', () {
+      expect(
+        () => signUp(
+          email: 'bukan-email',
+          password: 'rahasia123',
+          confirmPassword: 'rahasia123',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('menolak kata sandi pendek', () {
+      expect(
+        () => signUp(
+          email: 'user@example.com',
+          password: '12345',
+          confirmPassword: '12345',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('menolak konfirmasi tidak cocok', () {
+      expect(
+        () => signUp(
+          email: 'user@example.com',
+          password: 'rahasia123',
+          confirmPassword: 'beda123',
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('mendaftarkan akun dan masuk', () async {
+      final user = await signUp(
+        email: '  baru@example.com ',
+        password: 'rahasia123',
+        confirmPassword: 'rahasia123',
+        displayName: '  Budi  ',
+      );
+
+      expect(user.email, 'baru@example.com');
+      expect(repository.currentUser?.email, 'baru@example.com');
+      expect(await repository.watchAuthState().first, isA<AuthSignedIn>());
+    });
+  });
+
+  group('SignInAnonymously', () {
+    test('masuk tamu tanpa email', () async {
+      final user = await SignInAnonymously(repository).call();
+
+      expect(user.uid, isNotEmpty);
+      expect(user.email, isNull);
+      expect(await repository.watchAuthState().first, isA<AuthSignedIn>());
+    });
+  });
+
   group('AuthRepositoryImpl simulasi', () {
     test('status awal adalah signed out', () async {
       final states = await repository.watchAuthState().first;

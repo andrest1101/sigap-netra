@@ -424,6 +424,144 @@ abstract class AppLocalizations {
   /// **'Wajib diisi.'**
   String get loginRequiredField;
 
+  /// No description provided for @loginWelcomeBack.
+  ///
+  /// In id, this message translates to:
+  /// **'Selamat datang kembali'**
+  String get loginWelcomeBack;
+
+  /// No description provided for @loginWelcomeSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk untuk memantau perangkat SIGAP-NETRA.'**
+  String get loginWelcomeSubtitle;
+
+  /// No description provided for @loginHeroPointMoney.
+  ///
+  /// In id, this message translates to:
+  /// **'Bacaan uang & teks'**
+  String get loginHeroPointMoney;
+
+  /// No description provided for @loginHeroPointValidate.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi oleh pendamping'**
+  String get loginHeroPointValidate;
+
+  /// No description provided for @loginHeroPointPrivate.
+  ///
+  /// In id, this message translates to:
+  /// **'Tanpa video, audio, GPS'**
+  String get loginHeroPointPrivate;
+
+  /// No description provided for @loginNoAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum punya akun?'**
+  String get loginNoAccount;
+
+  /// No description provided for @loginSignUpLink.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar'**
+  String get loginSignUpLink;
+
+  /// No description provided for @loginContinueAsGuest.
+  ///
+  /// In id, this message translates to:
+  /// **'Lanjutkan sebagai tamu'**
+  String get loginContinueAsGuest;
+
+  /// No description provided for @loginPasswordMismatch.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi kata sandi tidak cocok.'**
+  String get loginPasswordMismatch;
+
+  /// No description provided for @loginPasswordTooShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Kata sandi minimal 6 karakter.'**
+  String get loginPasswordTooShort;
+
+  /// No description provided for @loginSignUpTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat akun'**
+  String get loginSignUpTitle;
+
+  /// No description provided for @loginSignUpSubtitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Daftar untuk memantau perangkat SIGAP-NETRA.'**
+  String get loginSignUpSubtitle;
+
+  /// No description provided for @loginNameLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama (opsional)'**
+  String get loginNameLabel;
+
+  /// No description provided for @loginNameHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Nama panggilan Anda'**
+  String get loginNameHint;
+
+  /// No description provided for @loginConfirmPasswordLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Konfirmasi kata sandi'**
+  String get loginConfirmPasswordLabel;
+
+  /// No description provided for @loginCreateAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Buat akun'**
+  String get loginCreateAccount;
+
+  /// No description provided for @loginHaveAccount.
+  ///
+  /// In id, this message translates to:
+  /// **'Sudah punya akun?'**
+  String get loginHaveAccount;
+
+  /// No description provided for @loginSignInLink.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk'**
+  String get loginSignInLink;
+
+  /// No description provided for @loginPrivacyNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Hanya email untuk login perangkat. Tanpa video, audio, atau lokasi.'**
+  String get loginPrivacyNote;
+
+  /// No description provided for @loginGuestFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk tamu gagal. Coba lagi nanti.'**
+  String get loginGuestFailed;
+
+  /// No description provided for @loginSignUpFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Pendaftaran gagal. Coba lagi nanti.'**
+  String get loginSignUpFailed;
+
+  /// No description provided for @loginShowPassword.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan kata sandi'**
+  String get loginShowPassword;
+
+  /// No description provided for @loginHidePassword.
+  ///
+  /// In id, this message translates to:
+  /// **'Sembunyikan kata sandi'**
+  String get loginHidePassword;
+
   /// No description provided for @homeTitle.
   ///
   /// In id, this message translates to:
@@ -435,6 +573,12 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Sinkronkan sekarang'**
   String get homeSyncNow;
+
+  /// No description provided for @homeSyncShort.
+  ///
+  /// In id, this message translates to:
+  /// **'Sinkronkan'**
+  String get homeSyncShort;
 
   /// No description provided for @homeSyncSent.
   ///
@@ -1521,6 +1665,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'No. {number}'**
   String historyReadNumber(int number);
+
+  /// No description provided for @historyConfidenceValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Keyakinan {value}'**
+  String historyConfidenceValue(String value);
+
+  /// No description provided for @historyDistanceValue.
+  ///
+  /// In id, this message translates to:
+  /// **'{value} cm'**
+  String historyDistanceValue(int value);
 
   /// No description provided for @historyStatsComingSoonTitle.
   ///

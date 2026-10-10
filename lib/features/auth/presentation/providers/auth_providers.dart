@@ -30,6 +30,14 @@ final signInWithGoogleProvider = Provider<SignInWithGoogle>(
   (ref) => SignInWithGoogle(ref.watch(authRepositoryProvider)),
 );
 
+final signUpWithEmailProvider = Provider<SignUpWithEmail>(
+  (ref) => SignUpWithEmail(ref.watch(authRepositoryProvider)),
+);
+
+final signInAnonymouslyProvider = Provider<SignInAnonymously>(
+  (ref) => SignInAnonymously(ref.watch(authRepositoryProvider)),
+);
+
 final signOutProvider = Provider<SignOut>(
   (ref) => SignOut(ref.watch(authRepositoryProvider)),
 );

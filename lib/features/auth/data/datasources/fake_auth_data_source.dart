@@ -59,6 +59,26 @@ class FakeAuthDataSource {
     return user;
   }
 
+  Future<AppUser> signUpWithEmail({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    // Simulasi: akun baru langsung aktif tanpa verifikasi email.
+    final user = AppUser(uid: _demoUid, email: email.trim());
+    _currentUser = user;
+    _controller.add(AuthSignedIn(user));
+    return user;
+  }
+
+  Future<AppUser> signInAnonymously() async {
+    // Simulasi tamu: tanpa email — header akun menampilkan UID tersamar.
+    const user = AppUser(uid: 'guest-demo');
+    _currentUser = user;
+    _controller.add(const AuthSignedIn(user));
+    return user;
+  }
+
   Future<void> signOut() async {
     _currentUser = null;
     _controller.add(const AuthSignedOut());
@@ -87,6 +107,20 @@ class FakeAuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AppUser> signInWithGoogle() => _dataSource.signInWithGoogle();
+
+  @override
+  Future<AppUser> signUpWithEmail({
+    required String email,
+    required String password,
+    String? displayName,
+  }) => _dataSource.signUpWithEmail(
+    email: email,
+    password: password,
+    displayName: displayName,
+  );
+
+  @override
+  Future<AppUser> signInAnonymously() => _dataSource.signInAnonymously();
 
   @override
   Future<void> signOut() => _dataSource.signOut();

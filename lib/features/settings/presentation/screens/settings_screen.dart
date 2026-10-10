@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/utils/mask_email.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
@@ -22,19 +25,22 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
+      appBar: BackAppBar(
+        title: Text(l10n.settingsTitle),
+        fallbackRoute: AppRoutes.home,
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           DesignTokens.spacePage,
-          DesignTokens.spaceSm,
+          DesignTokens.spaceMd,
           DesignTokens.spacePage,
           DesignTokens.spaceSection,
         ),
         children: const [
+          _AccountHeader(),
           _AppearanceSection(),
           _PrivacySection(),
           _AdvancedSection(),
-          _AccountSection(),
           _AboutSection(),
         ],
       ),
@@ -43,17 +49,21 @@ class SettingsScreen extends ConsumerWidget {
 }
 
 /// Judul seksi kecil dengan gaya v3.
+///
+/// [isFirst]: seksi pertama setelah header akun — tanpa jarak atas agar
+/// tidak dobel dengan padding ListView.
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle(this.text, {this.isFirst = false});
 
   final String text;
+  final bool isFirst;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         0,
-        DesignTokens.spaceSection,
+        isFirst ? DesignTokens.spaceMd : DesignTokens.spaceSection,
         0,
         DesignTokens.spaceSm,
       ),
@@ -81,7 +91,7 @@ class _AppearanceSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle(l10n.settingsDisplayTitle),
+        _SectionTitle(l10n.settingsDisplayTitle, isFirst: true),
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<AppThemePreference>(
@@ -183,8 +193,10 @@ class _AdvancedSection extends ConsumerWidget {
           contentPadding: EdgeInsets.zero,
           secondary: const Icon(Icons.science_outlined),
           title: Text(l10n.settingsDeveloperMode),
+          // Satu baris alir (bukan '\n' paksa): tinggi baris mengikuti
+          // konten, tidak memaksa 3 baris kosong.
           subtitle: Text(
-            '${l10n.settingsDeveloperModeBody}\n${l10n.settingsAppliesAfterRestart}',
+            '${l10n.settingsDeveloperModeBody} · ${l10n.settingsAppliesAfterRestart}',
           ),
           value: developerMode,
           onChanged: (_) => ref.read(developerModeProvider.notifier).toggle(),
@@ -204,49 +216,98 @@ class _AdvancedSection extends ConsumerWidget {
   }
 }
 
-class _AccountSection extends ConsumerWidget {
-  const _AccountSection();
+/// Header akun di puncak Pengaturan: avatar inisial + email tersamar +
+/// tombol Keluar.
+///
+/// Satu-satunya tempat info akun tampil — menggantikan kartu akun yang dulu
+/// disebar di 3 tab. Tidak memakai judul seksi agar tidak dobel spasi atas.
+class _AccountHeader extends ConsumerWidget {
+  const _AccountHeader();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final currentUser = ref.watch(currentUserProvider);
+    final email = currentUser?.email ?? '';
+    final displayName = currentUser?.displayName?.trim() ?? '';
+    // Identitas utama: nama tampilan bila ada (pendaftaran / Google),
+    // lalu email tersamar, lalu UID untuk tamu anonim.
+    final identity = displayName.isNotEmpty
+        ? displayName
+        : currentUser == null
+        ? l10n.settingsSignedOutAsGuest
+        : email.isNotEmpty
+        ? maskEmail(email)
+        : currentUser.uid;
+    final initialSource = displayName.isNotEmpty ? displayName : email;
+    final initial = initialSource.isNotEmpty
+        ? initialSource[0].toUpperCase()
+        : '?';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionTitle(l10n.settingsAccountTitle),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const CircleAvatar(
-            child: Icon(Icons.person_outline_rounded),
+    return Container(
+      padding: const EdgeInsets.all(DesignTokens.spaceLg),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: colorScheme.surface,
+            child: Text(
+              initial,
+              style: textTheme.titleLarge?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
           ),
-          title: Text(l10n.settingsSignedInAs),
-          subtitle: Text(
-            currentUser == null
-                ? l10n.settingsSignedOutAsGuest
-                : currentUser.email != null && currentUser.email!.isNotEmpty
-                ? maskEmail(currentUser.email!)
-                : currentUser.uid,
-          ),
-          trailing: currentUser == null
-              ? null
-              : TextButton(
-                  onPressed: () async {
-                    final confirmed = await ConfirmSheet.show(
-                      context,
-                      title: l10n.settingsSignOutConfirmTitle,
-                      message: l10n.settingsSignOutConfirmBody,
-                      confirmLabel: l10n.loginSignOut,
-                    );
-                    if (confirmed) {
-                      await ref.read(signOutProvider).call();
-                    }
-                  },
-                  child: Text(l10n.loginSignOut),
+          const SizedBox(width: DesignTokens.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.settingsAccountTitle,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                  ),
                 ),
-        ),
-      ],
+                const SizedBox(height: DesignTokens.spaceXs),
+                Text(
+                  identity,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (currentUser != null) ...[
+            const SizedBox(width: DesignTokens.spaceSm),
+            TextButton(
+              onPressed: () async {
+                final confirmed = await ConfirmSheet.show(
+                  context,
+                  title: l10n.settingsSignOutConfirmTitle,
+                  message: l10n.settingsSignOutConfirmBody,
+                  confirmLabel: l10n.loginSignOut,
+                );
+                if (confirmed && context.mounted) {
+                  await ref.read(signOutProvider).call();
+                }
+              },
+              child: Text(l10n.loginSignOut),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -274,19 +335,4 @@ class _AboutSection extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Menampilkan email dalam bentuk tersamar.
-///
-/// Privasi: UI tidak pernah menampilkan alamat penuh.
-String maskEmail(String email) {
-  final parts = email.split('@');
-  if (parts.length != 2 || parts.first.isEmpty || parts.last.isEmpty) {
-    return email;
-  }
-
-  final local = parts.first;
-  final domain = parts.last;
-  final visible = local.length <= 2 ? local : local.substring(0, 2);
-  return '$visible***@$domain';
 }

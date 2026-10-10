@@ -3,18 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
+import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../monitoring/presentation/providers/monitoring_providers.dart';
 
@@ -53,8 +52,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return LargeTitleScaffold(
       title: l10n.historyTitle,
       subtitle: '${l10n.historySummaryTitle} · ${items.length}',
-      avatar: _SettingsAvatar(),
       actions: [
+        const SettingsGearButton(),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
           onSelected: (value) => _onMenu(value),
@@ -193,37 +192,6 @@ String _statusLabel(ValidationStatus status, AppLocalizations l10n) {
   };
 }
 
-/// Avatar Pengaturan di kanan app bar.
-class _SettingsAvatar extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final user = ref.watch(currentUserProvider);
-    final email = user?.email ?? '';
-    final initial = email.isNotEmpty ? email[0].toUpperCase() : '?';
-
-    return Semantics(
-      button: true,
-      label: l10n.settingsOpenTitle,
-      child: InkWell(
-        onTap: () => const SettingsPath().go(context),
-        customBorder: const CircleBorder(),
-        child: CircleAvatar(
-          radius: 18,
-          backgroundColor: colorScheme.primaryContainer,
-          child: Text(
-            initial,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Daftar riwayat: chip kategori + tombol filter + grup per hari.
 class _HistoryList extends StatelessWidget {
   const _HistoryList({
@@ -254,6 +222,7 @@ class _HistoryList extends StatelessWidget {
           ),
           child: Wrap(
             spacing: DesignTokens.spaceSm,
+            runSpacing: DesignTokens.spaceSm,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               ChoiceChip(
@@ -289,6 +258,7 @@ class _HistoryList extends StatelessWidget {
           )
         else
           _DayGroupedList(items: items),
+        const SizedBox(height: DesignTokens.spaceSection),
       ],
     );
   }
@@ -457,7 +427,7 @@ class _HistoryRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      '${l10n.historyReadNumber(number)} · conf ${detection.confidence == null ? '–' : NumberFormatId.percentWithSign(detection.confidence! * 100)}${detection.distanceCm == null ? '' : ' · ${detection.distanceCm} cm'}',
+                      '${l10n.historyReadNumber(number)} · ${detection.confidence == null ? '–' : l10n.historyConfidenceValue(NumberFormatId.percentWithSign(detection.confidence! * 100))}${detection.distanceCm == null ? '' : ' · ${l10n.historyDistanceValue(detection.distanceCm!)}'}',
                       style: textTheme.labelMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),

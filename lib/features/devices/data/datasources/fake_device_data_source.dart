@@ -55,6 +55,9 @@ class FakeDeviceDataSource implements DeviceDataSource {
       wifiSsid: 'Jaringan-Rumah',
       lastSeen: _lastSeen,
       bootCount: 42,
+      // Nilai demo untuk presentasi; BUKAN klaim hardware. Keberadaan baterai
+      // tetap [PERLU KONFIRMASI] tim hardware.
+      batteryPct: 82,
       members: const <String, String>{kDemoUserId: 'owner'},
       createdAt: DateTime(2026, 1, 1),
       updatedAt: _lastSeen,

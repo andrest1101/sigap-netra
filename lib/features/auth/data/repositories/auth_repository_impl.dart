@@ -71,5 +71,49 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AppUser> signUpWithEmail({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
+    try {
+      final credential = await _dataSource.signUpWithEmail(
+        email: email,
+        password: password,
+        displayName: displayName,
+      );
+      final user = credential.user;
+      if (user == null) {
+        throw const UnknownFailure();
+      }
+      return AppUser(
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+      );
+    } on Object catch (error) {
+      throw _dataSource.mapError(error);
+    }
+  }
+
+  @override
+  Future<AppUser> signInAnonymously() async {
+    try {
+      final credential = await _dataSource.signInAnonymously();
+      final user = credential.user;
+      if (user == null) {
+        throw const UnknownFailure();
+      }
+      return AppUser(
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+      );
+    } on Object catch (error) {
+      throw _dataSource.mapError(error);
+    }
+  }
+
+  @override
   Future<void> signOut() => _dataSource.signOut();
 }

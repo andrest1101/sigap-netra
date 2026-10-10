@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/status_chip.dart';
@@ -32,7 +34,10 @@ class HistoryDetailScreen extends ConsumerWidget {
 
     if (detection == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.historyDetailTitle)),
+        appBar: BackAppBar(
+          title: Text(l10n.historyDetailTitle),
+          fallbackRoute: AppRoutes.history,
+        ),
         body: EmptyView(
           title: l10n.stateErrorNotFound,
           message: l10n.historyEmptyBody,
@@ -42,8 +47,9 @@ class HistoryDetailScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: BackAppBar(
         title: Text(l10n.historyDetailTitle),
+        fallbackRoute: AppRoutes.history,
         actions: [
           IconButton(
             onPressed: () => _share(context, ref, detection),
@@ -72,9 +78,11 @@ class HistoryDetailScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   detection.displayLabel,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineSmall?.copyWith(fontSize: 24),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: DesignTokens.displayLabelSize,
+                  ),
+                  maxLines: DesignTokens.displayLabelMaxLines,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               const SizedBox(width: DesignTokens.spaceMd),
@@ -307,7 +315,7 @@ class _OcrCardState extends State<_OcrCard> {
                   l10n.historyRecognitionResult,
                   style: textTheme.labelMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 1.2,
+                    letterSpacing: DesignTokens.letterSpacingLabel,
                   ),
                 ),
               ),

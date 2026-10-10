@@ -2,30 +2,44 @@ import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
 
-/// Scaffold dengan app bar judul-besar yang menyusut saat scroll.
+/// Scaffold app bar standar M3 yang rapat + opsional judul-besar.
 ///
-/// Pengganti `GradientHeader` sesuai identitas v3: tanpa gradien, tanpa foto
-/// header — judul besar 28/Bold yang menyusut menjadi app bar standar.
-/// [avatar] membuka Pengaturan (`/pengaturan`) sesuai arsitektur informasi v3.
+/// Mode default (rapat): `SliverAppBar` biasa tinggi ±64 dengan judul
+/// 20/SemiBold — konten naik ~90px dibanding large-title. Mode large-title
+/// tetap tersedia lewat [LargeTitleScaffold.large] bila suatu layar
+/// menginginkannya.
+///
+/// Pengaturan dibuka lewat [SettingsGearButton] di app bar tiap tab —
+/// satu pintu yang konsisten, bukan kartu di dalam body.
 class LargeTitleScaffold extends StatelessWidget {
   const LargeTitleScaffold({
     required this.title,
     required this.body,
     super.key,
     this.subtitle,
-    this.avatar,
     this.actions = const [],
     this.bottom,
     this.floatingActionButton,
     this.fillRemaining = false,
+    this.compact = true,
   });
+
+  /// Varian judul-besar 28/Bold yang menyusut saat scroll (identitas v3).
+  const LargeTitleScaffold.large({
+    required this.title,
+    required this.body,
+    super.key,
+    this.subtitle,
+    this.actions = const [],
+    this.bottom,
+    this.floatingActionButton,
+    this.fillRemaining = false,
+  }) : compact = false;
 
   final String title;
   final String? subtitle;
   final Widget body;
 
-  /// Avatar Pengaturan di kanan app bar. Bila null, tidak ada avatar.
-  final Widget? avatar;
   final List<Widget> actions;
   final PreferredSizeWidget? bottom;
   final Widget? floatingActionButton;
@@ -37,33 +51,45 @@ class LargeTitleScaffold extends StatelessWidget {
   /// tinggi sehingga melempar layout exception dan layar gagal render total.
   final bool fillRemaining;
 
+  /// Bila true (default), app bar rapat ±64. Bila false, large-title 28/Bold.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       floatingActionButton: floatingActionButton,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
-            title: Text(title),
-            centerTitle: false,
-            pinned: true,
-            actions: [
-              ...actions,
-              if (avatar != null) ...[
-                avatar!,
-                const SizedBox(width: DesignTokens.spaceSm),
-              ],
-            ],
-            bottom: bottom,
-          ),
+          if (compact)
+            SliverAppBar(
+              title: Text(
+                title,
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              centerTitle: false,
+              pinned: true,
+              actions: actions,
+              bottom: bottom,
+            )
+          else
+            SliverAppBar.large(
+              title: Text(title),
+              centerTitle: false,
+              pinned: true,
+              actions: actions,
+              bottom: bottom,
+            ),
           if (subtitle != null)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   DesignTokens.spacePage,
                   0,
                   DesignTokens.spacePage,
-                  DesignTokens.spaceMd,
+                  compact ? DesignTokens.spaceSm : DesignTokens.spaceMd,
                 ),
                 child: Text(
                   subtitle!,

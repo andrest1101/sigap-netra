@@ -80,11 +80,15 @@ class _SmallValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Satu baris + ellipsis: dua tile kecil sejajar tingginya sama walau
+    // nilainya panjang ("5 menit yang lalu").
     return Text(
       value,
       style: Theme.of(
         context,
       ).textTheme.titleLarge?.copyWith(fontFeatures: [_tabular]),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

@@ -52,6 +52,12 @@ const String kAppVersionDisplay = '1.0.0+1';
 const String kWifiQrPayloadStatusUnconfirmed =
     'Format payload QR Wi-Fi belum dikonfirmasi dari aplikasi Kotlin lama.';
 
+/// Logo Google "G" resmi (PNG transparan) untuk tombol masuk Google.
+///
+/// Ikon Material `g_mobiledata` bukan logo Google dan menyesatkan, jadi
+/// memakai aset ini. Ukuran asli 3840px — selalu tampilkan kecil (20-24dp).
+const String kGoogleLogoAsset = 'assets/images/google_g_logo.png';
+
 /// Minimum panjang kata sandi Wi-Fi yang diterima.
 const int kMinWifiPasswordLength = 8;
 

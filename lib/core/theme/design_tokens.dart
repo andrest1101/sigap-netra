@@ -40,6 +40,16 @@ abstract final class DesignTokens {
   // Lebar maksimum konten agar tetap terbaca di tablet.
   static const double maxContentWidth = 640;
 
+  // Tipografi v3: ukuran label bacaan + letter-spacing.
+  //
+  // Label hasil bacaan (uang/OCR) tampil besar di kartu Validasi dan judul
+  // Detail riwayat — satu ukuran agar konsisten. Letter-spacing untuk label
+  // kecil kapital dan judul brand.
+  static const double displayLabelSize = 24;
+  static const int displayLabelMaxLines = 4;
+  static const double letterSpacingLabel = 1.2;
+  static const double letterSpacingBrand = 2;
+
   // Durasi animasi v3: 200-300 ms, `Curves.easeOutCubic`.
   static const Duration animationFast = Duration(milliseconds: 200);
   static const Duration animationMedium = Duration(milliseconds: 250);

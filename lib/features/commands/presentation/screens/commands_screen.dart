@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/status_chip.dart';
@@ -42,7 +43,10 @@ class CommandsScreen extends ConsumerWidget {
     final now = DateTime.now();
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.commandsTitle)),
+      appBar: BackAppBar(
+        title: Text(l10n.commandsTitle),
+        fallbackRoute: AppRoutes.devices,
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -95,7 +99,7 @@ class CommandsScreen extends ConsumerWidget {
                   label: Text(l10n.commandsReprovision),
                   onPressed: resolvedId == null
                       ? null
-                      : () => DeviceWifiPath(resolvedId).go(context),
+                      : () => DeviceWifiPath(resolvedId).push(context),
                 ),
               ],
             ),

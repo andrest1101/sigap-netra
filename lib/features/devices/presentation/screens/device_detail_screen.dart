@@ -6,6 +6,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
+import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
@@ -33,7 +34,10 @@ class DeviceDetailScreen extends ConsumerWidget {
     final now = DateTime.now();
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.deviceDetailTitle)),
+      appBar: BackAppBar(
+        title: Text(l10n.deviceDetailTitle),
+        fallbackRoute: AppRoutes.devices,
+      ),
       body: device.when(
         loading: () => const Padding(
           padding: EdgeInsets.all(DesignTokens.spacePage),
@@ -174,17 +178,16 @@ class _DeviceDetailBody extends StatelessWidget {
             ActionChip(
               avatar: const Icon(Icons.qr_code_rounded, size: 18),
               label: Text(l10n.provisioningTitle),
-              onPressed: () =>
-                  context.push('/perangkat/${device.deviceId}/wifi'),
+              onPressed: () => DeviceWifiPath(device.deviceId).push(context),
             ),
             ActionChip(
               avatar: const Icon(Icons.settings_remote_rounded, size: 18),
               label: Text(l10n.deviceRemoteControl),
               onPressed: () =>
-                  context.push('/perangkat/${device.deviceId}/perintah'),
+                  DeviceCommandsPath(device.deviceId).push(context),
             ),
             ActionChip(
-              avatar: const Icon(Icons.sync_alt_rounded, size: 18),
+              avatar: const Icon(Icons.hub_outlined, size: 18),
               label: Text(l10n.eventsTitle),
               onPressed: () =>
                   context.push('/pengaturan/koneksi/${device.deviceId}'),
