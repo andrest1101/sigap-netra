@@ -97,6 +97,23 @@
   "homeValidatedLabel": "Tervalidasi",
   "homePendingLabel": "Menunggu",
   "homeLastSeenLabel": "Terakhir terlihat",
+  "homeAccuracyFromCount": "dari {count} validasi",
+  "homeNoValidation": "Belum ada validasi",
+  "homeTodayBreakdown": "{money} uang · {text} teks",
+  "homeEmptyActivityTitle": "Belum ada aktivitas",
+  "homeEmptyActivityBody": "Pembacaan terbaru dari perangkat akan muncul di sini.",
+  "homeEmptyActivityAction": "Periksa antrean",
+  "@homeAccuracyFromCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@homeTodayBreakdown": {
+    "placeholders": {
+      "money": { "type": "int" },
+      "text": { "type": "int" }
+    }
+  },
 
   "statusOnline": "Online",
   "statusOffline": "Terputus",

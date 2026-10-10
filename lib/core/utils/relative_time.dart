@@ -13,6 +13,10 @@ abstract final class RelativeTime {
     'id',
   );
 
+  /// Jam dulu lalu tanggal ("14.32 · 10 Okt"): untuk tile ringkas yang
+  /// nilainya waktu terakhir, bukan hitungan mundur relatif.
+  static final DateFormat _timeDateFormat = DateFormat('HH.mm · d MMM', 'id');
+
   /// Menampilkan waktu relatif untuk [timestamp].
   ///
   /// Mengembalikan `timeNever` bila [timestamp] null. Lebih lama dari 7 hari
@@ -49,4 +53,15 @@ abstract final class RelativeTime {
 
   /// Format tanggal dan jam absolut.
   static String dateTime(DateTime value) => _dateTimeFormat.format(value);
+
+  /// Format jam + tanggal absolut untuk tile ringkas.
+  ///
+  /// Mengembalikan `timeNever` bila [timestamp] null.
+  static String timeAndDate(
+    DateTime? timestamp, {
+    required AppLocalizations l10n,
+  }) {
+    if (timestamp == null) return l10n.timeNever;
+    return _timeDateFormat.format(timestamp);
+  }
 }
