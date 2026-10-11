@@ -25,6 +25,16 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-11 Refactor kasat mata Beranda (hero berlapis, bento berikon, aktivitas kartu)
+
+Koreksi user: H1–H5 terlalu kecil secara visual ("kayak ga berubah"). Investigasi membuktikan kode berubah + ter-commit, dan jalur run user benar (launch.json → main simulation → fake data utuh) — masalahnya kalibrasi batch terlalu timid. Refactor ini menyentuh yang kasat mata.
+
+- Hero berlapis: ring baterai besar DIHAPUS dari Hero (satu-satunya ring besar kini di tab Perangkat — tidak ada dua signature bersaing); diganti strip 3 stat (status + baterai % + jam sinkron, divider hairline); tombol dua kolom → bertingkat full-width (primer label penuh + sekunder), target 48, tanpa wrap/ellipsis.
+- Bento: slot `icon` baru (lingkaran tonal + label): Menunggu (warn), Akurasi (ok), Sinkron (default), Hari ini (default). Mini-bars DITOLAK sadar: tanpa data historis = memalsukan data (AI slop).
+- Aktivitas: thumb 48 rounded + StatusDot menempel + label SemiBold + chevron (terbaca sebagai kartu mini, bukan daftar pengaturan).
+- Test: golden home di-regenerate + PNG diinspeksi; assertion strip/bento/aktivitas baru; test lama label pendek dihapus. Pelajaran: test online wajib lastSeen segar (konektivitas dihitung ulang vs jam nyata); baca nomor baris error dengan teliti (textContaining vs golden mismatch).
+- Verifikasi: format bersih, analyze No issues, test **152 lulus**, `flutter clean` + build Windows dari nol sukses + smoke ALIVE (exe 22:30 dijamin versi HEAD).
+
 ## 2026-10-11 H3/H5/H4 Beranda: sinyal, tombol offline, empty, subjudul
 
 - H3: `StatusDot` avatar dibungkus `ExcludeSemantics` (chip berlabel tetap sumber aksesibilitas). Duplikasi lastSeen (relatif chip vs absolut tile) DIPERTAHANKAN sadar: komplementer (hitungan presisi + jam presisi), bukan duplikat murni — tidak ada `lastSyncAt` di domain, menambahnya = perubahan skema (di luar batch).
