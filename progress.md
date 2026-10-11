@@ -25,6 +25,33 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-11 H3/H5/H4 Beranda: sinyal, tombol offline, empty, subjudul
+
+- H3: `StatusDot` avatar dibungkus `ExcludeSemantics` (chip berlabel tetap sumber aksesibilitas). Duplikasi lastSeen (relatif chip vs absolut tile) DIPERTAHANKAN sadar: komplementer (hitungan presisi + jam presisi), bukan duplikat murni — tidak ada `lastSyncAt` di domain, menambahnya = perubahan skema (di luar batch).
+- H5: tombol Hero bertukar hierarki saat offline (QR `filled` utama, Sinkron `tonal`); empty aktivitas CTA ke Perangkat ("Hubungkan") — bukan Validasi yang juga kosong; empty Perangkat tanpa tombol "Tambah" (tidak ada alur klaim di app; tombol lama mengarah ke Validasi — salah); subjudul Beranda = nama perangkat primer (pola Perangkat); kunci `homeEmptyActivityAction` tak terpakai dihapus.
+- H4: riset membuktikan tick 15-detik SUDAH ada (`myDevicesProvider` + `tickProvider`) — waktu relatif ikut rebuild, tidak basi; thumbnail media BELUM ada pipeline sama sekali di app (Riwayat pun placeholder) → pipeline media = fitur P2, bukan poles; param `singleDevice` mati dihapus.
+- Test: subjudul ganda, warna QR online (secondaryContainer) vs offline (primary) via Material button aktual, golden regen. Pelajaran: `FilledButton.icon` merender tipe internal (byType gagal → predicate `is`); style widget null (dari tema) → baca Material; `find.ancestor` bisa kembar (saring `MaterialType.button`); konektivitas dihitung ulang dari lastSeen vs jam nyata — test online wajib lastSeen segar.
+- Verifikasi: format bersih, analyze No issues, test **152 lulus**, build Windows sukses + smoke ALIVE (build diulang per batch).
+
+## 2026-10-11 H2 Sampel demo jujur kapabilitas alat
+
+Koreksi user: "Minimarket Segar" (struk belanja) dan "Pintu Keluar" (rambu jalan) menyiratkan OCR bebas sembarang teks — padahal alat hanya membaca (1) pecahan uang, (2) teks pada posisi baca normal yang dihadapkan ke kamera.
+
+- `det-text-struk` → `det-text-menu` ("NASI GORENG / Rp15.000", label menu dihadapkan ke kamera); `det-text-rambu` → `det-text-sampul` ("PANDUAN / BELAJAR BRAILLE", sampul dihadapkan ke kamera). Di kedua sumber sampel (`monitoring_providers.dart` + `fake_detection_data_source.dart`) agar sinkron.
+- Komentar batas kapabilitas di kedua `_sample()`: bukan OCR bebas — jangan contohkan rambu/reklame/dokumen tak dihadapkan.
+- Test baru: sampel teks tidak mengandung kata terlarang (PINTU KELUAR/MINIMARKET/RAMBU/REKLAME).
+- Verifikasi: format bersih, analyze No issues, test **149 lulus**, golden yang memuat teks demo di-regenerate, build Windows sukses + smoke ALIVE.
+
+## 2026-10-11 H1 Beranda: ritme seksi + hierarki cincin + kontras null
+
+Penilaian audit: Beranda benar secara komponen tapi ritme pincang (8-24-12-12-12-24), ring akurasi 72 mendominasi baterai 56, dan state-null nyaris hilang di Hero (track 0.25×0.55 ≈ 0.14).
+
+- Header Aktivitas `compact` → non-compact (top 24, sama dengan Perangkat): ritme 8-24-24-…-24.
+- Ring akurasi 72→64: metrik sekunder tidak mendominasi ring baterai 56.
+- Track hero 0.25→0.40: state-null (≈0.22) tetap terbaca di atas `primaryContainer`, light + dark.
+- Test: assertion hierarki (semua ring ≤ 64, ada 64); golden home di-regenerate + PNG diinspeksi. Pelajaran: variabel `rings` ganda di scope test; `find.textContaining` gagal biasanya golden mismatch di baris berikut — baca nomor baris.
+- Verifikasi: format bersih, analyze No issues, test **148 lulus** (tetap), build Windows sukses + smoke ALIVE.
+
 ## 2026-10-10 Refactor Beranda: hero seimbang, bento informatif, aktivitas bernilai
 
 Permintaan user: Beranda polos/AI-slop — refactor seprofesional mungkin (proporsi, ritme, nilai tiap widget).
