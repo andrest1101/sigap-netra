@@ -152,14 +152,15 @@ void main() {
     });
 
     testWidgets('menampilkan hero dan bento perangkat', (tester) async {
-      final now = DateTime(2026, 10, 8, 12);
       await pumpHome(tester);
       repository.emit([
         Device(
           deviceId: 'dev-1',
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
-          lastSeen: now,
+          // lastSeen segar: konektivitas dihitung ulang vs jam nyata.
+          lastSeen: DateTime.now(),
+          batteryPct: 82,
         ),
       ]);
       await pumpFrames(tester);
@@ -169,8 +170,11 @@ void main() {
       // "Menunggu" muncul di tile bento + chip status tiap baris aktivitas.
       expect(find.text('Menunggu'), findsWidgets);
       expect(find.text('Akurasi'), findsOneWidget);
-      expect(find.text('Sinkronkan'), findsOneWidget);
+      // Tombol primer full-width memakai label penuh.
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
       expect(find.text('QR Wi-Fi'), findsOneWidget);
+      // Stats strip: persen baterai ringkas.
+      expect(find.text('82%'), findsOneWidget);
     });
 
     testWidgets('perangkat terputus menampilkan warna status merah', (
@@ -264,23 +268,21 @@ void main() {
       expect(text.style?.color, scheme.onPrimaryContainer);
     });
 
-    testWidgets('tombol sinkron Hero memakai label pendek satu baris', (
-      tester,
-    ) async {
-      final now = DateTime(2026, 10, 8, 12);
+    testWidgets('tombol Hero bertingkat full-width', (tester) async {
       await pumpHome(tester);
       repository.emit([
         Device(
           deviceId: 'dev-1',
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
-          lastSeen: now,
+          lastSeen: DateTime.now(),
         ),
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Sinkronkan'), findsOneWidget);
-      expect(find.text('Sinkronkan sekarang'), findsNothing);
+      // Primer full-width memakai label penuh (ruang cukup, tanpa wrap).
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
+      expect(find.text('QR Wi-Fi'), findsOneWidget);
     });
 
     testWidgets('bento menampilkan jam absolut + breakdown hari ini', (

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
-import 'package:sigap_netra_app/core/widgets/battery_ring.dart';
 import 'package:sigap_netra_app/core/widgets/lens_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
@@ -100,36 +99,19 @@ void main() {
       expect(tester.takeException(), isNull);
       // Nama muncul 2x: subjudul app bar + Hero.
       expect(find.text('Kacamata Cerdas'), findsWidgets);
-      expect(find.text('82'), findsOneWidget);
-      // Caption "Baterai" dihapus: ring + angka saja.
-      expect(find.text('Baterai'), findsNothing);
+      // Hero baru: strip stats menampilkan persen (tanpa ring besar).
+      expect(find.text('82%'), findsOneWidget);
 
-      // Widget yang sama dengan tab Perangkat: ukuran + data identik.
-      final rings = tester.widgetList<BatteryRing>(find.byType(BatteryRing));
-      expect(rings, hasLength(1));
-      expect(rings.first.diameter, 56);
-      expect(rings.first.batteryPct, 82);
-      // Satu-satunya beda yang sah: warna diangka menyesuaikan konteks
-      // Hero `primaryContainer` (bukan putih paksa).
-      final scheme = Theme.of(
-        tester.element(find.byType(HomeScreen)),
-      ).colorScheme;
-      expect(rings.first.numberColor, scheme.onPrimaryContainer);
+      // Satu-satunya ring besar di Beranda = akurasi bento (64).
+      // Ring baterai besar hanya di tab Perangkat — tidak ada dua
+      // signature yang bersaing.
+      final lensRings = tester.widgetList<LensRing>(find.byType(LensRing));
+      final diameters = lensRings.map((r) => r.diameter).toSet();
+      expect(diameters, equals({64}));
 
       // Bento informatif: jam absolut + breakdown kategori + footer akurasi.
       expect(find.textContaining('·'), findsWidgets);
       expect(find.textContaining('uang ·'), findsOneWidget);
-
-      // Hierarki cincin: ring akurasi (bento) lebih kecil dari ring
-      // baterai (hero) — metrik sekunder tidak mendominasi.
-      final lensRings = tester.widgetList<LensRing>(find.byType(LensRing));
-      final diameters = lensRings.map((r) => r.diameter).toSet();
-      expect(diameters.contains(64), isTrue);
-      expect(
-        diameters.every((d) => d <= 64),
-        isTrue,
-        reason: 'tidak boleh ada ring > 64 di Beranda ($diameters)',
-      );
 
       await expectLater(
         find.byType(HomeScreen),
