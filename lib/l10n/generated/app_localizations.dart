@@ -664,12 +664,6 @@ abstract class AppLocalizations {
   /// **'Pembacaan terbaru dari perangkat akan muncul di sini.'**
   String get homeEmptyActivityBody;
 
-  /// No description provided for @homeEmptyActivityAction.
-  ///
-  /// In id, this message translates to:
-  /// **'Periksa antrean'**
-  String get homeEmptyActivityAction;
-
   /// No description provided for @statusOnline.
   ///
   /// In id, this message translates to:

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/widgets/battery_ring.dart';
+import 'package:sigap_netra_app/core/widgets/lens_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
@@ -97,7 +98,8 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Kacamata Cerdas'), findsOneWidget);
+      // Nama muncul 2x: subjudul app bar + Hero.
+      expect(find.text('Kacamata Cerdas'), findsWidgets);
       expect(find.text('82'), findsOneWidget);
       // Caption "Baterai" dihapus: ring + angka saja.
       expect(find.text('Baterai'), findsNothing);
@@ -118,6 +120,17 @@ void main() {
       expect(find.textContaining('·'), findsWidgets);
       expect(find.textContaining('uang ·'), findsOneWidget);
 
+      // Hierarki cincin: ring akurasi (bento) lebih kecil dari ring
+      // baterai (hero) — metrik sekunder tidak mendominasi.
+      final lensRings = tester.widgetList<LensRing>(find.byType(LensRing));
+      final diameters = lensRings.map((r) => r.diameter).toSet();
+      expect(diameters.contains(64), isTrue);
+      expect(
+        diameters.every((d) => d <= 64),
+        isTrue,
+        reason: 'tidak boleh ada ring > 64 di Beranda ($diameters)',
+      );
+
       await expectLater(
         find.byType(HomeScreen),
         matchesGoldenFile('../goldens/home_tab_light.png'),
@@ -130,7 +143,7 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Kacamata Cerdas'), findsOneWidget);
+      expect(find.text('Kacamata Cerdas'), findsWidgets);
     });
   });
 }
