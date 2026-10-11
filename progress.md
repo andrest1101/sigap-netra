@@ -25,6 +25,16 @@ Laporan user: (1) teks putih menyatu background, (2) "Kacamata Kamar" + Beranda 
 - Verifikasi: `dart format` bersih, `flutter analyze` No issues, `flutter test` 98 lulus, build Windows sukses + exe ALIVE.
 - Catatan test: `FilledButton.icon`/`SegmentedButton` merender tipe internal (`_FilledButtonWithIcon`/`_SegmentedButton`) — finder test wajib lewat teks, bukan tipe tombol.
 
+## 2026-10-11 Label display tunggal + sampel menu utuh
+
+Koreksi user: (1) label uang ganda "100000 nominal 100.000" (dua fungsi padahal satu), (2) "nasi goreng" ambigu, (3) minta saran tambahan — approved semua.
+
+- `displayLabel` uang: `Rp 100000 - Nominal 100.000` → `Rp 100.000` saja (via `NumberFormatId.rupiah`; label sampel redundan dibuang dari 3 sampel uang di kedua sumber). Field `label` tetap ada (kontrak Firestore) tapi tak lagi diisi redundan.
+- `displayLabel` teks: newline → `·` (baris ringkas satu baris; teks penuh multiline tetap via `ocrText` di detail — detail tidak diubah karena sudah benar).
+- Sampel menu: `NASI GORENG\nRp15.000` → `AYAM GORENG — Rp15.000` (satu item utuh).
+- Test baru `detection_label_test.dart` (9 test: format titik, tanpa ganda, strip, normalisasi, potong 80, null). Test sharing tak terpengaruh (data sendiri).
+- Verifikasi: format bersih, analyze No issues, test **158 lulus**, golden home + riwayat di-regenerate (teks berubah, PNG diinspeksi), build Windows sukses + smoke ALIVE.
+
 ## 2026-10-11 Refactor kasat mata Beranda (hero berlapis, bento berikon, aktivitas kartu)
 
 Koreksi user: H1–H5 terlalu kecil secara visual ("kayak ga berubah"). Investigasi membuktikan kode berubah + ter-commit, dan jalur run user benar (launch.json → main simulation → fake data utuh) — masalahnya kalibrasi batch terlalu timid. Refactor ini menyentuh yang kasat mata.
