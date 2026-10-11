@@ -170,4 +170,27 @@ void main() {
       );
     }
   });
+
+  // Sampel teks harus jujur terhadap kapabilitas alat: teks posisi baca
+  // (menu/sampul), bukan rambu jalan atau dokumen bebas.
+  test('sampel teks bukan rambu atau dokumen bebas', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final texts = container
+        .read(detectionsProvider)
+        .where((item) => item.type == DetectionType.text);
+
+    expect(texts, isNotEmpty);
+    const forbidden = ['PINTU KELUAR', 'MINIMARKET', 'RAMBU', 'REKLAME'];
+    for (final item in texts) {
+      final ocr = (item.ocrText ?? '').toUpperCase();
+      for (final word in forbidden) {
+        expect(
+          ocr.contains(word),
+          isFalse,
+          reason: 'sampel ${item.id} menyiratkan OCR bebas ("$word")',
+        );
+      }
+    }
+  });
 }
