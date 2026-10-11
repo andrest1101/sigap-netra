@@ -7,7 +7,6 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
-import '../../../../core/widgets/battery_ring.dart';
 import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -40,6 +39,12 @@ class HomeScreen extends ConsumerWidget {
 
     return LargeTitleScaffold(
       title: l10n.homeTitle,
+      // Konteks "perangkat mana" (pola yang sama dengan tab Perangkat):
+      // nama perangkat primer sebagai subjudul saat data ada.
+      subtitle: devices.maybeWhen(
+        data: (list) => list.isEmpty ? null : list.first.name,
+        orElse: () => null,
+      ),
       actions: const [SettingsGearButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
@@ -82,7 +87,13 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// Kartu Hero perangkat: status, baterai (Lens Ring), aksi Sinkronkan + QR.
+/// Kartu Hero perangkat: identitas + stats strip + aksi bertingkat.
+///
+/// Berlapis agar tidak datar: baris identitas (avatar + nama + chevron),
+/// strip 3 stat (status, baterai, sinkron terakhir), lalu tombol primer
+/// full-width + tombol sekunder. Ring baterai besar dihapus dari Hero —
+/// baterai tampil sebagai stat ringkas; satu-satunya ring besar tetap di
+/// tab Perangkat agar tidak ada dua signature yang bersaing.
 class DeviceHeroCard extends ConsumerWidget {
   const DeviceHeroCard({required this.device, required this.now, super.key});
 
@@ -136,68 +147,76 @@ class DeviceHeroCard extends ConsumerWidget {
                     Positioned(
                       right: 0,
                       bottom: 0,
-                      child: StatusDot(
-                        tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
-                        size: 12,
+                      // Aksesori visual: status berlabel sudah diumumkan
+                      // StatusChip di strip — dot tidak diumumkan ganda.
+                      child: ExcludeSemantics(
+                        child: StatusDot(
+                          tone: isOnline ? AppStatusTone.ok : AppStatusTone.bad,
+                          size: 12,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(width: DesignTokens.spaceMd),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              device.name,
-                              style: textTheme.titleLarge?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: DesignTokens.spaceXs),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: 20,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: DesignTokens.spaceXs),
-                      StatusChip(
-                        label:
-                            '${pill.label} · ${RelativeTime.format(device.lastSeen, now, l10n: l10n)}',
-                        tone: pill.tone,
-                        icon: pill.icon,
-                        isDense: true,
-                      ),
-                    ],
+                  child: Text(
+                    device.name,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: DesignTokens.spaceSm),
-                _BatteryRing(device: device),
+                const SizedBox(width: DesignTokens.spaceXs),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: colorScheme.onPrimaryContainer,
+                ),
               ],
             ),
           ),
           const SizedBox(height: DesignTokens.spaceMd),
-          Row(
-            children: [
-              Expanded(child: _SyncButton(device: device)),
-              const SizedBox(width: DesignTokens.spaceMd),
-              Expanded(
-                child: FilledButton.tonalIcon(
-                  onPressed: () =>
-                      DeviceWifiPath(device.deviceId).push(context),
-                  icon: const Icon(Icons.qr_code_rounded),
-                  label: Text(l10n.homeWifiQrAction),
-                ),
-              ),
-            ],
+          _HeroStatsStrip(device: device, now: now, pill: pill),
+          const SizedBox(height: DesignTokens.spaceMd),
+          // Aksi bertingkat: primer full-width + sekunder full-width.
+          // Dua tombol berdampingan selalu sempit (138dp @360px) dan
+          // rawan wrap/ellipsis; susunan vertikal memberi ruang label
+          // penuh + target sentuh 48. Saat offline QR menjadi primer.
+          SizedBox(
+            width: double.infinity,
+            child: isOnline
+                ? FilledButton.icon(
+                    onPressed: () =>
+                        DeviceCommandsPath(device.deviceId).push(context),
+                    icon: const Icon(Icons.sync_rounded),
+                    label: Text(l10n.homeSyncNow),
+                  )
+                : FilledButton.icon(
+                    onPressed: () =>
+                        DeviceWifiPath(device.deviceId).push(context),
+                    icon: const Icon(Icons.qr_code_rounded),
+                    label: Text(l10n.homeWifiQrAction),
+                  ),
+          ),
+          const SizedBox(height: DesignTokens.spaceSm),
+          SizedBox(
+            width: double.infinity,
+            child: isOnline
+                ? FilledButton.tonalIcon(
+                    onPressed: () =>
+                        DeviceWifiPath(device.deviceId).push(context),
+                    icon: const Icon(Icons.qr_code_rounded),
+                    label: Text(l10n.homeWifiQrAction),
+                  )
+                : FilledButton.tonalIcon(
+                    onPressed: () =>
+                        DeviceCommandsPath(device.deviceId).push(context),
+                    icon: const Icon(Icons.sync_rounded),
+                    label: Text(l10n.homeSyncShort, maxLines: 1),
+                  ),
           ),
           if (!isOnline) ...[
             const SizedBox(height: DesignTokens.spaceMd),
@@ -209,44 +228,124 @@ class DeviceHeroCard extends ConsumerWidget {
   }
 }
 
-/// Indikator baterai Hero Beranda: widget bersama [BatteryRing] dengan warna
-/// angka/track `onPrimaryContainer` (konteks background `primaryContainer`).
-class _BatteryRing extends StatelessWidget {
-  const _BatteryRing({required this.device});
-
-  final Device device;
-
-  @override
-  Widget build(BuildContext context) {
-    // Di dalam Hero (`primaryContainer`): angka wajib `onPrimaryContainer`
-    // agar tidak menyatu dengan background.
-    final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
-    return BatteryRing(
-      batteryPct: device.batteryPct,
-      numberColor: onHero,
-      trackColor: onHero.withValues(alpha: 0.25),
-    );
-  }
-}
-
-/// Tombol Sinkronkan: mengirim `sync_now` lewat CommandsScreen terdekat.
+/// Strip 3 stat Hero: status + baterai + sinkron terakhir.
 ///
-/// Beranda tidak mengirim perintah langsung; ia membuka layar perintah
-/// perangkat dengan aksi sinkron yang sudah dipilih.
-class _SyncButton extends StatelessWidget {
-  const _SyncButton({required this.device});
+/// Baterai tampil sebagai nilai ringkas (ikon + persen, bukan ring besar):
+/// satu-satunya ring baterai besar tetap di tab Perangkat agar tidak ada
+/// dua signature yang bersaing. Sel di-tap menuju layar terkait.
+class _HeroStatsStrip extends StatelessWidget {
+  const _HeroStatsStrip({
+    required this.device,
+    required this.now,
+    required this.pill,
+  });
 
   final Device device;
+  final DateTime now;
+  final StatusPillData pill;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return FilledButton.icon(
-      onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
-      icon: const Icon(Icons.sync_rounded),
-      // Label pendek satu baris: "Sinkronkan sekarang" selalu wrap dua baris
-      // di setengah lebar Hero dan terlihat rusak di screenshot.
-      label: Text(l10n.homeSyncShort, maxLines: 1),
+    final onHero = Theme.of(context).colorScheme.onPrimaryContainer;
+    final battery = device.batteryPct;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignTokens.spaceMd,
+        vertical: DesignTokens.spaceSm,
+      ),
+      decoration: BoxDecoration(
+        color: onHero.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _HeroStatCell(
+              icon: pill.icon ?? Icons.circle_rounded,
+              iconTone: pill.tone,
+              label: pill.label,
+              onHero: onHero,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 28,
+            color: onHero.withValues(alpha: 0.25),
+          ),
+          Expanded(
+            child: _HeroStatCell(
+              icon: battery == null
+                  ? Icons.battery_unknown_rounded
+                  : battery >= 30
+                  ? Icons.battery_full_rounded
+                  : Icons.battery_alert_rounded,
+              label: battery == null ? '–' : '$battery%',
+              onHero: onHero,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 28,
+            color: onHero.withValues(alpha: 0.25),
+          ),
+          Expanded(
+            child: _HeroStatCell(
+              icon: Icons.sync_rounded,
+              label: RelativeTime.timeAndDate(device.lastSeen, l10n: l10n),
+              onHero: onHero,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStatCell extends StatelessWidget {
+  const _HeroStatCell({
+    required this.icon,
+    required this.label,
+    required this.onHero,
+    this.iconTone,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color onHero;
+  final AppStatusTone? iconTone;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = StatusColors.of(context);
+    final iconColor = switch (iconTone) {
+      AppStatusTone.ok => palette.ok.solid,
+      AppStatusTone.bad => palette.bad.solid,
+      AppStatusTone.warn => palette.warn.solid,
+      AppStatusTone.neutral => palette.neutral.solid,
+      AppStatusTone.info => Theme.of(context).colorScheme.tertiary,
+      null => onHero,
+    };
+    final textTheme = Theme.of(context).textTheme;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: iconColor),
+        const SizedBox(width: DesignTokens.spaceXs),
+        Flexible(
+          child: Text(
+            label,
+            style: textTheme.labelLarge?.copyWith(
+              color: onHero,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -359,6 +458,8 @@ class _HomeBento extends ConsumerWidget {
                 Expanded(
                   child: BentoTile(
                     label: l10n.homePendingLabel,
+                    icon: Icons.fact_check_rounded,
+                    iconColor: StatusColors.of(context).warn.solid,
                     action: FilledButton.tonal(
                       onPressed: () => const ValidationPath().go(context),
                       child: Text(l10n.homePendingReview),
@@ -370,11 +471,15 @@ class _HomeBento extends ConsumerWidget {
                 Expanded(
                   child: BentoTile(
                     label: l10n.homeAccuracyLabel,
+                    icon: Icons.verified_rounded,
+                    iconColor: StatusColors.of(context).ok.solid,
                     footer: accuracy.isNaN
                         ? l10n.homeNoValidation
                         : l10n.homeAccuracyFromCount(decidedCount),
                     child: LensRing(
-                      diameter: 72,
+                      // 64: metrik sekunder tidak boleh mendominasi ring
+                      // baterai 56 di Hero.
+                      diameter: 64,
                       value: accuracy.isNaN ? null : accuracy,
                       progressColor: StatusColors.of(context).ok.solid,
                       semanticsLabel: accuracy.isNaN
@@ -401,6 +506,7 @@ class _HomeBento extends ConsumerWidget {
               Expanded(
                 child: BentoTile.small(
                   label: l10n.homeSyncedLabel,
+                  icon: Icons.sync_rounded,
                   // Jam absolut ("14.32 · 10 Okt"), bukan relatif: chip Hero
                   // sudah menampilkan hitungan relatif presisi.
                   value: RelativeTime.timeAndDate(
@@ -413,6 +519,7 @@ class _HomeBento extends ConsumerWidget {
               Expanded(
                 child: BentoTile.small(
                   label: l10n.homeTodayLabel,
+                  icon: Icons.today_rounded,
                   value: l10n.homeReadingsToday(today.length),
                   footer: l10n.homeTodayBreakdown(todayMoney, todayText),
                 ),
@@ -441,7 +548,9 @@ class _RecentActivitySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader.compact(
+        // Non-compact (top 24): ritme seksi sama dengan tab Perangkat.
+        // Varian compact membuat Aktivitas "nempel" ke bento (celah 12).
+        SectionHeader(
           title: l10n.homeRecentActivity,
           action: TextButton(
             onPressed: () => const HistoryPath().go(context),
@@ -454,7 +563,6 @@ class _RecentActivitySection extends ConsumerWidget {
           for (var i = 0; i < items.length; i++) ...[
             _ActivityRow(
               detection: items[i],
-              singleDevice: true,
               time: RelativeTime.format(
                 items[i].createdAt,
                 DateTime.now(),
@@ -526,9 +634,11 @@ class _EmptyActivity extends StatelessWidget {
             ),
           ),
           const SizedBox(width: DesignTokens.spaceSm),
+          // Kosong karena BELUM ADA data sama sekali: ajak memastikan
+          // perangkat terhubung (bukan ke antrean Validasi yang juga kosong).
           FilledButton.tonal(
-            onPressed: () => const ValidationPath().go(context),
-            child: Text(l10n.homeEmptyActivityAction),
+            onPressed: () => const DevicesPath().go(context),
+            child: Text(l10n.deviceConnectTitle),
           ),
         ],
       ),
@@ -537,14 +647,9 @@ class _EmptyActivity extends StatelessWidget {
 }
 
 class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({
-    required this.detection,
-    required this.singleDevice,
-    required this.time,
-  });
+  const _ActivityRow({required this.detection, required this.time});
 
   final Detection detection;
-  final bool singleDevice;
   final String time;
 
   @override
@@ -556,6 +661,11 @@ class _ActivityRow extends StatelessWidget {
         ? time
         : '${NumberFormatId.percentWithSign(detection.confidence! * 100)} · $time';
 
+    final tone = switch (detection.validationStatus) {
+      ValidationStatus.pending => AppStatusTone.warn,
+      ValidationStatus.match => AppStatusTone.ok,
+      ValidationStatus.mismatch => AppStatusTone.bad,
+    };
     return InkWell(
       borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
       onTap: () => HistoryDetailPath(detection.id).push(context),
@@ -566,20 +676,36 @@ class _ActivityRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: ShapeDecoration(
-                color: colorScheme.surfaceContainerHigh,
-                shape: const CircleBorder(),
-              ),
-              child: Icon(
-                detection.type == DetectionType.money
-                    ? Icons.payments_rounded
-                    : Icons.document_scanner_rounded,
-                size: 20,
-                color: colorScheme.onSurfaceVariant,
-              ),
+            // Thumbnail 48: ikon kategori dalam kotak rounded (bukan
+            // lingkaran generik) + titik status menempel — baris terbaca
+            // sebagai kartu mini, bukan daftar pengaturan.
+            Stack(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.radiusThumbnail,
+                    ),
+                  ),
+                  child: Icon(
+                    detection.type == DetectionType.money
+                        ? Icons.payments_rounded
+                        : Icons.document_scanner_rounded,
+                    size: 24,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                Positioned(
+                  right: 2,
+                  bottom: 2,
+                  child: ExcludeSemantics(
+                    child: StatusDot(tone: tone, size: 12),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: DesignTokens.spaceMd),
             Expanded(
@@ -588,12 +714,16 @@ class _ActivityRow extends StatelessWidget {
                 children: [
                   Text(
                     detection.displayLabel,
-                    style: textTheme.bodyMedium,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  // Satu perangkat primer: nama perangkat tidak diulang di
+                  // tiap baris (sudah di subjudul app bar + Hero).
                   Text(
-                    singleDevice ? meta : '${detection.deviceName} · $meta',
+                    meta,
                     style: textTheme.labelMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -610,12 +740,14 @@ class _ActivityRow extends StatelessWidget {
                 ValidationStatus.match => l10n.statusMatch,
                 ValidationStatus.mismatch => l10n.statusMismatch,
               },
-              tone: switch (detection.validationStatus) {
-                ValidationStatus.pending => AppStatusTone.warn,
-                ValidationStatus.match => AppStatusTone.ok,
-                ValidationStatus.mismatch => AppStatusTone.bad,
-              },
+              tone: tone,
               isDense: true,
+            ),
+            const SizedBox(width: DesignTokens.spaceXs),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
             ),
           ],
         ),

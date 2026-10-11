@@ -62,15 +62,13 @@ class DeviceListScreen extends ConsumerWidget {
         ),
         data: (list) {
           if (list.isEmpty) {
+            // Tanpa aksi "Tambah": alur klaim perangkat belum ada di app
+            // (P2). Tombol lama mengarah ke Validasi yang juga kosong —
+            // menyesatkan, jadi dihapus sampai alur klaim diputuskan.
             return EmptyView(
               title: l10n.devicesEmptyTitle,
               message: l10n.devicesEmptyBody,
               icon: Icons.devices_other_outlined,
-              action: FilledButton.icon(
-                onPressed: () => const ValidationPath().go(context),
-                icon: const Icon(Icons.add_rounded),
-                label: Text(l10n.deviceAdd),
-              ),
             );
           }
           final device = list.first;

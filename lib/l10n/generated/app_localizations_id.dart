@@ -308,9 +308,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembacaan terbaru dari perangkat akan muncul di sini.';
 
   @override
-  String get homeEmptyActivityAction => 'Periksa antrean';
-
-  @override
   String get statusOnline => 'Online';
 
   @override

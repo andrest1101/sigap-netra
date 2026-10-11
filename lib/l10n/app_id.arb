@@ -102,7 +102,6 @@
   "homeTodayBreakdown": "{money} uang · {text} teks",
   "homeEmptyActivityTitle": "Belum ada aktivitas",
   "homeEmptyActivityBody": "Pembacaan terbaru dari perangkat akan muncul di sini.",
-  "homeEmptyActivityAction": "Periksa antrean",
   "@homeAccuracyFromCount": {
     "placeholders": {
       "count": { "type": "int" }

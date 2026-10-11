@@ -79,8 +79,11 @@ class DetectionsController extends Notifier<List<Detection>> {
 
 /// Contoh antrean demo: HANYA uang dan teks OCR.
 ///
-/// Kacamata SIGAP-NETRA hanya membaca uang (YOLO) dan teks/menu (OCR) —
-/// tidak ada deteksi objek lain. Jangan menambah contoh selain dua jenis ini.
+/// Kacamata SIGAP-NETRA hanya membaca DUA hal: (1) pecahan uang (YOLO),
+/// (2) teks pada posisi baca normal — label/menu/sampul yang dihadapkan ke
+/// kamera dari jarak dekat. BUKAN OCR bebas: contoh JANGAN berupa rambu
+/// jalan, papan reklame, atau dokumen yang tidak dihadapkan ke kamera.
+/// Jangan menambah contoh selain dua jenis ini.
 List<Detection> _sample() {
   final now = DateTime.now();
   return [
@@ -91,7 +94,6 @@ List<Detection> _sample() {
       type: DetectionType.money,
       createdAt: now.subtract(const Duration(seconds: 12)),
       amount: 100000,
-      label: 'Nominal 100.000',
       confidence: 0.95,
       distanceCm: 30,
     ),
@@ -102,18 +104,18 @@ List<Detection> _sample() {
       type: DetectionType.money,
       createdAt: now.subtract(const Duration(minutes: 1)),
       amount: 50000,
-      label: 'Nominal 50.000',
       confidence: 0.92,
       distanceCm: 35,
     ),
     Detection(
-      id: 'det-text-struk',
+      id: 'det-text-menu',
       deviceId: kDemoDeviceId,
       deviceName: kDemoDeviceName,
       type: DetectionType.text,
       createdAt: now.subtract(const Duration(minutes: 2)),
-      ocrText:
-          'MINIMARKET SEGAR\nBelanja Rp52.500\nTunai Rp100.000\nKembali Rp47.500',
+      // Satu item menu utuh (bukan dua baris ambigu): label yang
+      // dihadapkan ke kamera dari jarak baca normal.
+      ocrText: 'AYAM GORENG — Rp15.000',
       confidence: 0.9,
       distanceCm: 25,
     ),
@@ -124,17 +126,16 @@ List<Detection> _sample() {
       type: DetectionType.money,
       createdAt: now.subtract(const Duration(minutes: 3)),
       amount: 10000,
-      label: 'Nominal 10.000',
       confidence: 0.88,
       distanceCm: 28,
     ),
     Detection(
-      id: 'det-text-rambu',
+      id: 'det-text-sampul',
       deviceId: kDemoDeviceId,
       deviceName: kDemoDeviceName,
       type: DetectionType.text,
       createdAt: now.subtract(const Duration(minutes: 4)),
-      ocrText: 'PINTU KELUAR',
+      ocrText: 'PANDUAN\nBELAJAR BRAILLE',
       confidence: 0.86,
       distanceCm: null,
     ),

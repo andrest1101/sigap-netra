@@ -152,24 +152,29 @@ void main() {
     });
 
     testWidgets('menampilkan hero dan bento perangkat', (tester) async {
-      final now = DateTime(2026, 10, 8, 12);
       await pumpHome(tester);
       repository.emit([
         Device(
           deviceId: 'dev-1',
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
-          lastSeen: now,
+          // lastSeen segar: konektivitas dihitung ulang vs jam nyata.
+          lastSeen: DateTime.now(),
+          batteryPct: 82,
         ),
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Kacamata Cerdas'), findsOneWidget);
+      // Nama muncul 2x: subjudul app bar + Hero.
+      expect(find.text('Kacamata Cerdas'), findsWidgets);
       // "Menunggu" muncul di tile bento + chip status tiap baris aktivitas.
       expect(find.text('Menunggu'), findsWidgets);
       expect(find.text('Akurasi'), findsOneWidget);
-      expect(find.text('Sinkronkan'), findsOneWidget);
+      // Tombol primer full-width memakai label penuh.
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
       expect(find.text('QR Wi-Fi'), findsOneWidget);
+      // Stats strip: persen baterai ringkas.
+      expect(find.text('82%'), findsOneWidget);
     });
 
     testWidgets('perangkat terputus menampilkan warna status merah', (
@@ -206,9 +211,15 @@ void main() {
       ]);
       await pumpFrames(tester);
 
-      final context = tester.element(find.text('Kacamata Cerdas'));
+      // Nama di Hero (bukan subjudul app bar): spesifik via descendant.
+      final heroName = find.descendant(
+        of: find.byType(DeviceHeroCard),
+        matching: find.text('Kacamata Cerdas'),
+      );
+      expect(heroName, findsOneWidget);
+      final context = tester.element(heroName);
       final scheme = Theme.of(context).colorScheme;
-      final text = tester.widget<Text>(find.text('Kacamata Cerdas'));
+      final text = tester.widget<Text>(heroName);
       // Regression: teks di atas `primaryContainer` pernah memakai `onSurface`
       // sehingga menyatu dengan background.
       expect(text.style?.color, scheme.onPrimaryContainer);
@@ -245,30 +256,33 @@ void main() {
       ]);
       await pumpFrames(tester);
 
-      final context = tester.element(find.text('Kacamata Cerdas'));
+      final heroName = find.descendant(
+        of: find.byType(DeviceHeroCard),
+        matching: find.text('Kacamata Cerdas'),
+      );
+      expect(heroName, findsOneWidget);
+      final context = tester.element(heroName);
       final scheme = Theme.of(context).colorScheme;
       expect(Theme.of(context).brightness, Brightness.dark);
-      final text = tester.widget<Text>(find.text('Kacamata Cerdas'));
+      final text = tester.widget<Text>(heroName);
       expect(text.style?.color, scheme.onPrimaryContainer);
     });
 
-    testWidgets('tombol sinkron Hero memakai label pendek satu baris', (
-      tester,
-    ) async {
-      final now = DateTime(2026, 10, 8, 12);
+    testWidgets('tombol Hero bertingkat full-width', (tester) async {
       await pumpHome(tester);
       repository.emit([
         Device(
           deviceId: 'dev-1',
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
-          lastSeen: now,
+          lastSeen: DateTime.now(),
         ),
       ]);
       await pumpFrames(tester);
 
-      expect(find.text('Sinkronkan'), findsOneWidget);
-      expect(find.text('Sinkronkan sekarang'), findsNothing);
+      // Primer full-width memakai label penuh (ruang cukup, tanpa wrap).
+      expect(find.text('Sinkronkan sekarang'), findsOneWidget);
+      expect(find.text('QR Wi-Fi'), findsOneWidget);
     });
 
     testWidgets('bento menampilkan jam absolut + breakdown hari ini', (
@@ -292,6 +306,75 @@ void main() {
       expect(find.textContaining('uang ·'), findsOneWidget);
       // Footer akurasi: state kosong informatif (demo belum divalidasi).
       expect(find.text('Belum ada validasi'), findsOneWidget);
+    });
+
+    testWidgets('subjudul menampilkan nama perangkat primer', (tester) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      // Nama muncul 2x: subjudul app bar + Hero.
+      expect(find.text('Kacamata Cerdas'), findsWidgets);
+    });
+
+    Color qrBackground(WidgetTester tester) {
+      // Tombol M3 merender Material tipe button dengan warna aktual —
+      // baca dari sana (style widget null karena dari tema).
+      final material = find.ancestor(
+        of: find.text('QR Wi-Fi'),
+        matching: find.byWidgetPredicate(
+          (w) => w is Material && w.type == MaterialType.button,
+        ),
+      );
+      expect(material, findsOneWidget);
+      final color = tester.widget<Material>(material.first).color;
+      expect(color, isNotNull);
+      return color!;
+    }
+
+    testWidgets('saat online QR sekunder (tonal)', (tester) async {
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          // Konektivitas dihitung ulang dari lastSeen vs jam nyata —
+          // harus segar agar benar-benar online.
+          lastSeen: DateTime.now(),
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      final context = tester.element(find.text('QR Wi-Fi'));
+      expect(
+        qrBackground(tester),
+        Theme.of(context).colorScheme.secondaryContainer,
+      );
+    });
+
+    testWidgets('saat offline QR menjadi aksi utama (filled)', (tester) async {
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: 'dev-1',
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.offline,
+          lastSeen: DateTime(2026, 10, 8, 6),
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      final context = tester.element(find.text('QR Wi-Fi'));
+      expect(qrBackground(tester), Theme.of(context).colorScheme.primary);
     });
 
     testWidgets('aktivitas memakai chip status validasi', (tester) async {

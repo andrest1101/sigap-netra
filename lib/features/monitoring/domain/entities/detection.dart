@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/number_format_id.dart';
+
 /// Jenis pembacaan dari perangkat.
 enum DetectionType { money, text }
 
@@ -84,12 +86,19 @@ class Detection extends Equatable {
   }
 
   /// Nama pendek lazim, untuk ringkasan kartu.
+  ///
+  /// Satu fungsi satu tampilan: uang hanya nominal berformat
+  /// (`Rp 100.000`, bukan `Rp 100000 - Nominal 100.000` yang mengulang
+  /// informasi sama dua kali); teks OCR dinormalisasi ke satu baris
+  /// (newline → `·`) agar baris ringkas tidak terpotong di tengah baris
+  /// mentah. Teks penuh multiline tetap tersedia via `ocrText` untuk
+  /// layar detail.
   String get displayLabel {
     if (type == DetectionType.money) {
-      final amountText = amount == null ? '-' : 'Rp $amount';
-      return '$amountText${label == null ? '' : ' - $label'}';
+      if (amount == null) return '-';
+      return NumberFormatId.rupiah(amount!);
     }
-    final text = ocrText ?? label ?? '-';
+    final text = (ocrText ?? label ?? '-').replaceAll('\n', ' · ');
     return text.length > 80 ? '${text.substring(0, 80)}...' : text;
   }
 

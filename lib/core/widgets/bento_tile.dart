@@ -15,6 +15,8 @@ class BentoTile extends StatelessWidget {
     this.action,
     this.onTap,
     this.footer,
+    this.icon,
+    this.iconColor,
   });
 
   /// Tile ringkas: label + nilai sebaris.
@@ -25,6 +27,8 @@ class BentoTile extends StatelessWidget {
     this.action,
     this.onTap,
     this.footer,
+    this.icon,
+    this.iconColor,
   }) : child = _SmallValue(value: value);
 
   final String label;
@@ -35,6 +39,12 @@ class BentoTile extends StatelessWidget {
   /// Teks mikro di bawah nilai (mis. "3 uang · 2 teks"): memberi konteks
   /// tanpa menambah tinggi tile secara berarti.
   final String? footer;
+
+  /// Ikon header: lingkaran tonal di depan label agar tiap tile punya
+  /// identitas visual (bukan 4 kartu abu identik). Warna via [iconColor],
+  /// default `onSurfaceVariant`.
+  final IconData? icon;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +62,34 @@ class BentoTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: textTheme.labelMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+          Row(
+            children: [
+              if (icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(DesignTokens.spaceXs),
+                  decoration: ShapeDecoration(
+                    color: colorScheme.surfaceContainerHigh,
+                    shape: const CircleBorder(),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 14,
+                    color: iconColor ?? colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: DesignTokens.spaceSm),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: DesignTokens.spaceSm),
           child,
