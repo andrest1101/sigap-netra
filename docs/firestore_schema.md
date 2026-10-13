@@ -69,6 +69,7 @@ Satu dokumen per perangkat. ID dokumen adalah `deviceId`.
 | Field | Tipe | Sumber | Wajib | Deskripsi |
 | --- | --- | --- | --- | --- |
 | `deviceId` | string (ID dokumen) | Device | Ya | Path adalah sumber kebenaran. Bila device juga menulis field ini di dalam body, nilainya harus sama dengan ID dokumen. [PERLU KONFIRMASI] apakah body perlu menyimpan ulang `deviceId`. |
+| `authUid` | string (UID Firebase Auth) | Device (saat bootstrap) | Ya | **DIPUTUSKAN 2026-10-13.** UID akun Auth khusus per alat (Email/Password). Rules mengikat device ke dokumennya lewat field ini: `request.auth.uid == authUid`. Ditulis sekali saat bootstrap (atau via console), tidak pernah diubah device maupun app. |
 | `name` | string | Device | Ya | Nama tampilan untuk companion. [PERLU KONFIRMASI] siapa yang boleh mengubah nama. Default-nya device (agar sesuai aturan hak tulis), tetapi produk mungkin ingin rename dari app; bila begitu, aturan hak tulis harus diperluas secara eksplisit. |
 | `model` | string | Device | Ya | Model perangkat. [PERLU KONFIRMASI] nilai literal yang dipakai device, karena belum ada sumber firmware. |
 | `firmwareVersion` | string | Device | Tidak | Versi firmware atau software yang berjalan, ditulis saat boot. |
@@ -290,7 +291,7 @@ Helper (nama final boleh berbeda, cakupannya wajib ada):
 | signed in | `request.auth` tidak null |
 | device doc | reference ke `devices/{deviceId}` |
 | is member / is owner / is editor | membaca `members` pada dokumen perangkat |
-| is device | [PERLU KONFIRMASI] skema otorisasi device, lihat bagian 11 |
+| is device | Skema berbasis data: `request.auth.uid` dibandingkan dengan field `authUid` pada dokumen perangkat. **DIPUTUSKAN 2026-10-13** (lihat bagian 11 A1). |
 | valid enum | validasi nilai enum (tipe deteksi, severity, status command, peran) |
 | valid thumbnail | `mime == 'image/jpeg'`, `size <= 60000`, panjang `bytes <= 81920` |
 | only keys changed | `affectedKeys().hasOnly([...])` untuk membatasi update |
@@ -348,9 +349,9 @@ Sebelum rilis, setiap item harus bisa dibuktikan lewat test emulator, review rul
 
 Dikelompokkan per dampak. Setiap `[PERLU KONFIRMASI]` di dokumen ini berasal dari salah satu pertanyaan di bawah.
 
-**A. Identitas dan pairing (paling kritis, memblokir rules)**
+**A. Identitas dan pairing (DIPUTUSKAN 2026-10-13, kecuali poin 3)**
 
-1. Bagaimana device terautentikasi dan dikenali oleh rules? [PERLU KONFIRMASI] Custom claim butuh Admin SDK yang tidak ada di Spark, jadi diperlukan skema berbasis data: kredensial Firebase Auth khusus per device, `authUid` di dokumen perangkat, atau daftar UID device yang disimpan di Firestore. Sumber materi aplikasi Kotlin lama belum ada, sehingga skema yang cocok dengan device lama tidak bisa dipastikan.
+1. Bagaimana device terautentikasi dan dikenali oleh rules? **DIPUTUSKAN: akun Firebase Auth (Email/Password) khusus per alat + field `authUid` di dokumen `devices/{deviceId}`.** Rules: `isDevice(deviceId) = request.auth != null && get(devices/{deviceId}).data.authUid == request.auth.uid`. Satu device tidak bisa menulis dokumen device lain karena UID-nya terikat satu dokumen. Custom claim tidak dipakai (butuh Admin SDK, tidak ada di Spark). Bootstrap: akun alat dibuat di console Auth, dokumen device dibuat via console (bypass rules) atau `create` oleh device sendiri dengan `authUid == request.auth.uid`.
 2. Bagaimana proses pairing pertama, dan siapa yang menulis `members` pertama kali (bagian 6)? Apakah `owner` boleh mengubah `members` sebagai satu-satunya pengecualian aturan hak tulis app?
 3. Konfirmasi `deviceId`: siapa yang menetapkan, formatnya apa, dan apakah boleh berubah.
 

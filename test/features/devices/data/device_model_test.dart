@@ -129,6 +129,22 @@ void main() {
 
       expect(device.members, isEmpty);
     });
+
+    test('authUid dipetakan, hilang menjadi null (dokumen pra-skema)', () {
+      final withUid = DeviceModel.fromData(
+        data: {'authUid': 'uid-alat-1'},
+        deviceId: 'dev-1',
+        now: now,
+      );
+      expect(withUid.authUid, 'uid-alat-1');
+
+      final legacy = DeviceModel.fromData(
+        data: const <String, dynamic>{},
+        deviceId: 'dev-1',
+        now: now,
+      );
+      expect(legacy.authUid, isNull);
+    });
   });
 
   group('data null', () {

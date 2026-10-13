@@ -3,16 +3,16 @@ rules_version = '2';
 // Security Rules SIGAP-NETRA App — deny-by-default.
 // Sumber kebenaran: `docs/firestore_schema.md` bagian 9 (inventaris rules).
 //
-// Status: DRAFT v0.1. Belum diuji emulator (menunggu Firebase project).
+// Status: DRAFT v0.2. Belum diuji emulator (menunggu Firebase project).
 // Bila skema berubah, file ini, `firestore.indexes.json`, model Dart beserta
 // test, dan `docs/device_protocol.md` wajib diubah dalam satu changeset.
 //
-// [PERLU KONFIRMASI — penghenti device] Skema otorisasi device BELUM
-// diputuskan owner (`docs/firestore_schema.md` bagian 11 A1). Karena itu
-// `isDevice()` di bawah sengaja mengembalikan `false`: SEMUA tulis yang
-// mengklaim sebagai device DITOLAK sampai skema auth device diputuskan.
-// Ini konsisten dengan deny-by-default dan mencegah celah sebelum
-// keputusan ada. Jangan longgarkan tanpa keputusan owner.
+// Skema otorisasi device DIPUTUSKAN 2026-10-13 (skema bagian 11 A1):
+// akun Firebase Auth (Email/Password) khusus per alat + field `authUid` di
+// dokumen `devices/{deviceId}`. `isDevice()` di bawah mengikat UID pemanggil
+// ke dokumennya sendiri, sehingga satu device tidak bisa menulis dokumen
+// device lain. Bootstrap via console (bypass rules) atau `create` oleh device
+// dengan `authUid == request.auth.uid`.
 //
 // [PERLU KONFIRMASI — pengecualian owner] Aturan `update` map `members` dan
 // `mediaLimit` oleh owner di bawah mengikuti solusi paling mungkin di skema
@@ -44,9 +44,11 @@ service cloud.firestore {
     }
 
     function isDevice(deviceId) {
-      // [PERLU KONFIRMASI] Lihat catatan header: skema auth device belum
-      // diputuskan, jadi selalu false sampai ada keputusan.
-      return false;
+      // Skema authUid (DIPUTUSKAN 2026-10-13): UID pemanggil harus sama
+      // dengan field `authUid` di dokumen perangkatnya sendiri. `get()`
+      // pada dokumen sendiri tidak menimbulkan loop aturan.
+      return isSignedIn() &&
+        deviceDoc(deviceId).data.authUid == request.auth.uid;
     }
 
     function onlyKeysChanged(allowed) {
@@ -115,11 +117,12 @@ service cloud.firestore {
       // Baca hanya anggota (skema bagian 9 aturan 2).
       allow read: if isMember(deviceId);
 
-      // Tulis telemetri hanya device (saat ini ditolak semua — lihat header).
+      // Tulis telemetri hanya device pemilik dokumen (authUid terikat).
       // `create` dan `update` dipisah karena `resource` tidak ada saat create.
       allow create: if isDevice(deviceId)
+        && request.resource.data.authUid == request.auth.uid
         && request.resource.data.keys().hasOnly([
-          'deviceId', 'name', 'model', 'firmwareVersion', 'wifiSsid',
+          'deviceId', 'authUid', 'name', 'model', 'firmwareVersion', 'wifiSsid',
           'lastSeen', 'bootCount', 'batteryPct', 'settings',
           'createdAt', 'updatedAt',
         ])

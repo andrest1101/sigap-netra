@@ -38,6 +38,7 @@ abstract final class DeviceModel {
       // string kosong di header.
       name: rawName is String && rawName.isNotEmpty ? rawName : deviceId,
       connectivity: deriveConnectivity(lastSeen: lastSeen, now: now),
+      authUid: _readString(fields['authUid']),
       model: _readString(fields['model']),
       firmwareVersion: _readString(fields['firmwareVersion']),
       wifiSsid: _readString(fields['wifiSsid']),
