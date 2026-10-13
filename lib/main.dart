@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,12 +16,28 @@ import 'features/devices/domain/repositories/device_repository.dart';
 import 'features/devices/presentation/providers/devices_providers.dart';
 import 'features/settings/domain/entities/data_source.dart';
 import 'features/settings/presentation/providers/settings_providers.dart';
+// Stub `lib/firebase_options.dart` ditimpa `flutterfire configure` (Fase 3).
+// Selama masih stub, getter-nya melempar dan `main` jatuh ke simulasi.
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Firebase diinisialisasi bila `firebase_options.dart` sudah versi
+  // generated. Selama masih stub (pra-Fase 3), getter melempar dan aplikasi
+  // tetap jalan dalam mode simulasi — tidak macet di splash.
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } catch (_) {
+    firebaseReady = false;
+  }
+
   final preferences = await SharedPreferences.getInstance();
-  final dataSource = resolveDataSource(preferences);
+  final dataSource = resolveDataSource(preferences, firebaseReady);
 
   runApp(
     ProviderScope(
@@ -38,20 +55,20 @@ Future<void> main() async {
   );
 }
 
-/// Menentukan sumber data dari preferensi tersimpan.
+/// Menentukan sumber data dari preferensi tersimpan dan kesiapan Firebase.
 ///
-/// Mode simulasi dipakai sebagai bawaan sampai Firebase siap. Nilai
-/// `developer_mode` lama yang menunjuk ke Firebase juga diabaikan sementara
-/// ini, supaya aplikasi tidak macet di splash pada perangkat yang pernah
-/// menonaktifkan mode simulasi padahal Firebase belum dikonfigurasi.
-DataSource resolveDataSource(SharedPreferences preferences) {
-  final developerMode = preferences.getBool('developer_mode');
+/// Aturan: Firebase dipakai hanya bila pengguna mematikan mode simulasi
+/// (toggle Pengaturan) DAN inisialisasi Firebase berhasil. Selain itu selalu
+/// simulasi — aplikasi tidak pernah macet di splash karena config hilang.
+DataSource resolveDataSource(
+  SharedPreferences preferences,
+  bool firebaseReady,
+) {
+  final developerMode = preferences.getBool('developer_mode') ?? true;
 
-  if (developerMode == false) {
-    return DataSource.simulation;
-  }
-
-  return DataSource.simulation;
+  if (developerMode) return DataSource.simulation;
+  if (!firebaseReady) return DataSource.simulation;
+  return DataSource.firebase;
 }
 
 /// Memilih implementasi autentikasi sesuai sumber data.
