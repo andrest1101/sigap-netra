@@ -72,6 +72,7 @@ class Device extends Equatable {
     required this.deviceId,
     required this.name,
     required this.connectivity,
+    this.authUid,
     this.model,
     this.firmwareVersion,
     this.wifiSsid,
@@ -87,6 +88,12 @@ class Device extends Equatable {
   final String deviceId;
   final String name;
   final DeviceConnectivity connectivity;
+
+  /// UID akun Firebase Auth khusus alat ini (skema authUid, DIPUTUSKAN
+  /// 2026-10-13). Read-only dari sisi aplikasi: dipakai rules untuk
+  /// mengikat device ke dokumennya. Null untuk dokumen lama pra-skema.
+  final String? authUid;
+
   final String? model;
   final String? firmwareVersion;
 
@@ -124,6 +131,7 @@ class Device extends Equatable {
   Device copyWith({
     String? name,
     DeviceConnectivity? connectivity,
+    String? authUid,
     String? model,
     String? firmwareVersion,
     String? wifiSsid,
@@ -139,6 +147,7 @@ class Device extends Equatable {
       deviceId: deviceId,
       name: name ?? this.name,
       connectivity: connectivity ?? this.connectivity,
+      authUid: authUid ?? this.authUid,
       model: model ?? this.model,
       firmwareVersion: firmwareVersion ?? this.firmwareVersion,
       wifiSsid: wifiSsid ?? this.wifiSsid,
@@ -157,6 +166,7 @@ class Device extends Equatable {
     deviceId,
     name,
     connectivity,
+    authUid,
     model,
     firmwareVersion,
     wifiSsid,

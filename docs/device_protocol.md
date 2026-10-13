@@ -69,6 +69,20 @@ masih dianggap online).
 `devices/{deviceId}` **hanya boleh ditulis oleh perangkat** (AGENTS.md bagian 7).
 App tidak pernah menulis field heartbeat.
 
+**DIPUTUSKAN 2026-10-13 (Fase 1): Opsi B sementara (jam perangkat, ISO-8601)
+dengan `updateTime` sebagai kebenaran cadangan.**
+
+- Alasan: Opsi A butuh `commit` + transform per heartbeat (satu request
+  tambahan tiap 60 detik, parsing lebih berat di MaixPy). Opsi B satu PATCH
+  sederhana; drift jam MaixCAM kecil untuk ambang 90 detik (NTP via Wi-Fi
+  saat tersambung; drift menit tidak membalik status online).
+- Pengaman: app menghitung `now - lastSeen < 90 dtk`; bila `lastSeen`
+  hilang/rusak, status = unknown/offline (bukan online palsu). `updateTime`
+  dokumen tercatat server-side di setiap respons dan bisa dipakai audit
+  manual bila dicurigai drift.
+- Naik kelas ke Opsi A bila drift terbukti jadi masalah di lapangan —
+  keputusan tercatat di sini saat itu terjadi.
+
 Ada dua kandidat implementasi yang **harus dipilih owner**.
 
 **Opsi A - `lastSeen` sebagai server timestamp.**
@@ -159,11 +173,27 @@ dengan owner:
 
 ---
 
-## 3. Autentikasi perangkat (BELUM DIPUTUSKAN)
+## 3. Autentikasi perangkat (DIPUTUSKAN 2026-10-13)
 
-Bagian ini sengaja tidak punya jawaban final. Semua opsi punya konsekuensi
-keamanan, operasional, atau kuota yang berbeda. Pilihan akhir harus dikonfirmasi
-owner.
+**Keputusan: akun Firebase Auth (Email/Password) khusus per alat + field
+`authUid` di dokumen `devices/{deviceId}`.**
+
+- Owner membuat satu user Auth per alat via console (tab Users → Add user).
+- Dokumen device menyimpan `authUid` = UID akun alat tersebut (ditulis saat
+  bootstrap via console yang bypass rules, atau `create` oleh device sendiri
+  dengan `authUid == request.auth.uid` — rules menegakkan kesamaan ini).
+- Rules `isDevice(deviceId)`: `request.auth != null &&
+  get(devices/{deviceId}).data.authUid == request.auth.uid`. Satu device
+  tidak bisa menulis dokumen device lain.
+- MaixCAM login via Identity Toolkit REST (`signInWithPassword`), memakai
+  `idToken` 1 jam sebagai `Authorization: Bearer` untuk Firestore REST, lalu
+  refresh berkala di background thread. **Tidak ada private key / service
+  account di perangkat.** Kredensial akun alat hanya hidup di `config.py`
+  di alat, tidak pernah masuk repo maupun Firestore.
+- Custom claim tidak dipakai (butuh Admin SDK, tidak ada di Spark).
+
+Opsi yang dipertimbangkan dan ditolak (riwayat keputusan, jangan dibuka ulang
+tanpa alasan baru):
 
 ### 3.1 Konteks
 
@@ -860,10 +890,10 @@ jawaban ini ditulis.
 
 | # | Topik | Pertanyaan | Dampak | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Autentikasi device | Opsi A, B, C, D, atau E? | Seluruh lapisan keamanan REST | BELUM |
-| 2 | Opsi auth | Private key boleh berada di perangkat? | Risiko kebocoran kredensial | BELUM |
-| 3 | Opsi auth | MaixPy punya pustaka RSA untuk signing JWT? Boleh memasang paket? | Kelayakan Opsi A dan B | BELUM |
-| 4 | Opsi auth | API key saja ditolak? | Rules dan keamanan data | BELUM |
+| 1 | Autentikasi device | Akun Auth per alat + `authUid` (lihat §3) | Seluruh lapisan keamanan REST | DIPUTUSKAN 2026-10-13 |
+| 2 | Opsi auth | Private key DITOLAK di perangkat; kredensial = akun Auth per alat di `config.py` | Risiko kebocoran kredensial | DIPUTUSKAN 2026-10-13 |
+| 3 | Opsi auth | Tidak relevan lagi (tanpa JWT signing di perangkat; login via Identity Toolkit REST) | Kelayakan Opsi A dan B | DIPUTUSKAN 2026-10-13 |
+| 4 | Opsi auth | API-key-only DITOLAK (deny-by-default) | Rules dan keamanan data | DIPUTUSKAN 2026-10-13 |
 | 5 | `projectId` | ID project Firebase yang sebenarnya | Base URL semua request | BELUM |
 | 6 | Nama field | Cocokkan nama field skema dengan aplikasi Kotlin lama atau firmware | Kompatibilitas firmware | BELUM |
 | 7 | QR payload | Format FINAL QR Wi-Fi dari aplikasi Kotlin lama atau firmware | Feature `provisioning` | BELUM |
