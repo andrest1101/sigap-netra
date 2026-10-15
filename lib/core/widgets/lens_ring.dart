@@ -42,7 +42,7 @@ class LensRing extends StatefulWidget {
   ///
   /// [batteryPct] 0-100, atau null bila perangkat tidak melaporkan baterai.
   /// [color] warna angka tengah; bila null memakai warna teks default tema.
-  /// [trackColor] bila null memakai warna track default ([surfaceContainerHighest]).
+  /// [trackColor] bila null memakai warna track default (`outlineVariant`).
   factory LensRing.battery({
     required double diameter,
     required int? batteryPct,
@@ -174,7 +174,10 @@ class _LensRingState extends State<LensRing>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final track = widget.trackColor ?? colorScheme.surfaceContainerHighest;
+    // Track `outlineVariant`, bukan `surfaceContainerHighest`: sisa jalur yang
+    // belum terisi harus terbaca sebagai "track", bukan lekukan yang menyatu
+    // dengan kartu (regresi visual Beranda: 75% tampak "masuk ke dalam").
+    final track = widget.trackColor ?? colorScheme.outlineVariant;
     // Factory baterai: warna progres adaptif dari palet status tema aktif.
     final adaptive = widget.batteryAdaptiveLevel;
     final adaptiveColor = adaptive == null
