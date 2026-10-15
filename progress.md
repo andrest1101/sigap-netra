@@ -1,5 +1,14 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-15 P1-hotfix — Lens Ring: busur progres kontinu ala donut ("timbul keluar")
+
+Follow-up review user (referensi gambar donut 25/50/75/100%): busur akurasi masih terlihat "masuk ke dalam"; minta gaya busur kontinu yang timbul keluar.
+
+- Akar masalah: mode nilai memakai 24 segmen diafragma (celah 18%) dengan ujung membulat — pada diameter 78 (dan ring baterai 56) panjang segmen ≈ 7 px < stroke 10 px sehingga cap tiap segmen saling tumpang-tindih → terbaca seperti rangkaian butiran/lekukan, bukan busur.
+- Fix `lens_ring.dart`: mode nilai → track penuh + **busur progres kontinu di atasnya** (ujung membulat, mulai pukul 12 searah jarum); 100% digambar sebagai lingkaran penuh (menghindari tonjolan di titik sambung 360°). Mode menunggu alat (login/provisioning) tetap 24 segmen diafragma + denyut fokus — rendering fokus tidak berubah (golden login byte-identical). Penanda "tidak tersedia" (4 mata angin) tetap.
+- Golden di-regenerate + diinspeksi termasuk crop zoom 5–6x: home light/dark, device light/dark. Ring baterai tab Perangkat ikut kontinu (satu widget bersama).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **176 lulus**.
+
 ## 2026-10-15 P1-hotfix — Poles Beranda pasca-review UI (ring akurasi, tinggi bento, tonal)
 
 Review user atas screenshot Beranda. Tiga temuan; arah perbaikan (ring "perjelas + perbesar", kartu "naik 1 tonal") dipilih user eksplisit.
