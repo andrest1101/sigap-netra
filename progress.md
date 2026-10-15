@@ -1,5 +1,31 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-15 P1-hotfix — Perangkat dummy terlihat setelah login (regresi presentasi)
+
+Laporan user: setelah login (email/Google/daftar baru/tamu) Beranda bilang "Belum ada perangkat" — dummy hilang, presentasi besok terancam. Ternyata regresi dari wiring P1.
+
+- Akar masalah: `currentUserProvider` (`auth_providers.dart`) TIDAK reaktif — dibaca pertama kali oleh root `app.dart` (listener cache nama perangkat) saat belum login → `null` ter-cache selamanya → `rawDevicesProvider` selalu stream kosong, apa pun akunnya. Ditemukan lewat audit rantai provider + probe Riverpod 3.
+- Fix inti: `currentUserProvider` kini `ref.watch(authStateProvider)` lalu baca getter repository — nilai ikut berubah saat login/logout, dan tetap benar untuk sesi terpulihkan Firebase (Fase 3).
+- Fix simulasi: `FakeDeviceDataSource.watchMyDevices` tidak lagi memfilter UID — perangkat demo terlihat untuk SEMUA akun termasuk tamu; filter keanggotaan asli tetap hanya di jalur Firestore.
+- Sampel demo hidup: `FakeDetectionDataSource` → 6 item (2 menunggu, 3 cocok, 1 tidak cocok; akurasi 75% "dari 4 validasi"); item baru `det-money-20k`. Validasi antrean 2 kartu, Riwayat chip campur (kuning/hijau/merah), bento Beranda terisi.
+- Test baru: `current_user_provider_test` (login email via rantai root + tamu), `fake_device_repository_test` (uid apa pun + `watchDevice`), `login_device_flow_test` (widget: kosong → login email → perangkat muncul → logout → tamu). Update `validation_screen_test` ("1 dari 2"/"1 dari 1") + `home_screen_test` ("dari 4 validasi").
+- Pelajaran Riverpod 3: provider tanpa listener aktif berstatus "pause" — update dependency tidak diproses dan `container.read` bisa mengembalikan nilai cache lama; test reaktivitas WAJIB mengamati lewat listener (seperti konsumen nyata), bukan read lepas.
+- Golden: `home_tab_light.png` (ring akurasi 75% + footer) & `history_tab_light.png` (chip campur) di-regenerate + PNG diinspeksi.
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **174 lulus**. Build tidak diulang (disepakati: user rebuild saat presentasi).
+
+## 2026-10-15 P1 — Satu dunia data (UI → repository) + QR payload legacy
+
+Tujuan: hilangkan dua dunia berdampingan (notifier demo vs Firebase) dan sisa fitur mati. Semua layar sekarang membaca repository yang sama, dipilih SEKALI di `main.dart` (developer mode → simulasi; toggle off + init sukses → Firebase). Simulasi tetap utuh tanpa alat/Firebase.
+
+- Komposisi `main.dart`: `AppRepositories` + `buildRepositories(dataSource, cache)`; simulasi = SATU `FakeDetectionDataSource` dibagi Validasi/Riwayat/Beranda; Firebase = `Firestore*` + `DeviceNameCache`. Override 6 provider repository + cache.
+- Provider baru: `latestDetectionsProvider` (family record deviceId+limit), `detectionProvider`, `pendingDetectionsProvider`, `validationSummaryProvider`, `historyPageProvider` (+`HistoryPageKey` tanpa limit, `historyLimitProvider` +25/halaman), `eventsProvider(deviceId?)`, `commandsProvider(deviceId?)`, `sendCommandProvider`, `sharing_providers`, `deviceNameCacheProvider`, `primaryDeviceIdProvider`. Notifier `detectionsProvider` lama DIHAPUS.
+- Layar direfaktor penuh (semua `AsyncValue.when` dengan loading/empty/error/data): Validasi (submit/undo nyata + invalidate), Riwayat (paginasi server + Muat lagi, hapus permanen via `ConfirmSheet`, bagikan = ringkasan angka tanpa OCR), Detail Riwayat (realtime + validasi + hapus → pop + snackbar), Beranda (bento `validationSummaryProvider` + aktivitas `latestDetectionsProvider(100)`), Perangkat (timeline event+perintah async + `_TimelineError`), Log koneksi (resolve deviceId), Kontrol (kirim perintah + snackbar gagal), badge Validasi di router.
+- QR provisioning: `buildWifiQrPayload` murni (format legacy `WIFI:T:WPA;S:<ssid>;P:<sandi>;;` + escape ZXing `\ ; , : "`; tanpa sandi → tanpa `P:`) dirender `QrImageView` 220 di panel putih; catatan jujur firmware belum memindai QR; komentar layar usang dihapus.
+- Riverpod 3.3.2: `.valueOrNull` → `.value` (nullable), `ref.listen` tanpa `fireImmediately`; tipe `Override` tidak diekspor → helper test memakai inferensi tipe.
+- Android build (blocker baru, dibereskan): NDK `flutter.ndkVersion` 26 → 27.0.12077973, `minSdk` 21 → 23 (batas `firebase_auth`), Kotlin plugin 2.1.0 → 2.3.0 (metadata firebase-auth 2.3.0) + migrasi `kotlinOptions` → `compilerOptions` DSL (KGP 2.3), `.kotlin/` masuk `android/.gitignore`.
+- Test: helper `test/helpers/fake_app_graph.dart` (graf fake bersama + `DemoDeviceRepository` tanpa timer heartbeat) dipakai 6 file widget test; semua ID pindah ke `kDemoDeviceId`; test baru payload QR (5) + smoke render QR (1). **169 test hijau**.
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` 169 lulus; `flutter build apk --debug` sukses (NDK 27 + minSdk 23 + Kotlin 2.3); `flutter build windows --debug` sukses + smoke exe ALIVE 8 detik.
+
 ## 2026-10-09 Refactor UI/UX massal — identitas visual v3 "Lensa"
 
 Keputusan owner: teal/hijau `#00897B` diganti total (warna lama = warna app sebelumnya), desain lama tidak diikuti, PRD warna ikut diganti, rename brand **SIGAP-NETRA**, sistem tidak disentuh (murni presentation + theme + l10n + docs + assets). Referensi: `docs/ui_spec.md` v3 (dari Claude). Sistem dikerjakan setelah presentasi.
