@@ -7,6 +7,11 @@ import '../theme/design_tokens.dart';
 /// Angka besar 32-40/Bold dengan `tabularFigures` agar tidak bergeser saat
 /// berubah. Varian [BentoTile.tall] untuk tile tinggi (mis. Menunggu +
 /// tombol Periksa), [BentoTile.small] untuk tile ringkas sebaris.
+///
+/// Tone `surfaceContainer` (satu langkah di atas kartu biasa
+/// `surfaceContainerLow`): di atas scaffold terang `#F6F6FB`, tone Low nyaris
+/// menyatu dengan halaman sehingga Beranda terbaca "putih rata". Hairline
+/// `outlineVariant` tetap dipakai — identitas v3 kartu tonal tanpa shadow.
 class BentoTile extends StatelessWidget {
   const BentoTile({
     required this.label,
@@ -54,7 +59,7 @@ class BentoTile extends StatelessWidget {
     final tile = Container(
       padding: const EdgeInsets.all(DesignTokens.spaceLg),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
@@ -67,8 +72,10 @@ class BentoTile extends StatelessWidget {
               if (icon != null) ...[
                 Container(
                   padding: const EdgeInsets.all(DesignTokens.spaceXs),
+                  // Highest, bukan High: bubble harus tetap 2 tingkat di atas
+                  // tone tile (`surfaceContainer`) agar lingkarannya terbaca.
                   decoration: ShapeDecoration(
-                    color: colorScheme.surfaceContainerHigh,
+                    color: colorScheme.surfaceContainerHighest,
                     shape: const CircleBorder(),
                   ),
                   child: Icon(

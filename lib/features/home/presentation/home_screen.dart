@@ -487,9 +487,11 @@ class _HomeBento extends ConsumerWidget {
                         ? l10n.homeNoValidation
                         : l10n.homeAccuracyFromCount(decidedCount),
                     child: LensRing(
-                      // 64: metrik sekunder tidak boleh mendominasi ring
-                      // baterai 56 di Hero.
-                      diameter: 64,
+                      // Satu-satunya ring besar di Beranda (ring baterai
+                      // kini berupa stat di strip Hero): 78 agar sisa track
+                      // terbaca sebagai jalur yang belum terisi, bukan
+                      // lekukan kecil di tengah kartu.
+                      diameter: 78,
                       value: accuracy,
                       progressColor: StatusColors.of(context).ok.solid,
                       semanticsLabel: accuracy == null
@@ -497,12 +499,9 @@ class _HomeBento extends ConsumerWidget {
                           : l10n.homeAccuracySemantic(accuracyText),
                       center: Text(
                         accuracyText,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ),
@@ -511,30 +510,36 @@ class _HomeBento extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: DesignTokens.spaceMd),
-          Row(
-            children: [
-              Expanded(
-                child: BentoTile.small(
-                  label: l10n.homeSyncedLabel,
-                  icon: Icons.sync_rounded,
-                  // Jam absolut ("14.32 · 10 Okt"), bukan relatif: chip Hero
-                  // sudah menampilkan hitungan relatif presisi.
-                  value: RelativeTime.timeAndDate(
-                    devices.first.lastSeen,
-                    l10n: l10n,
+          // Baris kedua ikut memakai IntrinsicHeight + stretch: "Hari ini"
+          // punya footer sedangkan "Sinkron terakhir" tidak — tanpa ini
+          // kedua kotak tampil beda tinggi (regresi visual Beranda).
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: BentoTile.small(
+                    label: l10n.homeSyncedLabel,
+                    icon: Icons.sync_rounded,
+                    // Jam absolut ("14.32 · 10 Okt"), bukan relatif: chip Hero
+                    // sudah menampilkan hitungan relatif presisi.
+                    value: RelativeTime.timeAndDate(
+                      devices.first.lastSeen,
+                      l10n: l10n,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: DesignTokens.spaceMd),
-              Expanded(
-                child: BentoTile.small(
-                  label: l10n.homeTodayLabel,
-                  icon: Icons.today_rounded,
-                  value: l10n.homeReadingsToday(today.length),
-                  footer: l10n.homeTodayBreakdown(todayMoney, todayText),
+                const SizedBox(width: DesignTokens.spaceMd),
+                Expanded(
+                  child: BentoTile.small(
+                    label: l10n.homeTodayLabel,
+                    icon: Icons.today_rounded,
+                    value: l10n.homeReadingsToday(today.length),
+                    footer: l10n.homeTodayBreakdown(todayMoney, todayText),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

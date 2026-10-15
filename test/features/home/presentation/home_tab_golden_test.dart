@@ -107,12 +107,12 @@ void main() {
       // Hero baru: strip stats menampilkan persen (tanpa ring besar).
       expect(find.text('82%'), findsOneWidget);
 
-      // Satu-satunya ring besar di Beranda = akurasi bento (64).
+      // Satu-satunya ring besar di Beranda = akurasi bento (78).
       // Ring baterai besar hanya di tab Perangkat — tidak ada dua
       // signature yang bersaing.
       final lensRings = tester.widgetList<LensRing>(find.byType(LensRing));
       final diameters = lensRings.map((r) => r.diameter).toSet();
-      expect(diameters, equals({64}));
+      expect(diameters, equals({78}));
 
       // Bento informatif: jam absolut + breakdown kategori + footer akurasi.
       expect(find.textContaining('·'), findsWidgets);
@@ -124,13 +124,20 @@ void main() {
       );
     });
 
-    testWidgets('dark: render aktual tanpa error', (tester) async {
+    testWidgets('dark: render aktual + golden tema gelap', (tester) async {
       await pumpHome(tester, mode: ThemeMode.dark);
       repository.emit([device()]);
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
       expect(find.text('Kacamata Cerdas'), findsWidgets);
+
+      // Golden gelap: memastikan tone kartu & ring tetap terbaca di mode
+      // gelap (bukan hanya "tidak error").
+      await expectLater(
+        find.byType(HomeScreen),
+        matchesGoldenFile('../goldens/home_tab_dark.png'),
+      );
     });
   });
 }

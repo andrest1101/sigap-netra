@@ -14,7 +14,7 @@ SIGAP-NETRA = mata/lensa untuk pengguna. Identitas visual berangkat dari **lensa
 
 Elemen khas (signature):
 
-- **Lens Ring** — pengukur melingkar bersegmen seperti diafragma; dipakai untuk **% kecocokan**, **baterai**, dan animasi **menunggu alat** (cincin "fokus" berdenyut). Widget: `core/widgets/lens_ring.dart` (`CustomPainter`).
+- **Lens Ring** — cincin lensa dengan dua bahasa bentuk: **nilai** (kecocokan, baterai) = track penuh + busur progres **kontinu** di atasnya dengan ujung membulat — terbaca "timbul keluar" (pola donut); **menunggu alat** = 24 segmen diafragma + cincin "fokus" berdenyut. Widget: `core/widgets/lens_ring.dart` (`CustomPainter`).
 - **Large-title app bar** yang menyusut saat scroll (tanpa gradien, tanpa foto header).
 - **Bento grid** untuk ringkasan angka (bukan baris 3 statistik).
 - **Kartu tonal** (warna permukaan M3 bertingkat), bukan kartu putih bershadow.
@@ -104,14 +104,14 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 1. **App bar large-title:** judul "Beranda", subjudul nama perangkat (mis. `SGP-NETRA-0007`), avatar → Pengaturan.
 2. **Hero perangkat** (kartu tonal `primaryContainer`, radius 28):
-   - Kiri: lingkaran ikon kacamata dengan **titik status** (ok/bad); nama; chip koneksi "Terhubung · 3 dtk lalu" atau "Terputus · terakhir 17.03".
-   - Kanan: **Lens Ring baterai** (angka di tengah; "–" bila tidak tersedia).
+   - Baris identitas: lingkaran ikon kacamata dengan **titik status** (ok/bad); nama perangkat; chevron → detail.
+   - **Strip 3 stat** (satu baris, pemisah hairline): status koneksi ("Terhubung"/"Terputus"), baterai ringkas (ikon + persen; "–" bila tidak tersedia), sinkron terakhir (jam absolut). Ring baterai besar **bukan** di Hero — satu-satunya ring besar di Beranda adalah ring kecocokan di bento.
    - Baris aksi (pil): **Sinkronkan** (filled; menampilkan pending → selesai/gagal) dan **QR Wi-Fi** (tonal). Saat offline, **QR Wi-Fi** menjadi aksi utama dan muncul panel 3 langkah: ① nyalakan hotspot/Wi-Fi ② tampilkan QR ③ arahkan ke kamera SIGAP-NETRA.
-3. **Bento grid 2 kolom:**
-   - **Menunggu validasi** (tile tinggi): angka besar + tombol "Periksa" → tab Validasi.
-   - **Kecocokan bacaan**: Lens Ring persen (hanya validasi manusia).
-   - **Sinkron terakhir**: jam `lastSyncAt`.
-   - **Hari ini**: jumlah pembacaan + sparkline mini.
+3. **Bento grid 2 kolom** (tone ubin `surfaceContainer` + hairline `outlineVariant`; dua ubin dalam satu baris **wajib sama tinggi** — `IntrinsicHeight` + `CrossAxisAlignment.stretch`):
+   - **Menunggu validasi**: angka besar + tombol "Periksa" → tab Validasi.
+   - **Kecocokan bacaan**: Lens Ring persen (hanya validasi manusia), diameter ±78, angka tengah `titleLarge`; track `outlineVariant` + busur progres kontinu berujung membulat di atas track (terbaca timbul keluar — bukan segmen ber-celah yang tampak seperti lekukan masuk ke dalam).
+   - **Sinkron terakhir**: jam + tanggal sinkron terakhir (`lastSeen` perangkat, format `HH.mm · d MMM`).
+   - **Hari ini**: jumlah pembacaan + rincian kategori (mis. "3 uang · 3 teks").
 4. **Aktivitas terbaru:** 5 baris ringkas realtime (thumbnail kecil, nilai, waktu relatif, status). "Lihat semua" → Riwayat.
 
 ### 5.2 Validasi

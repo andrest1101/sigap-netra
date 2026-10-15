@@ -14,7 +14,7 @@ import 'lens_ring.dart';
 ///
 /// [numberColor]/[trackColor]: override untuk konteks background khusus
 /// (mis. Hero `primaryContainer` → `onPrimaryContainer`). Bila null memakai
-/// warna default tema (angka = warna teks, track = `surfaceContainerHighest`).
+/// warna default tema (angka = warna teks, track = `outlineVariant`).
 class BatteryRing extends StatelessWidget {
   const BatteryRing({
     required this.batteryPct,
