@@ -5,12 +5,18 @@ import 'package:flutter/material.dart';
 import '../theme/design_tokens.dart';
 import '../theme/status_colors.dart';
 
-/// Pengukur melingkar bersegmen seperti diafragma lensa kamera.
+/// Pengukur melingkar khas SIGAP-NETRA — cincin lensa kamera.
 ///
-/// Elemen khas (signature) identitas SIGAP-NETRA. Dipakai untuk % kecocokan,
-/// baterai, dan animasi menunggu alat (mode [LensRingMode.focusing] dengan
-/// cincin "fokus" berdenyut). Nilai 0.0-1.0; null berarti tidak tersedia
-/// (tengah menampilkan [fallbackLabel], mis. "–" untuk baterai).
+/// Dua bahasa bentuk, sengaja dibedakan:
+/// - [LensRingMode.value] (kecocokan, baterai): track penuh + **busur progres
+///   kontinu di atasnya** dengan ujung membulat. Busur menimpa track sehingga
+///   cincin terbaca "timbul keluar" (pola donut) — versi bersegmen lama
+///   terlihat seperti lekukan yang masuk ke dalam pada diameter besar.
+/// - [LensRingMode.focusing] (menunggu alat): 24 segmen diafragma + denyut
+///   fokus — "lensa sedang mencari".
+///
+/// Nilai 0.0-1.0. Nilai null = tidak tersedia (4 penanda mata angin di posisi
+/// mata angin; tengah menampilkan [unavailableIcon]).
 ///
 /// Aksesibilitas: selalu bungkus dengan `Semantics(label: ...)` dari pemanggil
 /// ("Kecocokan 96 persen") karena cincin saja tidak terbaca screen reader.
@@ -93,7 +99,8 @@ class LensRing extends StatefulWidget {
   final Color? trackColor;
   final Color? progressColor;
 
-  /// Jumlah segmen diafragma.
+  /// Jumlah segmen diafragma: dipakai mode [LensRingMode.focusing] dan state
+  /// tidak tersedia. Mode nilai digambar sebagai busur kontinu.
   final int segments;
 
   final String? semanticsLabel;
@@ -202,6 +209,8 @@ class _LensRingState extends State<LensRing>
         // State tak tersedia: 4 segmen mata angin, bukan cincin penuh.
         segments: isUnavailable ? 4 : widget.segments,
         unavailable: isUnavailable,
+        // Menunggu = segmen diafragma + denyut; nilai = busur kontinu.
+        segmented: widget.mode == LensRingMode.focusing,
         focusPulse: widget.mode == LensRingMode.focusing && !reduceMotion
             ? _controller.value
             : null,
@@ -239,12 +248,13 @@ class _LensRingState extends State<LensRing>
   }
 }
 
-/// Pelukis cincin diafragma bersegmen.
+/// Pelukis cincin lensa: busur kontinu (nilai) atau segmen diafragma.
 class _LensRingPainter extends CustomPainter {
   _LensRingPainter({
     required this.trackColor,
     required this.progressColor,
     required this.segments,
+    required this.segmented,
     this.value,
     this.focusPulse,
     this.strokeWidth = 10,
@@ -261,52 +271,106 @@ class _LensRingPainter extends CustomPainter {
   /// State tak tersedia: gambar 4 segmen pendek di arah mata angin saja.
   final bool unavailable;
 
+  /// Mode menunggu: segmen diafragma + denyut fokus. Bila false (mode nilai),
+  /// track penuh + busur progres kontinu dengan ujung membulat.
+  final bool segmented;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = size.width / 2 - strokeWidth / 2;
-    // Celah antar-segmen 18% dari sudut tiap segmen; state unavailable memakai
-    // segmen pendek (40%) agar terlihat seperti penanda, bukan cincin rusak.
-    final ratio = unavailable ? 0.4 : 0.82;
-    final sweep = (math.pi * 2 / segments) * ratio;
-    final gap = (math.pi * 2 / segments) * (1 - ratio);
+    // Mulai dari atas (-90°) seperti pengukur melingkar lazim.
+    const startOffset = -math.pi / 2;
 
-    final trackPaint = Paint()
-      ..color = unavailable ? trackColor.withValues(alpha: 0.55) : trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = unavailable ? strokeWidth * 0.7 : strokeWidth
-      ..strokeCap = StrokeCap.round;
     final progressPaint = Paint()
       ..color = progressColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
 
-    // Mulai dari atas (-90°) seperti pengukur melingkar lazim.
-    const startOffset = -math.pi / 2;
-    final filled = ((value ?? 0).clamp(0.0, 1.0) * segments).floor();
-
-    for (var i = 0; i < segments; i++) {
-      final start = startOffset + i * (sweep + gap);
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        start,
-        sweep,
-        false,
-        i < filled && value != null ? progressPaint : trackPaint,
-      );
+    if (unavailable) {
+      // 4 penanda mata angin: segmen pendek (40%) agar terbaca sebagai
+      // penanda "tidak tersedia", bukan cincin yang rusak.
+      const ratio = 0.4;
+      final sweep = (math.pi * 2 / segments) * ratio;
+      final gap = (math.pi * 2 / segments) * (1 - ratio);
+      final markPaint = Paint()
+        ..color = trackColor.withValues(alpha: 0.55)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth * 0.7
+        ..strokeCap = StrokeCap.round;
+      for (var i = 0; i < segments; i++) {
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          startOffset + i * (sweep + gap),
+          sweep,
+          false,
+          markPaint,
+        );
+      }
+      return;
     }
 
-    // Denyut fokus: lingkaran dalam yang membesar-mengecil.
-    if (focusPulse != null) {
-      final pulsePaint = Paint()
-        ..color = progressColor.withValues(alpha: 0.25 + 0.35 * focusPulse!)
+    if (segmented) {
+      // Mode menunggu alat: 24 segmen diafragma; celah antar-segmen 18%.
+      const ratio = 0.82;
+      final sweep = (math.pi * 2 / segments) * ratio;
+      final gap = (math.pi * 2 / segments) * (1 - ratio);
+      final trackPaint = Paint()
+        ..color = trackColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      canvas.drawCircle(
-        center,
-        radius * (0.55 + 0.12 * focusPulse!),
-        pulsePaint,
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+      final filled = ((value ?? 0).clamp(0.0, 1.0) * segments).floor();
+
+      for (var i = 0; i < segments; i++) {
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          startOffset + i * (sweep + gap),
+          sweep,
+          false,
+          i < filled && value != null ? progressPaint : trackPaint,
+        );
+      }
+
+      // Denyut fokus: lingkaran dalam yang membesar-mengecil.
+      if (focusPulse != null) {
+        final pulsePaint = Paint()
+          ..color = progressColor.withValues(alpha: 0.25 + 0.35 * focusPulse!)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2;
+        canvas.drawCircle(
+          center,
+          radius * (0.55 + 0.12 * focusPulse!),
+          pulsePaint,
+        );
+      }
+      return;
+    }
+
+    // Mode nilai: track penuh + busur progres KONTINU di atasnya dengan ujung
+    // membulat — busur menimpa track sehingga terbaca "timbul keluar" (pola
+    // donut). Segmen ber-celah lama membuat sambungan terlihat seperti
+    // lekukan yang masuk ke dalam pada diameter besar.
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, trackPaint);
+
+    final progress = (value ?? 0).clamp(0.0, 1.0);
+    if (progress >= 1) {
+      // 100% digambar sebagai lingkaran: ujung membulat pada busur 360°
+      // meninggalkan tonjolan kecil di titik sambung.
+      canvas.drawCircle(center, radius, progressPaint);
+    } else if (progress > 0) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startOffset,
+        math.pi * 2 * progress,
+        false,
+        progressPaint,
       );
     }
   }
@@ -318,6 +382,7 @@ class _LensRingPainter extends CustomPainter {
         oldDelegate.trackColor != trackColor ||
         oldDelegate.progressColor != progressColor ||
         oldDelegate.segments != segments ||
-        oldDelegate.unavailable != unavailable;
+        oldDelegate.unavailable != unavailable ||
+        oldDelegate.segmented != segmented;
   }
 }
