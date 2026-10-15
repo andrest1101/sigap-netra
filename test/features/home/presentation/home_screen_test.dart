@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/errors/app_failure.dart';
+import 'package:sigap_netra_app/core/widgets/bento_tile.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
@@ -52,7 +53,7 @@ void main() {
   setUp(() => repository = FakeDeviceRepository());
   tearDown(() => repository.close());
 
-  Future<void> pumpHome(WidgetTester tester) async {
+  Future<void> pumpHome(WidgetTester tester, {double textScale = 1.0}) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
@@ -65,11 +66,22 @@ void main() {
           ),
           ...graph.overrides,
         ],
-        child: const MaterialApp(
-          locale: Locale('id'),
+        child: MaterialApp(
+          locale: const Locale('id'),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: HomeScreen(),
+          home: textScale == 1.0
+              ? const HomeScreen()
+              // Text scale sistem 1,3x (batas dukungan spec) diuji lewat
+              // MediaQuery override — bukan parameter test yang fiktif.
+              : Builder(
+                  builder: (context) => MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: TextScaler.linear(textScale)),
+                    child: const HomeScreen(),
+                  ),
+                ),
         ),
       ),
     );
@@ -315,6 +327,60 @@ void main() {
       expect(find.textContaining('uang ·'), findsOneWidget);
       // Footer akurasi: sampel demo berisi 4 validasi (3 cocok, 1 tidak).
       expect(find.text('dari 4 validasi'), findsOneWidget);
+    });
+
+    testWidgets('tile Sinkron terakhir dan Hari ini sama tinggi', (
+      tester,
+    ) async {
+      final now = DateTime(2026, 10, 8, 12);
+      await pumpHome(tester);
+      repository.emit([
+        Device(
+          deviceId: kDemoDeviceId,
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: now,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      // "Hari ini" punya footer, "Sinkron terakhir" tidak — baris kedua
+      // wajib memakai IntrinsicHeight + stretch agar kedua kotak sama
+      // tinggi (regresi visual: dua kotak tampil berbeda ukuran).
+      final syncedTile = find.ancestor(
+        of: find.text('Sinkron terakhir'),
+        matching: find.byType(BentoTile),
+      );
+      final todayTile = find.ancestor(
+        of: find.text('Hari ini'),
+        matching: find.byType(BentoTile),
+      );
+      expect(syncedTile, findsOneWidget);
+      expect(todayTile, findsOneWidget);
+      expect(
+        tester.getSize(syncedTile).height,
+        tester.getSize(todayTile).height,
+      );
+    });
+
+    testWidgets('tetap muat pada text scale 1,3x', (tester) async {
+      await pumpHome(tester, textScale: 1.3);
+      repository.emit([
+        Device(
+          deviceId: kDemoDeviceId,
+          name: 'Kacamata Cerdas',
+          connectivity: DeviceConnectivity.online,
+          lastSeen: DateTime.now(),
+          batteryPct: 82,
+        ),
+      ]);
+      await pumpFrames(tester);
+
+      // RenderFlex overflow dilaporkan sebagai exception di widget test:
+      // tile bento + ring akurasi 78 wajib tetap utuh pada text scale 1,3x.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Akurasi'), findsOneWidget);
+      expect(find.text('Sinkron terakhir'), findsOneWidget);
     });
 
     testWidgets('subjudul menampilkan nama perangkat primer', (tester) async {
