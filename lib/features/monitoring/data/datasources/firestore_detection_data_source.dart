@@ -39,4 +39,25 @@ class FirestoreDetectionDataSource implements DetectionDataSource {
               .toList(growable: false),
         );
   }
+
+  @override
+  Stream<Detection?> watchDetection({
+    required String deviceId,
+    required String deviceName,
+    required String detectionId,
+  }) {
+    // Satu dokumen saja: biaya baca 1 + perubahan, bukan seluruh halaman.
+    return _firestore
+        .doc(detectionDocPath(deviceId, detectionId))
+        .snapshots()
+        .map(
+          (doc) => doc.exists
+              ? DetectionModel.fromDocument(
+                  doc,
+                  deviceId: deviceId,
+                  deviceName: deviceName,
+                )
+              : null,
+        );
+  }
 }

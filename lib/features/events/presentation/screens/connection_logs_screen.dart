@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/filter_chip_row.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../commands/domain/entities/device_command.dart';
 import '../../../commands/presentation/providers/commands_providers.dart';
+import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../domain/entities/device_event.dart';
 import '../providers/events_providers.dart';
 
@@ -49,21 +53,19 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final events = ref.watch(eventsProvider);
-    final commands = ref.watch(commandsProvider);
-
-    bool matchDevice(String? id) =>
-        widget.deviceId == null || id == widget.deviceId;
-
-    final eventItems =
-        events.where((event) => matchDevice(event.deviceId)).toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    // Layar ini juga bisa dibuka tanpa konteks perangkat (dari Pengaturan).
+    // Tanpa perangkat eksplisit kita jatuh ke perangkat utama: schema tidak
+    // mengizinkan query lintas perangkat.
+    final deviceId = widget.deviceId ?? ref.watch(primaryDeviceIdProvider);
+    final eventsAsync = deviceId == null
+        ? null
+        : ref.watch(eventsProvider(deviceId));
+    final commandsAsync = ref.watch(commandsProvider(deviceId));
+    final events = eventsAsync?.value ?? const <DeviceEvent>[];
+    final commands = commandsAsync.value ?? const <DeviceCommand>[];
     final filteredEvents = _severity == null
-        ? eventItems
-        : eventItems.where((e) => e.severity == _severity).toList();
-    final commandItems =
-        commands.where((command) => matchDevice(command.deviceId)).toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        ? events
+        : events.where((e) => e.severity == _severity).toList();
     final now = DateTime.now();
 
     return Scaffold(
@@ -115,41 +117,45 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
                 ),
               ),
               Expanded(
-                child: filteredEvents.isEmpty
-                    ? EmptyView(
-                        title: l10n.eventsEmptyTitle,
-                        message: l10n.eventsEmptyBody,
-                        icon: Icons.hub_outlined,
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(DesignTokens.spacePage),
-                        itemCount: filteredEvents.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: DesignTokens.spaceSm),
-                        itemBuilder: (context, index) {
-                          final event = filteredEvents[index];
-                          return _EventTile(event: event, now: now);
-                        },
-                      ),
+                child: _AsyncLogBody(
+                  async: eventsAsync,
+                  isEmpty: filteredEvents.isEmpty,
+                  emptyTitle: l10n.eventsEmptyTitle,
+                  emptyBody: l10n.eventsEmptyBody,
+                  emptyIcon: Icons.hub_outlined,
+                  onRetry: deviceId == null
+                      ? null
+                      : () => ref.invalidate(eventsProvider(deviceId)),
+                  builder: (context) => ListView.separated(
+                    padding: const EdgeInsets.all(DesignTokens.spacePage),
+                    itemCount: filteredEvents.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: DesignTokens.spaceSm),
+                    itemBuilder: (context, index) =>
+                        _EventTile(event: filteredEvents[index], now: now),
+                  ),
+                ),
               ),
             ],
           ),
-          commandItems.isEmpty
-              ? EmptyView(
-                  title: l10n.commandsTitle,
-                  message: l10n.eventsEmptyBody,
-                  icon: Icons.terminal_rounded,
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(DesignTokens.spacePage),
-                  itemCount: commandItems.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: DesignTokens.spaceSm),
-                  itemBuilder: (context, index) {
-                    final command = commandItems[index];
-                    return _CommandTile(command: command, now: now);
-                  },
-                ),
+          _AsyncLogBody(
+            async: commandsAsync,
+            isEmpty: commands.isEmpty,
+            emptyTitle: l10n.commandsTitle,
+            emptyBody: l10n.eventsEmptyBody,
+            emptyIcon: Icons.terminal_rounded,
+            onRetry: deviceId == null
+                ? null
+                : () => ref.invalidate(commandsProvider(deviceId)),
+            builder: (context) => ListView.separated(
+              padding: const EdgeInsets.all(DesignTokens.spacePage),
+              itemCount: commands.length,
+              separatorBuilder: (_, _) =>
+                  const SizedBox(height: DesignTokens.spaceSm),
+              itemBuilder: (context, index) =>
+                  _CommandTile(command: commands[index], now: now),
+            ),
+          ),
         ],
       ),
     );
@@ -305,4 +311,53 @@ String _commandStatusLabel(CommandStatus status, AppLocalizations l10n) {
     CommandStatus.done => l10n.commandsStatusDone,
     CommandStatus.failed => l10n.commandsStatusFailed,
   };
+}
+
+/// Body satu tab log: membedakan loading / error / kosong / data.
+///
+/// [async] null berarti tidak ada perangkat terpilih — tampil sebagai kosong,
+/// bukan error, karena memang tidak ada yang bisa dimuat.
+class _AsyncLogBody<T> extends StatelessWidget {
+  const _AsyncLogBody({
+    required this.async,
+    required this.isEmpty,
+    required this.emptyTitle,
+    required this.emptyBody,
+    required this.emptyIcon,
+    required this.builder,
+    this.onRetry,
+  });
+
+  final AsyncValue<List<T>>? async;
+  final bool isEmpty;
+  final String emptyTitle;
+  final String emptyBody;
+  final IconData emptyIcon;
+  final VoidCallback? onRetry;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = async;
+    if (value != null && value.hasError && !value.hasValue) {
+      return ErrorView(
+        message: _failureText(context, value.error!),
+        onRetry: onRetry,
+      );
+    }
+    if (value != null && value.isLoading && !value.hasValue) {
+      return const LoadingView();
+    }
+    if (value == null || isEmpty) {
+      return EmptyView(title: emptyTitle, message: emptyBody, icon: emptyIcon);
+    }
+    return builder(context);
+  }
+}
+
+/// Pesan error siap tampil untuk widget mana pun di file ini.
+String _failureText(BuildContext context, Object error) {
+  final l10n = AppLocalizations.of(context);
+  if (error is AppFailure) return failureMessage(error, l10n);
+  return l10n.stateErrorBody;
 }

@@ -916,6 +916,18 @@ abstract class AppLocalizations {
   /// **'Pembacaan dihapus.'**
   String get historyDeleted;
 
+  /// No description provided for @historyResetDone.
+  ///
+  /// In id, this message translates to:
+  /// **'Status validasi direset.'**
+  String get historyResetDone;
+
+  /// No description provided for @historyActionFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Tindakan gagal. Periksa koneksi lalu coba lagi.'**
+  String get historyActionFailed;
+
   /// No description provided for @historySummaryTitle.
   ///
   /// In id, this message translates to:
@@ -1216,6 +1228,12 @@ abstract class AppLocalizations {
   /// **'Perintah dikirim.'**
   String get commandsSent;
 
+  /// No description provided for @commandsSendFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah gagal dikirim. Coba lagi.'**
+  String get commandsSendFailed;
+
   /// No description provided for @eventsTitle.
   ///
   /// In id, this message translates to:
@@ -1444,6 +1462,30 @@ abstract class AppLocalizations {
   /// **'Tidak ada data untuk dibagikan.'**
   String get sharingEmpty;
 
+  /// No description provided for @sharingSummaryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ringkasan SIGAP-NETRA'**
+  String get sharingSummaryTitle;
+
+  /// No description provided for @sharingSummaryTotal.
+  ///
+  /// In id, this message translates to:
+  /// **'Total: {count} pembacaan'**
+  String sharingSummaryTotal(int count);
+
+  /// No description provided for @sharingSummaryBreakdown.
+  ///
+  /// In id, this message translates to:
+  /// **'Uang: {money} · Teks: {text}'**
+  String sharingSummaryBreakdown(int money, int text);
+
+  /// No description provided for @sharingSummaryAccuracy.
+  ///
+  /// In id, this message translates to:
+  /// **'Akurasi validasi: {value} dari {count} pembacaan'**
+  String sharingSummaryAccuracy(String value, int count);
+
   /// No description provided for @homeDeviceHero.
   ///
   /// In id, this message translates to:
@@ -1647,6 +1689,18 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Validasi tersimpan.'**
   String get validationSaved;
+
+  /// No description provided for @validationSaveFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi gagal disimpan. Periksa koneksi lalu coba lagi.'**
+  String get validationSaveFailed;
+
+  /// No description provided for @validationUndoFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembatalan validasi gagal. Coba lagi.'**
+  String get validationUndoFailed;
 
   /// No description provided for @historyListTab.
   ///

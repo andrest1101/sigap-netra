@@ -3,19 +3,27 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
+import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
-import '../../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../../../sharing/domain/entities/share_report.dart';
+import '../../../sharing/presentation/providers/sharing_providers.dart';
+import '../providers/history_providers.dart';
 
 /// Riwayat — identitas visual v3.
 ///
@@ -36,18 +44,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   DetectionType? _type;
   ValidationStatus? _status;
 
-  bool _matches(Detection detection) {
-    final typeOk = _type == null || detection.type == _type;
-    final statusOk = _status == null || detection.validationStatus == _status;
-    return typeOk && statusOk;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final detections = ref.watch(detectionsProvider);
-    final items = detections.where(_matches).toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final deviceId = ref.watch(primaryDeviceIdProvider);
+    final page = deviceId == null
+        ? null
+        : ref.watch(
+            historyPageProvider(
+              HistoryPageKey(deviceId: deviceId, type: _type, status: _status),
+            ),
+          );
+    final items = page?.value?.items ?? const <Detection>[];
+    final hasMore = page?.value?.nextCursor != null;
+    final hasError = page != null && page.hasError && !page.hasValue;
+    final isLoadingFirstPage = page != null && page.isLoading && !page.hasValue;
 
     return LargeTitleScaffold(
       title: l10n.historyTitle,
@@ -104,11 +115,30 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
           if (_tab == _HistoryTab.stats)
             _StatsComingSoon(l10n: l10n)
+          else if (deviceId == null)
+            EmptyView(
+              title: l10n.historyEmptyTitle,
+              message: l10n.historyEmptyBody,
+              icon: Icons.history_toggle_off_rounded,
+            )
+          else if (hasError)
+            ErrorView(
+              message: _failureText(context, page.error!),
+              onRetry: () => ref.invalidate(historyPageProvider),
+            )
+          else if (isLoadingFirstPage)
+            const _HistorySkeleton()
           else
             _HistoryList(
               items: items,
               type: _type,
-              onTypeChanged: (value) => setState(() => _type = value),
+              hasMore: hasMore,
+              onLoadMore: () =>
+                  ref.read(historyLimitProvider.notifier).increase(),
+              onTypeChanged: (value) {
+                setState(() => _type = value);
+                ref.read(historyLimitProvider.notifier).reset();
+              },
               onFilterPressed: () => _openStatusSheet(),
             ),
         ],
@@ -120,36 +150,92 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final l10n = AppLocalizations.of(context);
     switch (value) {
       case 'reset':
-        final confirmed = await ConfirmSheet.show(
-          context,
-          title: l10n.validationResetAllConfirmTitle,
-          message: l10n.validationResetAllConfirmBody,
-          confirmLabel: l10n.validationResetAll,
-          icon: Icons.restart_alt_rounded,
-        );
-        if (confirmed && mounted) {
-          HapticFeedback.mediumImpact();
-          final detections = ref.read(detectionsProvider);
-          for (final d in detections) {
-            ref.read(detectionsProvider.notifier).reset(d.id);
-          }
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.validationUndoDone)));
-          }
-        }
+        await _resetAllValidations(l10n);
       case 'csv':
+        _snack(l10n.historyExportComingSoon);
       case 'share':
-        if (mounted) {
-          final message = value == 'csv'
-              ? l10n.historyExportComingSoon
-              : l10n.sharingEmpty;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
+        await _shareSummary(l10n);
     }
+  }
+
+  Future<void> _resetAllValidations(AppLocalizations l10n) async {
+    final confirmed = await ConfirmSheet.show(
+      context,
+      title: l10n.validationResetAllConfirmTitle,
+      message: l10n.validationResetAllConfirmBody,
+      confirmLabel: l10n.validationResetAll,
+      icon: Icons.restart_alt_rounded,
+    );
+    if (!confirmed || !mounted) return;
+    final deviceId = ref.read(primaryDeviceIdProvider);
+    if (deviceId == null) return;
+    HapticFeedback.mediumImpact();
+    try {
+      await ref
+          .read(resetAllValidationsProvider)
+          .call(
+            deviceId: deviceId,
+            validatedBy: ref.read(currentUserProvider)?.uid,
+          );
+      ref.invalidate(historyPageProvider);
+    } catch (_) {
+      if (mounted) _snack(l10n.historyActionFailed);
+      return;
+    }
+    if (mounted) _snack(l10n.historyResetDone);
+  }
+
+  /// Membagikan ringkasan baris yang sedang dimuat — angka saja, tanpa OCR,
+  /// tanpa ID perangkat, tanpa lokasi.
+  Future<void> _shareSummary(AppLocalizations l10n) async {
+    final deviceId = ref.read(primaryDeviceIdProvider);
+    if (deviceId == null) return;
+    final key = HistoryPageKey(
+      deviceId: deviceId,
+      type: _type,
+      status: _status,
+    );
+    final items =
+        ref.read(historyPageProvider(key)).value?.items ?? const <Detection>[];
+    if (items.isEmpty) {
+      _snack(l10n.sharingEmpty);
+      return;
+    }
+
+    final money = items.where((d) => d.type == DetectionType.money).length;
+    final text = items.length - money;
+    final matched = items
+        .where((d) => d.validationStatus == ValidationStatus.match)
+        .length;
+    final mismatch = items
+        .where((d) => d.validationStatus == ValidationStatus.mismatch)
+        .length;
+    final decided = matched + mismatch;
+    final accuracyText = decided == 0
+        ? null
+        : '${((matched / decided) * 100).round()}%';
+
+    final report = ShareReport(
+      title: l10n.sharingSummaryTitle,
+      lines: [
+        l10n.sharingSummaryTotal(items.length),
+        l10n.sharingSummaryBreakdown(money, text),
+        if (accuracyText != null)
+          l10n.sharingSummaryAccuracy(accuracyText, decided),
+      ],
+    );
+    try {
+      await ref.read(shareReportProvider).call(report);
+    } catch (_) {
+      if (mounted) _snack(l10n.historyActionFailed);
+    }
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openStatusSheet() async {
@@ -180,7 +266,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ),
       ),
     );
-    if (mounted) setState(() => _status = selected);
+    if (mounted) {
+      setState(() => _status = selected);
+      ref.read(historyLimitProvider.notifier).reset();
+    }
   }
 }
 
@@ -197,12 +286,16 @@ class _HistoryList extends StatelessWidget {
   const _HistoryList({
     required this.items,
     required this.type,
+    required this.hasMore,
+    required this.onLoadMore,
     required this.onTypeChanged,
     required this.onFilterPressed,
   });
 
   final List<Detection> items;
   final DetectionType? type;
+  final bool hasMore;
+  final VoidCallback onLoadMore;
   final ValueChanged<DetectionType?> onTypeChanged;
   final VoidCallback onFilterPressed;
 
@@ -257,7 +350,11 @@ class _HistoryList extends StatelessWidget {
             icon: Icons.history_toggle_off_rounded,
           )
         else
-          _DayGroupedList(items: items),
+          _DayGroupedList(
+            items: items,
+            hasMore: hasMore,
+            onLoadMore: onLoadMore,
+          ),
         const SizedBox(height: DesignTokens.spaceSection),
       ],
     );
@@ -266,9 +363,15 @@ class _HistoryList extends StatelessWidget {
 
 /// Daftar dikelompokkan per hari dengan header lengket.
 class _DayGroupedList extends ConsumerWidget {
-  const _DayGroupedList({required this.items});
+  const _DayGroupedList({
+    required this.items,
+    required this.hasMore,
+    required this.onLoadMore,
+  });
 
   final List<Detection> items;
+  final bool hasMore;
+  final VoidCallback onLoadMore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -284,18 +387,26 @@ class _DayGroupedList extends ConsumerWidget {
             _HistoryRow(
               detection: entry.value[i],
               number: items.indexOf(entry.value[i]) + 1,
-              onDelete: () => _deleteWithUndo(context, ref, entry.value[i]),
+              onDelete: () => _delete(context, ref, entry.value[i]),
             ),
         ],
         Padding(
           padding: const EdgeInsets.all(DesignTokens.spacePage),
-          child: Text(
-            l10n.historyEndOfList,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          child: hasMore
+              ? Center(
+                  child: OutlinedButton.icon(
+                    onPressed: onLoadMore,
+                    icon: const Icon(Icons.expand_more_rounded),
+                    label: Text(l10n.historyLoadMore),
+                  ),
+                )
+              : Text(
+                  l10n.historyEndOfList,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
         ),
       ],
     );
@@ -324,22 +435,46 @@ class _DayGroupedList extends ConsumerWidget {
     return RelativeTime.date(day);
   }
 
-  void _deleteWithUndo(
+  /// Hapus permanen setelah konfirmasi: dokumen deteksi + `media` terkait.
+  ///
+  /// Tidak ada undo — Firestore tidak menyediakan pemulihan dokumen, dan app
+  /// dilarang membuat ulang dokumen deteksi (skema bagian 1). Karena itu
+  /// konfirmasi muncul sebelum penghapusan, bukan sesudah.
+  Future<void> _delete(
     BuildContext context,
     WidgetRef ref,
     Detection detection,
-  ) {
+  ) async {
     final l10n = AppLocalizations.of(context);
-    final controller = ref.read(detectionsProvider.notifier);
-    // Simpan salinan untuk undo: controller demo tidak punya hapus permanen,
-    // jadi undo = kembalikan item (Fase 2 lanjutan memakai DeleteDetection).
-    controller.removeForUndo(detection.id);
-    showUndoSnackbar(
+    final confirmed = await ConfirmSheet.show(
       context,
-      message: l10n.historyDeleted,
-      actionLabel: l10n.validationUndoAction,
-      onUndo: () => controller.restoreForUndo(detection),
+      title: l10n.historyDeleteTitle,
+      message: l10n.historyDeleteBody,
+      confirmLabel: l10n.commonDelete,
+      icon: Icons.delete_outline_rounded,
     );
+    if (!confirmed || !context.mounted) return;
+    try {
+      await ref
+          .read(deleteDetectionProvider)
+          .call(
+            deviceId: detection.deviceId,
+            detectionId: detection.id,
+            thumbnailId: detection.thumbnailId,
+          );
+      ref.invalidate(historyPageProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.historyActionFailed)));
+      }
+    }
   }
 }
 
@@ -457,6 +592,41 @@ class _HistoryRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Skeleton daftar riwayat saat halaman pertama masih dimuat.
+class _HistorySkeleton extends StatelessWidget {
+  const _HistorySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(
+        DesignTokens.spacePage,
+        DesignTokens.spaceMd,
+        DesignTokens.spacePage,
+        0,
+      ),
+      child: Column(
+        children: [
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pesan error siap tampil untuk widget mana pun di file ini.
+String _failureText(BuildContext context, Object error) {
+  final l10n = AppLocalizations.of(context);
+  if (error is AppFailure) return failureMessage(error, l10n);
+  return l10n.stateErrorBody;
 }
 
 /// Segmen Statistik (P1): placeholder rapi, bukan layar kosong.

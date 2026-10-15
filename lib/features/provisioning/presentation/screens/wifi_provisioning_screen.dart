@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
@@ -8,6 +9,8 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../domain/entities/wifi_credentials.dart';
+import '../../domain/usecases/build_wifi_qr_payload.dart';
 
 /// Layar QR Wi-Fi — identitas visual v3.
 ///
@@ -15,9 +18,10 @@ import '../../../../l10n/generated/app_localizations.dart';
 /// Tampilkan QR (panel putih, hitam di atas putih bahkan di mode gelap) →
 /// Menunggu alat (Lens Ring fokus + hitung mundur 2 menit).
 ///
-/// Format payload QR masih menunggu ekstraksi dari aplikasi Kotlin lama, jadi
-/// langkah QR hanya menampilkan shell + status konfirmasi, tanpa membuat
-/// payload baru.
+/// Payload QR memakai format aplikasi Kotlin lama
+/// (`WIFI:T:WPA;S:<ssid>;P:<sandi>;;`, lihat `buildWifiQrPayload`), tetapi
+/// firmware MaixCAM belum memindai QR — catatan status jujur ditampilkan di
+/// bawah kode.
 class WifiProvisioningScreen extends StatefulWidget {
   const WifiProvisioningScreen({required this.deviceId, super.key});
 
@@ -63,6 +67,15 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
     setState(() => _step = 1);
   }
 
+  /// Payload QR dari isi form saat ini. Hanya hidup di memori selama layar
+  /// terbuka; tidak pernah disimpan.
+  String get _qrPayload => buildWifiQrPayload(
+    WifiCredentials(
+      ssid: _ssidController.text.trim(),
+      password: _passwordController.text,
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -103,6 +116,7 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
             isActive: _step >= 1,
             state: _step > 1 ? StepState.complete : StepState.indexed,
             content: _QrShell(
+              payload: _qrPayload,
               onNext: () {
                 setState(() => _step = 2);
                 _startCountdown();
@@ -238,11 +252,17 @@ class _NetworkForm extends StatelessWidget {
   }
 }
 
-/// Panel QR shell: hitam di atas putih SELALU (termasuk mode gelap) agar
-/// terbaca kamera. Payload menunggu format aplikasi lama.
+/// Panel QR: hitam di atas putih SELALU (termasuk mode gelap) agar terbaca
+/// kamera. Payload memakai format aplikasi lama; firmware belum memindai QR,
+/// jadi catatan status jujur ditampilkan di bawah kode.
 class _QrShell extends StatelessWidget {
-  const _QrShell({required this.onNext, required this.onBack});
+  const _QrShell({
+    required this.payload,
+    required this.onNext,
+    required this.onBack,
+  });
 
+  final String payload;
   final VoidCallback onNext;
   final VoidCallback onBack;
 
@@ -266,14 +286,27 @@ class _QrShell extends StatelessWidget {
           ),
           child: Column(
             children: [
-              const Icon(
-                Icons.qr_code_2_rounded,
-                size: 120,
-                color: Colors.black,
+              Semantics(
+                label: l10n.provisioningStepQr,
+                image: true,
+                child: QrImageView(
+                  data: payload,
+                  version: QrVersions.auto,
+                  size: 220,
+                  backgroundColor: Colors.white,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
+                ),
               ),
               const SizedBox(height: DesignTokens.spaceSm),
               Text(
-                kWifiQrPayloadStatusUnconfirmed,
+                kWifiQrPayloadNote,
                 style: textTheme.bodySmall?.copyWith(color: Colors.black87),
                 textAlign: TextAlign.center,
               ),

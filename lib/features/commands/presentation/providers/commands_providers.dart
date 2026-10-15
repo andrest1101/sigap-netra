@@ -1,54 +1,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/demo_ids.dart';
+import '../../../../core/utils/retry_policy.dart';
 import '../../domain/entities/device_command.dart';
+import '../../domain/repositories/command_repository.dart';
+import '../../domain/usecases/command_usecases.dart';
 
-/// Riwayat perintah jarak jauh untuk demo UI.
-final commandsProvider =
-    NotifierProvider<CommandsController, List<DeviceCommand>>(
-      CommandsController.new,
-    );
+/// Sumber data perintah aktif.
+///
+/// Di-override di `main.dart`: `CommandRepositoryImpl` untuk Firebase, atau
+/// `FakeCommandRepositoryImpl` saat mode pengembang aktif.
+final commandRepositoryProvider = Provider<CommandRepository>(
+  (ref) => throw UnimplementedError(
+    'commandRepositoryProvider harus di-override di main.dart atau test.',
+  ),
+);
 
-class CommandsController extends Notifier<List<DeviceCommand>> {
-  /// Contoh UI sementara, bukan antrean Firestore.
-  @override
-  List<DeviceCommand> build() => _initial();
+final watchCommandsProvider = Provider<WatchCommands>(
+  (ref) => WatchCommands(ref.watch(commandRepositoryProvider)),
+);
 
-  void add(DeviceCommand command) {
-    state = [command, ...state];
-  }
+final sendCommandProvider = Provider<SendCommand>(
+  (ref) => SendCommand(ref.watch(commandRepositoryProvider)),
+);
 
-  void updateStatus(String id, CommandStatus status, {String? resultNote}) {
-    state = [
-      for (final command in state)
-        if (command.id == id)
-          command.copyWith(status: status, resultNote: resultNote)
-        else
-          command,
-    ];
-  }
-}
-
-List<DeviceCommand> _initial() {
-  final now = DateTime.now();
-  return [
-    DeviceCommand(
-      id: 'cmd-sync-1',
-      deviceId: kDemoDeviceId,
-      type: CommandType.syncNow,
-      status: CommandStatus.done,
-      createdAt: now.subtract(const Duration(minutes: 6)),
-      requestedBy: kDemoUserId,
-      resultNote: 'Sinkronisasi selesai.',
-    ),
-    DeviceCommand(
-      id: 'cmd-restart-1',
-      deviceId: kDemoDeviceId,
-      type: CommandType.restart,
-      status: CommandStatus.failed,
-      createdAt: now.subtract(const Duration(minutes: 2)),
-      requestedBy: kDemoUserId,
-      resultNote: 'Perangkat tidak merespons.',
-    ),
-  ];
-}
+/// Perintah terbaru satu perangkat, terbaru dulu.
+///
+/// `deviceId` null (tidak ada perangkat terpilih) mengembalikan daftar kosong:
+/// schema tidak mengizinkan query lintas perangkat.
+final commandsProvider = StreamProvider.autoDispose
+    .family<List<DeviceCommand>, String?>((ref, deviceId) {
+      if (deviceId == null) {
+        return Stream<List<DeviceCommand>>.value(const <DeviceCommand>[]);
+      }
+      return ref.watch(watchCommandsProvider).call(deviceId: deviceId);
+    }, retry: noRetry);

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/widgets/lens_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
@@ -12,6 +13,8 @@ import 'package:sigap_netra_app/features/devices/domain/repositories/device_repo
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../../../helpers/fake_app_graph.dart';
 
 /// Repository tiruan: satu perangkat online, baterai 82.
 class _FakeDeviceRepository implements DeviceRepository {
@@ -52,6 +55,7 @@ void main() {
     WidgetTester tester, {
     ThemeMode mode = ThemeMode.light,
   }) async {
+    final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -59,6 +63,7 @@ void main() {
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
+          ...graph.overrides,
         ],
         child: MaterialApp(
           locale: const Locale('id'),
@@ -81,7 +86,7 @@ void main() {
   }
 
   Device device() => Device(
-    deviceId: 'dev-1',
+    deviceId: kDemoDeviceId,
     name: 'Kacamata Cerdas',
     connectivity: DeviceConnectivity.online,
     lastSeen: DateTime.now(),

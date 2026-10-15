@@ -438,6 +438,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyDeleted => 'Pembacaan dihapus.';
 
   @override
+  String get historyResetDone => 'Status validasi direset.';
+
+  @override
+  String get historyActionFailed =>
+      'Tindakan gagal. Periksa koneksi lalu coba lagi.';
+
+  @override
   String get historySummaryTitle => 'Ringkasan harian';
 
   @override
@@ -595,6 +602,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get commandsSent => 'Perintah dikirim.';
 
   @override
+  String get commandsSendFailed => 'Perintah gagal dikirim. Coba lagi.';
+
+  @override
   String get eventsTitle => 'Koneksi dan sinkronisasi';
 
   @override
@@ -719,6 +729,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get sharingEmpty => 'Tidak ada data untuk dibagikan.';
 
   @override
+  String get sharingSummaryTitle => 'Ringkasan SIGAP-NETRA';
+
+  @override
+  String sharingSummaryTotal(int count) {
+    return 'Total: $count pembacaan';
+  }
+
+  @override
+  String sharingSummaryBreakdown(int money, int text) {
+    return 'Uang: $money · Teks: $text';
+  }
+
+  @override
+  String sharingSummaryAccuracy(String value, int count) {
+    return 'Akurasi validasi: $value dari $count pembacaan';
+  }
+
+  @override
   String get homeDeviceHero => 'Perangkat';
 
   @override
@@ -827,6 +855,13 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get validationSaved => 'Validasi tersimpan.';
+
+  @override
+  String get validationSaveFailed =>
+      'Validasi gagal disimpan. Periksa koneksi lalu coba lagi.';
+
+  @override
+  String get validationUndoFailed => 'Pembatalan validasi gagal. Coba lagi.';
 
   @override
   String get historyListTab => 'Daftar';

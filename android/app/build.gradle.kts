@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,15 +10,14 @@ plugins {
 android {
     namespace = "com.example.sigap_netra_app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Plugin Firebase (cloud_firestore/firebase_auth/firebase_core) dibangun
+    // dengan NDK 27; `flutter.ndkVersion` masih 26.x dan memicu peringatan
+    // mismatch. NDK kompatibel ke belakang, jadi pakai yang tertinggi.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -24,7 +25,8 @@ android {
         applicationId = "com.example.sigap_netra_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // 23 = minimum `firebase_auth`; Android target utama project ini.
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -36,6 +38,13 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+}
+
+// KGP 2.3 menghapus `kotlinOptions` (kini error); DSL resmi = compilerOptions.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_11
     }
 }
 

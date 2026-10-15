@@ -50,6 +50,32 @@ class FakeDetectionDataSource implements DetectionDataSource {
     });
   }
 
+  @override
+  Stream<Detection?> watchDetection({
+    required String deviceId,
+    required String deviceName,
+    required String detectionId,
+  }) {
+    if (deviceId != kDemoDeviceId) {
+      return Stream<Detection?>.value(null);
+    }
+
+    Detection? current() {
+      for (final item in _items) {
+        if (item.id == detectionId) return item;
+      }
+      return null;
+    }
+
+    return Stream<Detection?>.multi((controller) {
+      controller.add(current());
+      final subscription = _controller.stream.listen((_) {
+        controller.add(current());
+      });
+      controller.onCancel = subscription.cancel;
+    });
+  }
+
   static List<Detection> _sorted(List<Detection> items) {
     final sorted = List<Detection>.of(items);
     sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -68,6 +94,10 @@ class FakeDetectionDataSource implements DetectionDataSource {
 /// kamera dari jarak dekat. BUKAN OCR bebas: contoh JANGAN berupa rambu
 /// jalan, papan reklame, atau dokumen yang tidak dihadapkan ke kamera.
 /// Jangan menambah contoh selain dua jenis ini.
+///
+/// Sebagian item sudah divalidasi supaya demo memperlihatkan antrean Validasi,
+/// akurasi, dan Riwayat yang terisi: 2 menunggu, 3 cocok, 1 tidak cocok —
+/// akurasi 75% dari 4 validasi.
 List<Detection> _sample() {
   final now = DateTime.now();
   return [
@@ -90,6 +120,9 @@ List<Detection> _sample() {
       amount: 50000,
       confidence: 0.92,
       distanceCm: 35,
+      validationStatus: ValidationStatus.match,
+      validatedBy: kDemoUserId,
+      validatedAt: now.subtract(const Duration(seconds: 40)),
     ),
     Detection(
       id: 'det-text-menu',
@@ -102,6 +135,9 @@ List<Detection> _sample() {
       ocrText: 'AYAM GORENG — Rp15.000',
       confidence: 0.9,
       distanceCm: 25,
+      validationStatus: ValidationStatus.match,
+      validatedBy: kDemoUserId,
+      validatedAt: now.subtract(const Duration(minutes: 1, seconds: 30)),
     ),
     Detection(
       id: 'det-money-10k',
@@ -112,6 +148,9 @@ List<Detection> _sample() {
       amount: 10000,
       confidence: 0.88,
       distanceCm: 28,
+      validationStatus: ValidationStatus.mismatch,
+      validatedBy: kDemoUserId,
+      validatedAt: now.subtract(const Duration(minutes: 2, seconds: 30)),
     ),
     Detection(
       id: 'det-text-sampul',
@@ -122,6 +161,19 @@ List<Detection> _sample() {
       ocrText: 'PANDUAN\nBELAJAR BRAILLE',
       confidence: 0.86,
       distanceCm: null,
+    ),
+    Detection(
+      id: 'det-money-20k',
+      deviceId: kDemoDeviceId,
+      deviceName: kDemoDeviceName,
+      type: DetectionType.money,
+      createdAt: now.subtract(const Duration(minutes: 5)),
+      amount: 20000,
+      confidence: 0.9,
+      distanceCm: 32,
+      validationStatus: ValidationStatus.match,
+      validatedBy: kDemoUserId,
+      validatedAt: now.subtract(const Duration(minutes: 4, seconds: 30)),
     ),
   ];
 }

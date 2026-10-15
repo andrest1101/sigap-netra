@@ -1,143 +1,44 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/demo_ids.dart';
+import '../../../../core/utils/retry_policy.dart';
 import '../../domain/entities/detection.dart';
+import '../../domain/repositories/detection_repository.dart';
+import '../../domain/usecases/watch_detections.dart';
 
-final detectionsProvider =
-    NotifierProvider<DetectionsController, List<Detection>>(
-      DetectionsController.new,
+/// Sumber data pembacaan aktif.
+///
+/// Di-override di `main.dart`: `DetectionRepositoryImpl` untuk Firebase, atau
+/// `FakeDetectionRepositoryImpl` saat mode pengembang aktif.
+final detectionRepositoryProvider = Provider<DetectionRepository>(
+  (ref) => throw UnimplementedError(
+    'detectionRepositoryProvider harus di-override di main.dart atau test.',
+  ),
+);
+
+final watchLatestDetectionsProvider = Provider<WatchLatestDetections>(
+  (ref) => WatchLatestDetections(ref.watch(detectionRepositoryProvider)),
+);
+
+/// Pembacaan terbaru satu perangkat (Beranda + Validasi + Riwayat).
+///
+/// Family memakai record Dart `(deviceId, limit)`; record punya kesetaraan
+/// struktural sehingga kunci family stabil antar rebuild.
+final latestDetectionsProvider = StreamProvider.autoDispose
+    .family<List<Detection>, ({String deviceId, int limit})>(
+      (ref, query) => ref
+          .watch(watchLatestDetectionsProvider)
+          .call(deviceId: query.deviceId, limit: query.limit),
+      retry: noRetry,
     );
 
-/// Antrean validasi: hanya pembacaan yang belum divalidasi.
-final pendingDetectionsProvider = Provider<List<Detection>>((ref) {
-  return ref
-      .watch(detectionsProvider)
-      .where((item) => item.validationStatus == ValidationStatus.pending)
-      .toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-});
-
-class DetectionsController extends Notifier<List<Detection>> {
-  /// Contoh UI sementara.
-  ///
-  /// Jangan dipakai sebagai model pagination Firestore. Contoh ini hanya
-  /// untuk melihat susunan layar validasi/riwayat sampai repository
-  /// production dan daftar `type` device dikonfirmasi.
-  @override
-  List<Detection> build() => _sample();
-
-  void markValidated({
-    required String id,
-    required ValidationStatus status,
-    required String? validatedBy,
-  }) {
-    state = [
-      for (final detection in state)
-        if (detection.id == id)
-          detection.withValidationStatus(
-            validationStatus: status,
-            validatedBy: validatedBy,
-            validatedAt: DateTime.now(),
-          )
-        else
-          detection,
-    ];
-  }
-
-  void reset(String id) {
-    state = [
-      for (final detection in state)
-        if (detection.id == id)
-          detection.withValidationStatus(
-            validationStatus: ValidationStatus.pending,
-            validatedBy: null,
-            validatedAt: null,
-          )
-        else
-          detection,
-    ];
-  }
-
-  /// Menyembunyikan item untuk hapus-dengan-undo di Riwayat demo.
-  ///
-  /// Bukan hapus permanen: Fase 2 lanjutan memakai `DeleteDetection`
-  /// (deteksi + `media`). Item dikembalikan lewat [restoreForUndo].
-  void removeForUndo(String id) {
-    state = [
-      for (final detection in state)
-        if (detection.id != id) detection,
-    ];
-  }
-
-  /// Mengembalikan item yang disembunyikan [removeForUndo], di posisi
-  /// terurut waktu terbaru-dulu.
-  void restoreForUndo(Detection detection) {
-    state = [...state, detection]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-  }
-}
-
-/// Contoh antrean demo: HANYA uang dan teks OCR.
-///
-/// Kacamata SIGAP-NETRA hanya membaca DUA hal: (1) pecahan uang (YOLO),
-/// (2) teks pada posisi baca normal — label/menu/sampul yang dihadapkan ke
-/// kamera dari jarak dekat. BUKAN OCR bebas: contoh JANGAN berupa rambu
-/// jalan, papan reklame, atau dokumen yang tidak dihadapkan ke kamera.
-/// Jangan menambah contoh selain dua jenis ini.
-List<Detection> _sample() {
-  final now = DateTime.now();
-  return [
-    Detection(
-      id: 'det-money-100k',
-      deviceId: kDemoDeviceId,
-      deviceName: kDemoDeviceName,
-      type: DetectionType.money,
-      createdAt: now.subtract(const Duration(seconds: 12)),
-      amount: 100000,
-      confidence: 0.95,
-      distanceCm: 30,
-    ),
-    Detection(
-      id: 'det-money-50k',
-      deviceId: kDemoDeviceId,
-      deviceName: kDemoDeviceName,
-      type: DetectionType.money,
-      createdAt: now.subtract(const Duration(minutes: 1)),
-      amount: 50000,
-      confidence: 0.92,
-      distanceCm: 35,
-    ),
-    Detection(
-      id: 'det-text-menu',
-      deviceId: kDemoDeviceId,
-      deviceName: kDemoDeviceName,
-      type: DetectionType.text,
-      createdAt: now.subtract(const Duration(minutes: 2)),
-      // Satu item menu utuh (bukan dua baris ambigu): label yang
-      // dihadapkan ke kamera dari jarak baca normal.
-      ocrText: 'AYAM GORENG — Rp15.000',
-      confidence: 0.9,
-      distanceCm: 25,
-    ),
-    Detection(
-      id: 'det-money-10k',
-      deviceId: kDemoDeviceId,
-      deviceName: kDemoDeviceName,
-      type: DetectionType.money,
-      createdAt: now.subtract(const Duration(minutes: 3)),
-      amount: 10000,
-      confidence: 0.88,
-      distanceCm: 28,
-    ),
-    Detection(
-      id: 'det-text-sampul',
-      deviceId: kDemoDeviceId,
-      deviceName: kDemoDeviceName,
-      type: DetectionType.text,
-      createdAt: now.subtract(const Duration(minutes: 4)),
-      ocrText: 'PANDUAN\nBELAJAR BRAILLE',
-      confidence: 0.86,
-      distanceCm: null,
-    ),
-  ];
-}
+/// Satu pembacaan realtime untuk layar detail: satu dokumen, bukan halaman.
+final detectionProvider = StreamProvider.autoDispose
+    .family<Detection?, ({String deviceId, String detectionId})>(
+      (ref, query) => ref
+          .watch(detectionRepositoryProvider)
+          .watchDetection(
+            deviceId: query.deviceId,
+            detectionId: query.detectionId,
+          ),
+      retry: noRetry,
+    );

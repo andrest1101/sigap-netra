@@ -45,12 +45,15 @@ const int kAggregationCountLimit = 1000;
 /// Sinkronkan manual dengan `version:` di `pubspec.yaml` setiap rilis.
 const String kAppVersionDisplay = '1.0.0+1';
 
-/// Kode QR-Fi saat ini belum dapat ditentukan.
+/// Catatan status QR Wi-Fi yang ditampilkan di layar provisioning.
 ///
-/// Format payload final harus diekstrak dari aplikasi Kotlin lama / firmware
-/// sebelum `BuildWifiQrPayload` di domain `provisioning` diimplementasikan.
-const String kWifiQrPayloadStatusUnconfirmed =
-    'Format payload QR Wi-Fi belum dikonfirmasi dari aplikasi Kotlin lama.';
+/// Payload memakai format standar ZXing yang sama dengan aplikasi Kotlin lama
+/// (`WIFI:T:WPA;S:…;P:…;;`), tetapi firmware MaixCAM saat ini belum memindai
+/// QR — provisioning tetap dilakukan dari layar sentuh alat.
+const String kWifiQrPayloadNote =
+    'Format mengikuti aplikasi lama (WIFI:T:WPA;S:…;P:…;;). Firmware alat '
+    'belum memindai QR — bila QR tidak terbaca, masukkan Wi-Fi dari layar '
+    'sentuh alat.';
 
 /// Logo Google "G" resmi (PNG transparan) untuk tombol masuk Google.
 ///

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../devices/domain/entities/device.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../domain/entities/device_command.dart';
 import '../providers/commands_providers.dart';
@@ -30,16 +32,9 @@ class CommandsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final myDevices = ref
-        .watch(myDevicesProvider)
-        .maybeWhen(data: (list) => list, orElse: () => const <Device>[]);
-    final resolvedId =
-        deviceId ?? (myDevices.isEmpty ? null : myDevices.first.deviceId);
-    final all = ref.watch(commandsProvider);
-    final items = [
-      for (final command in all)
-        if (resolvedId == null || command.deviceId == resolvedId) command,
-    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final resolvedId = deviceId ?? ref.watch(primaryDeviceIdProvider);
+    final commandsAsync = ref.watch(commandsProvider(resolvedId));
+    final items = commandsAsync.value ?? const <DeviceCommand>[];
     final now = DateTime.now();
 
     return Scaffold(
@@ -105,7 +100,14 @@ class CommandsScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            child: items.isEmpty
+            child: commandsAsync.hasError && !commandsAsync.hasValue
+                ? ErrorView(
+                    message: _failureText(context, commandsAsync.error!),
+                    onRetry: () => ref.invalidate(commandsProvider(resolvedId)),
+                  )
+                : commandsAsync.isLoading && !commandsAsync.hasValue
+                ? const LoadingView()
+                : items.isEmpty
                 ? EmptyView(
                     title: l10n.commandsTitle,
                     message: l10n.eventsEmptyBody,
@@ -116,10 +118,8 @@ class CommandsScreen extends ConsumerWidget {
                     itemCount: items.length,
                     separatorBuilder: (_, _) =>
                         const SizedBox(height: DesignTokens.spaceSm),
-                    itemBuilder: (context, index) {
-                      final command = items[index];
-                      return _CommandTile(command: command, now: now);
-                    },
+                    itemBuilder: (context, index) =>
+                        _CommandTile(command: items[index], now: now),
                   ),
           ),
         ],
@@ -135,18 +135,23 @@ class CommandsScreen extends ConsumerWidget {
     Map<String, Object?> payload = const {},
   }) async {
     final l10n = AppLocalizations.of(context);
-    final uid = ref.read(currentUserProvider)?.uid;
-    final newCommand = DeviceCommand(
-      id: 'cmd-${DateTime.now().millisecondsSinceEpoch}',
-      deviceId: targetDeviceId,
-      type: type,
-      status: CommandStatus.pending,
-      createdAt: DateTime.now(),
-      payload: payload,
-      requestedBy: uid,
-    );
-    ref.read(commandsProvider.notifier).add(newCommand);
-
+    try {
+      await ref
+          .read(sendCommandProvider)
+          .call(
+            deviceId: targetDeviceId,
+            type: type,
+            payload: payload,
+            requestedBy: ref.read(currentUserProvider)?.uid,
+          );
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.commandsSendFailed)));
+      }
+      return;
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
@@ -292,6 +297,13 @@ class CommandsScreen extends ConsumerWidget {
       );
     }
   }
+}
+
+/// Pesan error siap tampil untuk widget mana pun di file ini.
+String _failureText(BuildContext context, Object error) {
+  final l10n = AppLocalizations.of(context);
+  if (error is AppFailure) return failureMessage(error, l10n);
+  return l10n.stateErrorBody;
 }
 
 /// Tile perintah: ikon + judul + waktu + chip status dengan nada benar.

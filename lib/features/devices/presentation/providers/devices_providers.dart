@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/retry_policy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../data/device_name_cache.dart';
 import '../../domain/entities/device.dart';
 import '../../domain/repositories/device_repository.dart';
 import '../../domain/usecases/watch_devices.dart';
@@ -97,3 +98,23 @@ final rawDeviceProvider = StreamProvider.autoDispose.family<Device?, String>((
 ) {
   return ref.watch(watchDeviceProvider).call(deviceId);
 }, retry: noRetry);
+
+/// Cache nama perangkat untuk join di data layer.
+///
+/// Default kosong (bukan throw) supaya widget test yang tidak menyentuh nama
+/// perangkat tetap berjalan. `main.dart` meng-override dengan instance yang
+/// sama yang dipakai repository Firestore.
+final deviceNameCacheProvider = Provider<DeviceNameCache>(
+  (ref) => DeviceNameCache(),
+);
+
+/// ID perangkat utama (pertama) milik pengguna yang sedang masuk.
+///
+/// Aplikasi pendamping ini menampilkan satu perangkat utama di Beranda,
+/// Validasi, dan Riwayat. `null` berarti belum ada perangkat milik pengguna —
+/// layar menampilkannya sebagai state kosong, bukan error.
+final primaryDeviceIdProvider = Provider.autoDispose<String?>((ref) {
+  final devices = ref.watch(myDevicesProvider).value;
+  if (devices == null || devices.isEmpty) return null;
+  return devices.first.deviceId;
+});

@@ -4,19 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../../../helpers/fake_app_graph.dart';
 
 /// Golden tab Riwayat (terang): membuktikan label chip berwarna gelap
 /// terbaca di atas daftar terang — bukan putih yang menyatu dengan latar.
 void main() {
   Future<void> pumpHistory(WidgetTester tester) async {
+    final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
+          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+          ...graph.overrides,
         ],
         child: MaterialApp(
           locale: const Locale('id'),
@@ -81,12 +87,15 @@ void main() {
     });
 
     testWidgets('render aktual dark tanpa error', (tester) async {
+      final graph = FakeAppGraph();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             currentUserProvider.overrideWithValue(
               const AppUser(uid: 'user-1', email: 'user@example.com'),
             ),
+            deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+            ...graph.overrides,
           ],
           child: MaterialApp(
             locale: const Locale('id'),
