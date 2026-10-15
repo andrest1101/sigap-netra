@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/errors/app_failure.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
@@ -11,6 +12,8 @@ import 'package:sigap_netra_app/features/devices/domain/repositories/device_repo
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../../../helpers/fake_app_graph.dart';
 
 /// Repository tiruan dengan kendali atas state tiap skenario test.
 class FakeDeviceRepository implements DeviceRepository {
@@ -50,6 +53,7 @@ void main() {
   tearDown(() => repository.close());
 
   Future<void> pumpHome(WidgetTester tester) async {
+    final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -59,6 +63,7 @@ void main() {
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
+          ...graph.overrides,
         ],
         child: const MaterialApp(
           locale: Locale('id'),
@@ -86,11 +91,13 @@ void main() {
     testWidgets('tanpa pengguna yang masuk menampilkan empty state', (
       tester,
     ) async {
+      final graph = FakeAppGraph();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             deviceRepositoryProvider.overrideWithValue(repository),
             currentUserProvider.overrideWithValue(null),
+            ...graph.overrides,
           ],
           child: const MaterialApp(
             locale: Locale('id'),
@@ -155,7 +162,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           // lastSeen segar: konektivitas dihitung ulang vs jam nyata.
@@ -183,7 +190,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas 2',
           connectivity: DeviceConnectivity.offline,
           // Status akhir dihitung ulang dari lastSeen, jadi test harus
@@ -203,7 +210,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
@@ -227,6 +234,7 @@ void main() {
 
     testWidgets('nama perangkat Hero terbaca di mode gelap', (tester) async {
       final now = DateTime(2026, 10, 8, 12);
+      final graph = FakeAppGraph();
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -234,6 +242,7 @@ void main() {
             currentUserProvider.overrideWithValue(
               const AppUser(uid: 'user-1', email: 'user@example.com'),
             ),
+            ...graph.overrides,
           ],
           child: MaterialApp(
             locale: const Locale('id'),
@@ -248,7 +257,7 @@ void main() {
       );
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
@@ -272,7 +281,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: DateTime.now(),
@@ -292,7 +301,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
@@ -302,10 +311,10 @@ void main() {
 
       // Tile Sinkron: jam absolut, bukan hitungan relatif ganda.
       expect(find.textContaining('·'), findsWidgets);
-      // Tile Hari ini: breakdown kategori dari data demo (3 uang · 2 teks).
+      // Tile Hari ini: breakdown kategori dari data demo (4 uang · 2 teks).
       expect(find.textContaining('uang ·'), findsOneWidget);
-      // Footer akurasi: state kosong informatif (demo belum divalidasi).
-      expect(find.text('Belum ada validasi'), findsOneWidget);
+      // Footer akurasi: sampel demo berisi 4 validasi (3 cocok, 1 tidak).
+      expect(find.text('dari 4 validasi'), findsOneWidget);
     });
 
     testWidgets('subjudul menampilkan nama perangkat primer', (tester) async {
@@ -313,7 +322,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,
@@ -344,7 +353,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           // Konektivitas dihitung ulang dari lastSeen vs jam nyata —
@@ -365,7 +374,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.offline,
           lastSeen: DateTime(2026, 10, 8, 6),
@@ -382,7 +391,7 @@ void main() {
       await pumpHome(tester);
       repository.emit([
         Device(
-          deviceId: 'dev-1',
+          deviceId: kDemoDeviceId,
           name: 'Kacamata Cerdas',
           connectivity: DeviceConnectivity.online,
           lastSeen: now,

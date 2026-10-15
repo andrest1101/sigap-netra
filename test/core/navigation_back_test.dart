@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
@@ -21,6 +22,8 @@ import 'package:sigap_netra_app/features/settings/presentation/providers/setting
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../helpers/fake_app_graph.dart';
 
 /// Repository tiruan: satu perangkat online agar tab Perangkat terisi penuh
 /// (kepala + kontrol + timeline + filter severity).
@@ -68,12 +71,14 @@ void main() {
   final user = const AppUser(uid: 'user-1', email: 'user@example.com');
 
   Future<void> pumpScreen(WidgetTester tester, Widget screen) async {
+    final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           deviceRepositoryProvider.overrideWithValue(repository),
           currentUserProvider.overrideWithValue(user),
           sharedPreferencesProvider.overrideWithValue(preferences),
+          ...graph.overrides,
         ],
         child: MaterialApp(
           locale: const Locale('id'),
@@ -87,7 +92,7 @@ void main() {
     );
     repository.emit([
       Device(
-        deviceId: 'dev-1',
+        deviceId: kDemoDeviceId,
         name: 'Kacamata Cerdas',
         connectivity: DeviceConnectivity.online,
         lastSeen: DateTime.now(),
@@ -102,8 +107,8 @@ void main() {
 
   group('BackAppBar di layar anak', () {
     for (final entry in <(String, Widget)>[
-      ('QR Wi-Fi', const WifiProvisioningScreen(deviceId: 'dev-1')),
-      ('Perintah', const CommandsScreen(deviceId: 'dev-1')),
+      ('QR Wi-Fi', const WifiProvisioningScreen(deviceId: kDemoDeviceId)),
+      ('Perintah', const CommandsScreen(deviceId: kDemoDeviceId)),
       ('Log koneksi', const ConnectionLogsScreen()),
       ('Pengaturan', const SettingsScreen()),
     ]) {

@@ -4,10 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
+import 'package:sigap_netra_app/features/monitoring/data/datasources/fake_detection_data_source.dart';
 import 'package:sigap_netra_app/features/monitoring/domain/entities/detection.dart';
-import 'package:sigap_netra_app/features/monitoring/presentation/providers/monitoring_providers.dart';
 import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../../../helpers/fake_app_graph.dart';
 
 /// Auth stub: pengguna demo sudah masuk (untuk `validatedBy` UID).
 class _StubAuthRepository implements AuthRepository {
@@ -57,10 +60,13 @@ class _StubAuthRepository implements AuthRepository {
 /// tampil dan tombol aksi tersedia.
 void main() {
   Future<void> pumpValidation(WidgetTester tester) async {
+    final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(const _StubAuthRepository()),
+          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+          ...graph.overrides,
         ],
         child: const MaterialApp(
           locale: Locale('id'),
@@ -135,31 +141,29 @@ void main() {
       await pumpValidation(tester);
       await pumpFrames(tester);
 
-      // Progres awal "1 dari 5".
-      expect(find.text('1 dari 5'), findsOneWidget);
+      // Progres awal "1 dari 2" (dua item menunggu pada sampel demo).
+      expect(find.text('1 dari 2'), findsOneWidget);
 
       await tapMatch(tester);
-      // Setelah 1 dari 5 divalidasi: progres "1 dari 4". `ensureVisible`
+      // Setelah item pertama divalidasi: progres "1 dari 1". `ensureVisible`
       // di tapMatch men-scroll subtitle keluar viewport, jadi cari dengan
       // `skipOffstage: false`.
-      expect(find.text('1 dari 4', skipOffstage: false), findsOneWidget);
+      expect(find.text('1 dari 1', skipOffstage: false), findsOneWidget);
 
       final undo = find.text('Urungkan');
       expect(undo, findsOneWidget);
       await tester.tap(undo.first);
       await pumpFrames(tester);
 
-      // Kartu kembali: progres "1 dari 5" lagi.
-      expect(find.text('1 dari 5', skipOffstage: false), findsOneWidget);
+      // Kartu kembali: progres "1 dari 2" lagi.
+      expect(find.text('1 dari 2', skipOffstage: false), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
 
   // Memastikan contoh demo hanya berisi uang dan teks OCR.
   test('sampel demo hanya uang dan teks', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final items = container.read(detectionsProvider);
+    final items = FakeDetectionDataSource().itemsForTest;
 
     expect(items, isNotEmpty);
     for (final item in items) {
@@ -174,11 +178,9 @@ void main() {
   // Sampel teks harus jujur terhadap kapabilitas alat: teks posisi baca
   // (menu/sampul), bukan rambu jalan atau dokumen bebas.
   test('sampel teks bukan rambu atau dokumen bebas', () {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final texts = container
-        .read(detectionsProvider)
-        .where((item) => item.type == DetectionType.text);
+    final texts = FakeDetectionDataSource().itemsForTest.where(
+      (item) => item.type == DetectionType.text,
+    );
 
     expect(texts, isNotEmpty);
     const forbidden = ['PINTU KELUAR', 'MINIMARKET', 'RAMBU', 'REKLAME'];
