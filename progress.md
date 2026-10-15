@@ -1,5 +1,17 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-15 P1-hotfix — Poles Beranda pasca-review UI (ring akurasi, tinggi bento, tonal)
+
+Review user atas screenshot Beranda. Tiga temuan; arah perbaikan (ring "perjelas + perbesar", kartu "naik 1 tonal") dipilih user eksplisit.
+
+- Ring akurasi ("kayak masuk ke dalam"): analisis pixel screenshot membuktikan geometri ring BENAR (track & progres selebar/radius sama) — penyebabnya persepsi: track `surfaceContainerHighest` nyaris menyatu dengan kartu sehingga sisa 25% terbaca "lekukan". Fix: track default `LensRing` → `outlineVariant` (kontras terang ≈1,15:1 → ≈1,45:1; di gelap juga lebih terlihat), diameter tile 64 → **78**, angka tengah `titleMedium` → `titleLarge`. Ring baterai (tab Perangkat) & ring fokus (login) ikut lebih jelas — satu widget bersama, disengaja.
+- Kotak "Sinkron terakhir" vs "Hari ini" beda tinggi: baris kedua bento TIDAK memakai `IntrinsicHeight` + `stretch` (baris pertama sudah), padahal "Hari ini" punya footer → selisih ±20 px. Fix: pola yang sama dengan baris pertama.
+- Latar "polos putih": tile bento `surfaceContainerLow` (#F6F2FA) nyaris sama dengan halaman (#F6F6FB). Fix: tone tile → `surfaceContainer` (#F0ECF4; gelap #1F1F25) + bubble ikon `surfaceContainerHighest` agar tetap 2 tingkat. Halaman & Hero tidak diubah (identitas M3 kartu tonal tanpa shadow).
+- Test baru: regresi "kedua tile sama tinggi" (bandingkan `tester.getSize` via `BentoTile`) + "tetap muat pada text scale 1,3x" (overflow = exception). Golden Beranda **gelap** ditambahkan (sebelumnya hanya terang).
+- Golden di-regenerate + PNG diinspeksi: home light/dark, device light/dark, login light/dark. Artefak `test/**/failures/` dihapus.
+- Docs: `docs/ui_spec.md` §5.1 diselaraskan dengan realitas (Hero = strip 3 stat bukan ring baterai besar, tile "Sinkron terakhir" = `lastSeen` bukan `lastSyncAt`, catatan tone + satu ring besar 78 + aturan tinggi seragam; janji sparkline dihapus — belum ada implementasinya).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **176 lulus**.
+
 ## 2026-10-15 P1-hotfix — Perangkat dummy terlihat setelah login (regresi presentasi)
 
 Laporan user: setelah login (email/Google/daftar baru/tamu) Beranda bilang "Belum ada perangkat" — dummy hilang, presentasi besok terancam. Ternyata regresi dari wiring P1.
