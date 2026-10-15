@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/number_format_id.dart';
@@ -9,12 +10,20 @@ import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../../../sharing/domain/usecases/build_share_report.dart';
+import '../../../sharing/presentation/providers/sharing_providers.dart';
+import '../../../validation/presentation/providers/validation_providers.dart';
+import '../providers/history_providers.dart';
 
 /// Detail satu pembacaan — identitas visual v3.
 ///
@@ -28,21 +37,40 @@ class HistoryDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final detections = ref.watch(detectionsProvider);
-    final matches = detections.where((item) => item.id == detectionId);
-    final detection = matches.isEmpty ? null : matches.first;
+    final deviceId = ref.watch(primaryDeviceIdProvider);
+    final detectionAsync = deviceId == null
+        ? null
+        : ref.watch(
+            detectionProvider((deviceId: deviceId, detectionId: detectionId)),
+          );
+    final detection = detectionAsync?.value;
 
     if (detection == null) {
+      // Tiga kemungkinan dibedakan supaya jujur: belum ada perangkat, masih
+      // memuat / gagal memuat, atau dokumen memang sudah tidak ada.
+      final Widget body;
+      if (detectionAsync == null || detectionAsync.hasValue) {
+        body = EmptyView(
+          title: l10n.stateErrorNotFound,
+          message: l10n.historyEmptyBody,
+          icon: Icons.receipt_long_outlined,
+        );
+      } else if (detectionAsync.hasError) {
+        body = ErrorView(
+          message: _failureText(context, detectionAsync.error!),
+          onRetry: () => ref.invalidate(
+            detectionProvider((deviceId: deviceId!, detectionId: detectionId)),
+          ),
+        );
+      } else {
+        body = const _DetailSkeleton();
+      }
       return Scaffold(
         appBar: BackAppBar(
           title: Text(l10n.historyDetailTitle),
           fallbackRoute: AppRoutes.history,
         ),
-        body: EmptyView(
-          title: l10n.stateErrorNotFound,
-          message: l10n.historyEmptyBody,
-          icon: Icons.receipt_long_outlined,
-        ),
+        body: body,
       );
     }
 
@@ -171,14 +199,24 @@ class HistoryDetailScreen extends ConsumerWidget {
       confirmLabel: l10n.commonDelete,
       icon: Icons.delete_outline_rounded,
     );
-    if (confirmed && context.mounted) {
-      HapticFeedback.mediumImpact();
-      ref.read(detectionsProvider.notifier).removeForUndo(detection.id);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
+    if (!confirmed || !context.mounted) return;
+    HapticFeedback.mediumImpact();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      await ref
+          .read(deleteDetectionProvider)
+          .call(
+            deviceId: detection.deviceId,
+            detectionId: detection.id,
+            thumbnailId: detection.thumbnailId,
+          );
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.historyActionFailed)));
+      return;
     }
+    navigator.pop();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
   }
 
   Future<void> _share(
@@ -188,6 +226,8 @@ class HistoryDetailScreen extends ConsumerWidget {
   ) async {
     final l10n = AppLocalizations.of(context);
     final hasOcr = detection.ocrText != null && detection.ocrText!.isNotEmpty;
+    // Consent hanya relevan bila ada teks hasil pengenalan yang bisa memuat
+    // informasi pribadi. Menolak consent = bagikan tanpa kutipan OCR.
     var includeOcr = false;
     if (hasOcr) {
       includeOcr = await ConsentSheet.show(
@@ -197,15 +237,72 @@ class HistoryDetailScreen extends ConsumerWidget {
         acceptLabel: l10n.sharingAction,
       );
       if (!context.mounted) return;
-      if (!includeOcr && detection.ocrText != null) {
-        // Pengguna menolak OCR: bagikan ringkasan tanpa kutipan teks.
+    }
+
+    final report = buildShareReport(
+      detection,
+      title: l10n.sharingShareText,
+      lines: [
+        detection.displayLabel,
+        RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n),
+        switch (detection.validationStatus) {
+          ValidationStatus.pending => l10n.statusPending,
+          ValidationStatus.match => l10n.statusMatch,
+          ValidationStatus.mismatch => l10n.statusMismatch,
+        },
+        if (detection.confidence != null)
+          l10n.historyConfidenceValue(
+            NumberFormatId.percentWithSign(detection.confidence! * 100),
+          ),
+        if (detection.distanceCm != null)
+          l10n.historyDistanceValue(detection.distanceCm!),
+      ],
+      includeOcrText: includeOcr,
+    );
+    try {
+      await ref.read(shareReportProvider).call(report);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.historyActionFailed)));
       }
     }
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.sharingEmpty)));
   }
+}
+
+/// Skeleton detail saat dokumen sedang dimuat dari stream.
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(
+        DesignTokens.spacePage,
+        DesignTokens.spaceSm,
+        DesignTokens.spacePage,
+        DesignTokens.spaceSection,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pesan error siap tampil untuk widget mana pun di file ini.
+String _failureText(BuildContext context, Object error) {
+  final l10n = AppLocalizations.of(context);
+  if (error is AppFailure) return failureMessage(error, l10n);
+  return l10n.stateErrorBody;
 }
 
 /// Gambar besar dengan Hero; panel informatif bila tanpa gambar.
@@ -348,6 +445,9 @@ class _OcrCardState extends State<_OcrCard> {
 }
 
 /// Aksi ubah status validasi dari detail.
+///
+/// Semua aksi menulis lewat repository validasi (hanya tiga field validasi),
+/// lalu kembali ke layar sebelumnya setelah berhasil.
 class _ValidationActions extends ConsumerWidget {
   const _ValidationActions({required this.detection});
 
@@ -359,11 +459,7 @@ class _ValidationActions extends ConsumerWidget {
 
     if (detection.validationStatus != ValidationStatus.pending) {
       return OutlinedButton.icon(
-        onPressed: () {
-          HapticFeedback.lightImpact();
-          ref.read(detectionsProvider.notifier).reset(detection.id);
-          Navigator.of(context).pop();
-        },
+        onPressed: () => _undo(context, ref),
         icon: const Icon(Icons.undo_rounded),
         label: Text(l10n.validationUndo),
       );
@@ -373,17 +469,7 @@ class _ValidationActions extends ConsumerWidget {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              ref
-                  .read(detectionsProvider.notifier)
-                  .markValidated(
-                    id: detection.id,
-                    status: ValidationStatus.mismatch,
-                    validatedBy: ref.read(currentUserProvider)?.uid,
-                  );
-              Navigator.of(context).pop();
-            },
+            onPressed: () => _submit(context, ref, ValidationStatus.mismatch),
             icon: const Icon(Icons.close_rounded),
             label: Text(l10n.validationMarkMismatch),
             style: OutlinedButton.styleFrom(
@@ -395,22 +481,61 @@ class _ValidationActions extends ConsumerWidget {
         const SizedBox(width: DesignTokens.spaceMd),
         Expanded(
           child: FilledButton.icon(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              ref
-                  .read(detectionsProvider.notifier)
-                  .markValidated(
-                    id: detection.id,
-                    status: ValidationStatus.match,
-                    validatedBy: ref.read(currentUserProvider)?.uid,
-                  );
-              Navigator.of(context).pop();
-            },
+            onPressed: () => _submit(context, ref, ValidationStatus.match),
             icon: const Icon(Icons.check_rounded),
             label: Text(l10n.validationMarkMatch),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _submit(
+    BuildContext context,
+    WidgetRef ref,
+    ValidationStatus status,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    HapticFeedback.lightImpact();
+    try {
+      await ref
+          .read(submitValidationProvider)
+          .call(
+            deviceId: detection.deviceId,
+            detectionId: detection.id,
+            status: status,
+            validatedBy: ref.read(currentUserProvider)?.uid,
+          );
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.validationSaveFailed)));
+      }
+      return;
+    }
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _undo(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    HapticFeedback.lightImpact();
+    try {
+      await ref
+          .read(undoValidationProvider)
+          .call(
+            deviceId: detection.deviceId,
+            detectionId: detection.id,
+            validatedBy: ref.read(currentUserProvider)?.uid,
+          );
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.validationUndoFailed)));
+      }
+      return;
+    }
+    if (context.mounted) Navigator.of(context).pop();
   }
 }

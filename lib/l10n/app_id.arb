@@ -163,6 +163,8 @@
   "historyDeleteTitle": "Hapus pembacaan ini?",
   "historyDeleteBody": "Pembacaan dan thumbnail terkait akan dihapus permanen.",
   "historyDeleted": "Pembacaan dihapus.",
+  "historyResetDone": "Status validasi direset.",
+  "historyActionFailed": "Tindakan gagal. Periksa koneksi lalu coba lagi.",
   "historySummaryTitle": "Ringkasan harian",
   "historyDetailTitle": "Detail pembacaan",
   "historyRecognitionResult": "Hasil pengenalan",
@@ -216,6 +218,7 @@
   "commandsConfirmRestartTitle": "Mulai ulang perangkat?",
   "commandsConfirmRestartBody": "Kacamata akan berhenti sejenak dan perlu dipakai kembali.",
   "commandsSent": "Perintah dikirim.",
+  "commandsSendFailed": "Perintah gagal dikirim. Coba lagi.",
 
   "eventsTitle": "Koneksi dan sinkronisasi",
   "eventsEmptyTitle": "Belum ada catatan",
@@ -257,6 +260,27 @@
   "sharingAction": "Bagikan",
   "sharingShareText": "Hasil pengenalan SIGAP-NETRA",
   "sharingEmpty": "Tidak ada data untuk dibagikan.",
+  "sharingSummaryTitle": "Ringkasan SIGAP-NETRA",
+  "sharingSummaryTotal": "Total: {count} pembacaan",
+  "sharingSummaryBreakdown": "Uang: {money} · Teks: {text}",
+  "sharingSummaryAccuracy": "Akurasi validasi: {value} dari {count} pembacaan",
+  "@sharingSummaryTotal": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@sharingSummaryBreakdown": {
+    "placeholders": {
+      "money": { "type": "int" },
+      "text": { "type": "int" }
+    }
+  },
+  "@sharingSummaryAccuracy": {
+    "placeholders": {
+      "value": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
 
   "homeDeviceHero": "Perangkat",
   "homeConnectedNow": "Terhubung",
@@ -303,6 +327,8 @@
   "validationGoHistory": "Buka Riwayat",
   "validationUndoAction": "Urungkan",
   "validationSaved": "Validasi tersimpan.",
+  "validationSaveFailed": "Validasi gagal disimpan. Periksa koneksi lalu coba lagi.",
+  "validationUndoFailed": "Pembatalan validasi gagal. Coba lagi.",
   "@validationProgressValue": {
     "placeholders": {
       "current": { "type": "int" },

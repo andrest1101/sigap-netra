@@ -23,7 +23,7 @@ import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
 import '../../monitoring/domain/entities/detection.dart';
 import '../../monitoring/presentation/providers/monitoring_providers.dart';
-import '../../validation/domain/usecases/validation_usecases.dart';
+import '../../validation/presentation/providers/validation_providers.dart';
 
 /// Layar Beranda — identitas visual v3.
 ///
@@ -80,11 +80,15 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  String _messageFor(BuildContext context, Object error) {
-    final l10n = AppLocalizations.of(context);
-    if (error is AppFailure) return failureMessage(error, l10n);
-    return l10n.stateErrorBody;
-  }
+  String _messageFor(BuildContext context, Object error) =>
+      _failureText(context, error);
+}
+
+/// Pesan error siap tampil untuk widget mana pun di file ini.
+String _failureText(BuildContext context, Object error) {
+  final l10n = AppLocalizations.of(context);
+  if (error is AppFailure) return failureMessage(error, l10n);
+  return l10n.stateErrorBody;
 }
 
 /// Kartu Hero perangkat: identitas + stats strip + aksi bertingkat.
@@ -421,14 +425,20 @@ class _HomeBento extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final pending = ref.watch(pendingDetectionsProvider).length;
-    final decided = ref.watch(detectionsProvider);
-    final accuracy = calculateValidationAccuracy(decided);
-    final accuracyText = accuracy.isNaN ? '–' : '${(accuracy * 100).round()}%';
-    final decidedCount = decided
-        .where((d) => d.validationStatus != ValidationStatus.pending)
-        .length;
-    final today = decided
+    final deviceId = devices.first.deviceId;
+    final summary = ref.watch(validationSummaryProvider(deviceId)).value;
+    final latest =
+        ref
+            .watch(latestDetectionsProvider((deviceId: deviceId, limit: 100)))
+            .value ??
+        const <Detection>[];
+    final pending = summary?.pending;
+    final accuracy = summary?.accuracy;
+    final accuracyText = accuracy == null
+        ? '–'
+        : '${(accuracy * 100).round()}%';
+    final decidedCount = summary?.decided ?? 0;
+    final today = latest
         .where(
           (d) =>
               d.createdAt.year == now.year &&
@@ -464,7 +474,7 @@ class _HomeBento extends ConsumerWidget {
                       onPressed: () => const ValidationPath().go(context),
                       child: Text(l10n.homePendingReview),
                     ),
-                    child: BentoNumber('$pending'),
+                    child: BentoNumber(pending == null ? '–' : '$pending'),
                   ),
                 ),
                 const SizedBox(width: DesignTokens.spaceMd),
@@ -473,16 +483,16 @@ class _HomeBento extends ConsumerWidget {
                     label: l10n.homeAccuracyLabel,
                     icon: Icons.verified_rounded,
                     iconColor: StatusColors.of(context).ok.solid,
-                    footer: accuracy.isNaN
+                    footer: accuracy == null
                         ? l10n.homeNoValidation
                         : l10n.homeAccuracyFromCount(decidedCount),
                     child: LensRing(
                       // 64: metrik sekunder tidak boleh mendominasi ring
                       // baterai 56 di Hero.
                       diameter: 64,
-                      value: accuracy.isNaN ? null : accuracy,
+                      value: accuracy,
                       progressColor: StatusColors.of(context).ok.solid,
-                      semanticsLabel: accuracy.isNaN
+                      semanticsLabel: accuracy == null
                           ? l10n.homeAccuracyLabel
                           : l10n.homeAccuracySemantic(accuracyText),
                       center: Text(
@@ -543,7 +553,13 @@ class _RecentActivitySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final items = ref.watch(detectionsProvider).take(5).toList();
+    final deviceId = ref.watch(primaryDeviceIdProvider);
+    final latest = deviceId == null
+        ? null
+        : ref.watch(latestDetectionsProvider((deviceId: deviceId, limit: 100)));
+    final items = latest?.value?.take(5).toList() ?? const <Detection>[];
+    final isLoading = latest != null && latest.isLoading && !latest.hasValue;
+    final hasError = latest != null && latest.hasError && !latest.hasValue;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,7 +573,16 @@ class _RecentActivitySection extends ConsumerWidget {
             child: Text(l10n.commonSeeAll),
           ),
         ),
-        if (items.isEmpty)
+        if (isLoading)
+          const _ActivitySkeleton()
+        else if (hasError)
+          _ActivityError(
+            message: _failureText(context, latest.error!),
+            onRetry: () => ref.invalidate(
+              latestDetectionsProvider((deviceId: deviceId!, limit: 100)),
+            ),
+          )
+        else if (items.isEmpty)
           _EmptyActivity(l10n: l10n)
         else
           for (var i = 0; i < items.length; i++) ...[
@@ -577,6 +602,62 @@ class _RecentActivitySection extends ConsumerWidget {
               ),
           ],
       ],
+    );
+  }
+}
+
+/// Skeleton tiga baris aktivitas saat stream pembacaan masih memuat.
+class _ActivitySkeleton extends StatelessWidget {
+  const _ActivitySkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+      child: Column(
+        children: [
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+          SizedBox(height: DesignTokens.spaceSm),
+          Skeleton.card(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Baris error ringkas untuk aktivitas terbaru: pesan + aksi coba lagi.
+class _ActivityError extends StatelessWidget {
+  const _ActivityError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignTokens.spacePage,
+        vertical: DesignTokens.spaceSm,
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 20, color: colorScheme.error),
+          const SizedBox(width: DesignTokens.spaceSm),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
+        ],
+      ),
     );
   }
 }

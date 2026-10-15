@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
@@ -15,8 +18,9 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
-import '../../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../providers/validation_providers.dart';
 
 /// Antrean validasi — identitas visual v3.
 ///
@@ -36,72 +40,97 @@ class ValidationScreen extends ConsumerStatefulWidget {
 class _ValidationScreenState extends ConsumerState<ValidationScreen> {
   _ValidationFilter _filter = _ValidationFilter.all;
   int _index = 0;
+  bool _deciding = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final pending = ref.watch(pendingDetectionsProvider);
+    final deviceId = ref.watch(primaryDeviceIdProvider);
+    final pendingAsync = deviceId == null
+        ? AsyncData<List<Detection>>(const <Detection>[])
+        : ref.watch(pendingDetectionsProvider(deviceId));
+    final pending = pendingAsync.value ?? const <Detection>[];
     final filtered = _applyFilter(pending);
     final clamped = filtered.isEmpty ? 0 : _index.clamp(0, filtered.length - 1);
+    // "Semua sudah divalidasi" hanya boleh muncul setelah data termuat;
+    // state loading/error ditampilkan terpisah agar tidak menyesatkan.
+    final hasData = pendingAsync.hasValue;
 
     return LargeTitleScaffold(
       title: l10n.validationTitle,
-      subtitle: filtered.isEmpty
+      subtitle: !hasData || filtered.isEmpty
           ? null
           : l10n.validationProgressValue(clamped + 1, filtered.length),
       actions: const [SettingsGearButton()],
       // Body memakai `Expanded` (tumpukan kartu mengisi sisa layar), jadi
       // wajib `fillRemaining` agar constraint vertikal terbatas.
       fillRemaining: true,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              DesignTokens.spacePage,
-              DesignTokens.spaceSm,
-              DesignTokens.spacePage,
-              0,
-            ),
-            child: _FilterSegmented(
-              filter: _filter,
-              onChanged: (value) => setState(() {
-                _filter = value;
-                _index = 0;
-              }),
-            ),
-          ),
-          if (filtered.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                DesignTokens.spacePage,
-                DesignTokens.spaceMd,
-                DesignTokens.spacePage,
-                0,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(DesignTokens.radiusBadge),
-                child: LinearProgressIndicator(
-                  value: (clamped + 1) / filtered.length,
-                  minHeight: 6,
-                ),
-              ),
-            ),
-          Expanded(
-            child: filtered.isEmpty
-                ? _EmptyQueue(l10n: l10n)
-                : _ValidationStack(
-                    key: ValueKey('${_filter.name}-$clamped'),
-                    detection: filtered[clamped],
-                    queueBehind: filtered.skip(clamped + 1).take(2).toList(),
-                    onMatch: () =>
-                        _decide(filtered[clamped], ValidationStatus.match),
-                    onMismatch: () =>
-                        _decide(filtered[clamped], ValidationStatus.mismatch),
+      body: hasData
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    DesignTokens.spacePage,
+                    DesignTokens.spaceSm,
+                    DesignTokens.spacePage,
+                    0,
                   ),
-          ),
-        ],
-      ),
+                  child: _FilterSegmented(
+                    filter: _filter,
+                    onChanged: (value) => setState(() {
+                      _filter = value;
+                      _index = 0;
+                    }),
+                  ),
+                ),
+                if (filtered.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      DesignTokens.spacePage,
+                      DesignTokens.spaceMd,
+                      DesignTokens.spacePage,
+                      0,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.radiusBadge,
+                      ),
+                      child: LinearProgressIndicator(
+                        value: (clamped + 1) / filtered.length,
+                        minHeight: 6,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: filtered.isEmpty
+                      ? _EmptyQueue(l10n: l10n)
+                      : _ValidationStack(
+                          key: ValueKey('${_filter.name}-$clamped'),
+                          detection: filtered[clamped],
+                          queueBehind: filtered
+                              .skip(clamped + 1)
+                              .take(2)
+                              .toList(),
+                          onMatch: () => _decide(
+                            filtered[clamped],
+                            ValidationStatus.match,
+                          ),
+                          onMismatch: () => _decide(
+                            filtered[clamped],
+                            ValidationStatus.mismatch,
+                          ),
+                        ),
+                ),
+              ],
+            )
+          : pendingAsync.hasError
+          ? ErrorView(
+              message: _messageFor(context, pendingAsync.error!),
+              onRetry: () =>
+                  ref.invalidate(pendingDetectionsProvider(deviceId!)),
+            )
+          : const LoadingView(),
     );
   }
 
@@ -120,23 +149,57 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
     }
   }
 
-  void _decide(Detection detection, ValidationStatus status) {
+  Future<void> _decide(Detection detection, ValidationStatus status) async {
+    // Guard ganda-tap: satu keputusan diproses sampai selesai sebelum yang
+    // berikutnya, supaya tidak ada dua tulis untuk satu pembacaan.
+    if (_deciding) return;
+    _deciding = true;
     final l10n = AppLocalizations.of(context);
+    final uid = ref.read(currentUserProvider)?.uid;
     HapticFeedback.lightImpact();
-    ref
-        .read(detectionsProvider.notifier)
-        .markValidated(
-          id: detection.id,
-          status: status,
-          validatedBy: ref.read(currentUserProvider)?.uid,
-        );
-    setState(() {});
+
+    try {
+      await ref
+          .read(submitValidationProvider)
+          .call(
+            deviceId: detection.deviceId,
+            detectionId: detection.id,
+            status: status,
+            validatedBy: uid,
+          );
+    } catch (_) {
+      _deciding = false;
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.validationSaveFailed)));
+      }
+      return;
+    }
+    _deciding = false;
+    if (!mounted) return;
+
     showUndoSnackbar(
       context,
       message: l10n.validationSaved,
       actionLabel: l10n.validationUndoAction,
-      onUndo: () {
-        ref.read(detectionsProvider.notifier).reset(detection.id);
+      onUndo: () async {
+        try {
+          await ref
+              .read(undoValidationProvider)
+              .call(
+                deviceId: detection.deviceId,
+                detectionId: detection.id,
+                validatedBy: uid,
+              );
+        } catch (_) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l10n.validationUndoFailed)));
+          }
+          return;
+        }
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -144,6 +207,12 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
         }
       },
     );
+  }
+
+  String _messageFor(BuildContext context, Object error) {
+    final l10n = AppLocalizations.of(context);
+    if (error is AppFailure) return failureMessage(error, l10n);
+    return l10n.stateErrorBody;
   }
 }
 

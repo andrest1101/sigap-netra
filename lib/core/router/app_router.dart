@@ -6,15 +6,16 @@ import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/commands/presentation/screens/commands_screen.dart';
+import '../../features/devices/presentation/providers/devices_providers.dart';
 import '../../features/devices/presentation/screens/device_detail_screen.dart';
 import '../../features/devices/presentation/screens/device_list_screen.dart';
 import '../../features/events/presentation/screens/connection_logs_screen.dart';
 import '../../features/history/presentation/screens/history_detail_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
-import '../../features/monitoring/presentation/providers/monitoring_providers.dart';
 import '../../features/provisioning/presentation/screens/wifi_provisioning_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/validation/presentation/providers/validation_providers.dart';
 import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_tokens.dart';
@@ -233,7 +234,10 @@ class AppBottomNavShell extends ConsumerWidget {
       AppRoutes.devices: l10n.navDevices,
     };
 
-    final pendingCount = ref.watch(pendingDetectionsProvider).length;
+    final deviceId = ref.watch(primaryDeviceIdProvider);
+    final pendingCount = deviceId == null
+        ? 0
+        : ref.watch(pendingDetectionsProvider(deviceId)).value?.length ?? 0;
     final badge = pendingCount <= 0
         ? null
         : pendingCount > 99

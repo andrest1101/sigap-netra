@@ -26,4 +26,16 @@ class DetectionRepositoryImpl implements DetectionRepository {
       limit: limit,
     );
   }
+
+  @override
+  Stream<Detection?> watchDetection({
+    required String deviceId,
+    required String detectionId,
+  }) {
+    return _dataSource.watchDetection(
+      deviceId: deviceId,
+      deviceName: deviceNameOf(deviceId),
+      detectionId: detectionId,
+    );
+  }
 }

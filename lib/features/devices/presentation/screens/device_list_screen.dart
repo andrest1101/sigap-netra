@@ -349,18 +349,22 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final events = ref
-        .watch(eventsProvider)
-        .where((e) => e.deviceId == widget.deviceId);
+    final eventsAsync = ref.watch(eventsProvider(widget.deviceId));
+    final events = eventsAsync.value ?? const <DeviceEvent>[];
     final filtered = _severity == null
-        ? events.toList()
+        ? events
         : events.where((e) => e.severity == _severity).toList();
     final items = filtered.take(8).toList();
-    final commands = ref
-        .watch(commandsProvider)
-        .where((c) => c.deviceId == widget.deviceId)
+    final commandsAsync = ref.watch(commandsProvider(widget.deviceId));
+    final commands = (commandsAsync.value ?? const <DeviceCommand>[])
         .take(3)
         .toList();
+    final isLoading =
+        (eventsAsync.isLoading && !eventsAsync.hasValue) ||
+        (commandsAsync.isLoading && !commandsAsync.hasValue);
+    final hasError =
+        (eventsAsync.hasError && !eventsAsync.hasValue) ||
+        (commandsAsync.hasError && !commandsAsync.hasValue);
     final now = DateTime.now();
 
     return Column(
@@ -403,7 +407,20 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             ],
           ),
         ),
-        if (items.isEmpty && commands.isEmpty)
+        if (isLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+            child: Skeleton.card(),
+          )
+        else if (hasError)
+          _TimelineError(
+            error: eventsAsync.error ?? commandsAsync.error,
+            onRetry: () {
+              ref.invalidate(eventsProvider(widget.deviceId));
+              ref.invalidate(commandsProvider(widget.deviceId));
+            },
+          )
+        else if (items.isEmpty && commands.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: DesignTokens.spacePage,
@@ -428,6 +445,42 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             time: RelativeTime.format(command.createdAt, now, l10n: l10n),
           ),
       ],
+    );
+  }
+}
+
+/// Baris error ringkas timeline: pesan + aksi coba lagi.
+class _TimelineError extends StatelessWidget {
+  const _TimelineError({required this.error, required this.onRetry});
+
+  final Object? error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final err = error;
+    final message = err is AppFailure
+        ? failureMessage(err, l10n)
+        : l10n.stateErrorBody;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 20, color: colorScheme.error),
+          const SizedBox(width: DesignTokens.spaceSm),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
+        ],
+      ),
     );
   }
 }

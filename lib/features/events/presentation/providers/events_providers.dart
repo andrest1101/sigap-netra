@@ -1,44 +1,31 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/constants/demo_ids.dart';
+import '../../../../core/utils/retry_policy.dart';
 import '../../domain/entities/device_event.dart';
+import '../../domain/repositories/event_repository.dart';
+import '../../domain/usecases/event_usecases.dart';
 
-final eventsProvider = NotifierProvider<EventsController, List<DeviceEvent>>(
-  EventsController.new,
+/// Sumber data event aktif.
+///
+/// Di-override di `main.dart`: `EventRepositoryImpl` untuk Firebase, atau
+/// `FakeEventRepositoryImpl` saat mode pengembang aktif.
+final eventRepositoryProvider = Provider<EventRepository>(
+  (ref) => throw UnimplementedError(
+    'eventRepositoryProvider harus di-override di main.dart atau test.',
+  ),
 );
 
-class EventsController extends Notifier<List<DeviceEvent>> {
-  /// Contoh UI sementara, bukan log Firestore.
-  @override
-  List<DeviceEvent> build() => _initial();
-}
+final watchEventsProvider = Provider<WatchEvents>(
+  (ref) => WatchEvents(ref.watch(eventRepositoryProvider)),
+);
 
-List<DeviceEvent> _initial() {
-  final now = DateTime.now();
-  return [
-    DeviceEvent(
-      id: 'evt-boot',
-      deviceId: kDemoDeviceId,
-      type: 'boot',
-      severity: EventSeverity.info,
-      message: 'Perangkat selesai booting.',
-      createdAt: now.subtract(const Duration(hours: 2)),
-    ),
-    DeviceEvent(
-      id: 'evt-wifi-disconnect',
-      deviceId: kDemoDeviceId,
-      type: 'wlan_disconnected',
-      severity: EventSeverity.warning,
-      message: 'Koneksi Wi-Fi terputus sebentar.',
-      createdAt: now.subtract(const Duration(minutes: 18)),
-    ),
-    DeviceEvent(
-      id: 'evt-command-failed',
-      deviceId: kDemoDeviceId,
-      type: 'command_failed',
-      severity: EventSeverity.error,
-      message: 'Perintah restart gagal dieksekusi.',
-      createdAt: now.subtract(const Duration(minutes: 2)),
-    ),
-  ];
-}
+/// Event terbaru satu perangkat, terbaru dulu.
+///
+/// `deviceId` null berarti semua perangkat pengguna (dipakai layar log
+/// koneksi saat dibuka dari luar konteks perangkat).
+final eventsProvider = StreamProvider.autoDispose
+    .family<List<DeviceEvent>, String?>(
+      (ref, deviceId) =>
+          ref.watch(watchEventsProvider).call(deviceId: deviceId, limit: 50),
+      retry: noRetry,
+    );

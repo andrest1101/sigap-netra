@@ -11,4 +11,12 @@ abstract interface class DetectionRepository {
     required String deviceId,
     int limit = 10,
   });
+
+  /// Memantau satu pembacaan untuk layar detail (satu dokumen, bukan daftar).
+  ///
+  /// Null berarti dokumen tidak ada / sudah terhapus.
+  Stream<Detection?> watchDetection({
+    required String deviceId,
+    required String detectionId,
+  });
 }
