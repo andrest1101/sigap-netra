@@ -49,6 +49,15 @@ final authStateProvider = StreamProvider<AuthState>(
 );
 
 /// Pengguna yang sedang masuk, atau null.
-final currentUserProvider = Provider<AppUser?>(
-  (ref) => ref.watch(authRepositoryProvider).currentUser,
-);
+///
+/// WAJIB reaktif terhadap [authStateProvider]: provider ini bisa terbaca
+/// pertama kali saat app baru mulai (root `app.dart` memantau daftar perangkat
+/// untuk cache nama) ketika belum ada pengguna. Tanpa `ref.watch` di sini,
+/// nilai `null` tersebut ter-cache selamanya dan semua tab menampilkan
+/// "Belum ada perangkat" meski login berhasil. Nilai dibaca dari getter
+/// repository supaya sesi yang langsung dipulihkan Firebase tetap terbaca
+/// tanpa menunggu emisi stream.
+final currentUserProvider = Provider<AppUser?>((ref) {
+  ref.watch(authStateProvider);
+  return ref.watch(authRepositoryProvider).currentUser;
+});

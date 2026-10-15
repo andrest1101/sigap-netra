@@ -68,11 +68,10 @@ class FakeDeviceDataSource implements DeviceDataSource {
 
   @override
   Stream<List<Device>> watchMyDevices({required String uid}) {
-    // Simulasi meniru filter keanggotaan Firestore: UID yang bukan anggota
-    // tidak melihat perangkat apa pun.
-    if (uid != kDemoUserId) {
-      return Stream<List<Device>>.value(const <Device>[]);
-    }
+    // Simulasi: perangkat demo terlihat untuk SEMUA akun yang masuk (termasuk
+    // tamu) supaya UI dapat dipresentasikan/dicoba tanpa hardware. Filter
+    // keanggotaan yang sebenarnya hanya ada di `FirestoreDeviceDataSource`
+    // (pembacaan `members.<uid>`).
     start();
     final now = DateTime.now();
     return Stream<List<Device>>.multi((controller) {
