@@ -1,5 +1,20 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-16 P1 — Poles tab Riwayat R1: list/detail jujur selaras Validasi
+
+Audit UI/UX per halaman berlanjut (pola: 1 halaman selesai → lanjut). Halaman kedua: **Riwayat list + detail** (Statistik + CSV + thumbnail = R2/R3 terpisah).
+
+- **Subjudul jujur**: "Ringkasan harian · N" menyesatkan (kunci penamaan lama, bukan ringkasan) → "N pembacaan tersimpan", atau "N+ pembacaan dimuat" bila `nextCursor` masih ada (klaim total diam-diam = bug).
+- **Empty state 3 kasus** (pola Validasi): belum ada perangkat → "Buka Perangkat" (bukan "belum ada pembacaan"); riwayat benar-benar kosong; filter aktif kosong → "Tidak ada hasil untuk filter ini" + "Tampilkan semua" (reset kategori + status sekaligus).
+- **Baris daftar**: ikon kategori 48 + titik status menempel (pola Aktivitas Beranda) ganti ikon "gambar rusak" ganda yang menyesatkan (thumbnail belum ada pipeline di R1, bukan rusak); label SemiBold; nomor urut global (lama: `indexOf` per grup — nomor mengulang tiap hari); chevron; navigasi via `HistoryDetailPath().push()` (bukan path literal); latar hapus → `bad.container`/`bad.content` (selaras Validasi, dijaga test warna).
+- **Sheet filter status**: bug tutup-sheet me-reset filter diam-diam ("Semua" dan batal keduanya `null`) → marker `_kAllStatusFilter`; batal mempertahankan filter aktif.
+- **Detail**: snackbar salin "Simpan" (salah — tidak ada yang disimpan) → "Teks disalin." + tooltip "Salin teks"; validatedBy "ID pengguna: uid" (label mentah) → "Divalidasi oleh uid · waktu"; tombol Cocok/Tidak cocok selaras Validasi (`ok.solid` filled / `bad.solid` outlined, dijaga test warna).
+- **Import mati dibersihkan**: `ThumbnailTile`/`go_router` (list), `StatusPill` tetap dipakai list (tone enum) — detail masih memakai `status_pill.dart` untuk enum (R2 merapikan bila perlu).
+- **Test**: `history_screen_test.dart` (5: tanpa perangkat, subjudul, filter kosong + reset, ikon kategori + chip, warna hapus bad) + `history_detail_test.dart` (5 + 1 unit: label + chip + Urungkan, pasangan ok/bad, validatedBy, snackbar salin, undo via alur daftar→detail→kembali + status pending, format rupiah). Pelajaran: router test satu-route crash saat `pop` (`!_debugLocked`) — alur test wajib mulai dari halaman dummy lalu push.
+- **Golden**: `history_tab_light.png` di-regenerate + diinspeksi (baris ikon kategori + titik status + chip campur + chevron).
+- **Docs**: `docs/ui_spec.md` §5.3 diselaraskan (subjudul jujur, empty 3 kasus, baris, hapus konfirmasi-dulu tanpa undo, detail, sheet marker).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **195 lulus**.
+
 ## 2026-10-15 P1 — Poles tab Validasi: empty state jujur, petunjuk geser ber-warna status, tumpukan kartu nyata
 
 Audit UI/UX per halaman dimulai (pola baru: 1 halaman selesai → lanjut halaman berikutnya). Halaman pertama: **Validasi**.

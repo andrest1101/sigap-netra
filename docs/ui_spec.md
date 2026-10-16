@@ -124,9 +124,10 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 ### 5.3 Riwayat
 
-- **App bar:** "Riwayat", subjudul "N pembacaan tersimpan", menu ⋯ (Reset status validasi…, Ekspor CSV, Bagikan ringkasan).
+- **App bar:** "Riwayat", subjudul jujur jumlah yang dimuat ("N pembacaan tersimpan"; "N+ pembacaan dimuat" bila masih ada halaman berikut), menu ⋯ (Reset status validasi…, Ekspor CSV, Bagikan ringkasan).
 - **Segmen:** **Daftar | Statistik**.
-- **Daftar:** filter chip kategori (Semua · Uang · Menu/Teks) + ikon filter yang membuka sheet filter status (Semua · Cocok · Tidak cocok · Belum). **Dikelompokkan per hari** dengan header lengket ("Hari ini", "Kemarin", tanggal). Baris: thumbnail 56 dp (radius 14), nilai, subjudul `#17 · conf 0,96 · 35 cm`, chip status di kanan. **Geser untuk menghapus** dengan penundaan 5 dtk + **Urungkan** sebelum benar-benar dihapus (termasuk gambar). Ketuk → detail (gambar besar via `Hero`, metadata, ubah status validasi, Bagikan).
+- **Daftar:** filter chip kategori (Semua · Uang · Menu/Teks) + chip Saring yang membuka sheet filter status (Semua · Belum · Cocok · Tidak cocok; tutup sheet tanpa memilih mempertahankan filter aktif — tidak me-reset diam-diam). **Dikelompokkan per hari** ("Hari ini", "Kemarin", tanggal) dengan nomor urut global. Baris: ikon kategori 48 (uang/teks) + titik status menempel (pola Aktivitas Beranda), label SemiBold, subjudul `No. N · Keyakinan … · … cm`, chip status di kanan + chevron. **Geser untuk menghapus**: latar `bad.container`, konfirmasi SEBELUM hapus via `ConfirmSheet` (tanpa Undo — Firestore tak bisa undelete dan app dilarang membuat ulang deteksi, skema §1). Ketuk → detail (panel gambar informatif bila tanpa thumbnail, label, kartu OCR + Salin, MetricChip, "Divalidasi oleh UID · waktu", tombol Cocok `ok.solid` / Tidak cocok `outlined bad.solid` sama seperti Validasi §5.2, Bagikan + Hapus di app bar).
+- **Empty state (3 kasus, jujur — pola Validasi §5.2):** ① belum ada perangkat → "Belum ada perangkat terhubung" + "Buka Perangkat"; ② riwayat benar-benar kosong → "Belum ada pembacaan"; ③ filter aktif kosong → "Tidak ada hasil untuk filter ini" + "Tampilkan semua" (reset kategori + status sekaligus).
 - **Statistik (P1):** pembacaan per hari/minggu, per kategori, tren % kecocokan (`fl_chart`), dengan pemilih rentang.
 - **Reset Status Validasi:** dialog konfirmasi menjelaskan jumlah rekaman terdampak; eksekusi batch; haptic sedang.
 
