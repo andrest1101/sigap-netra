@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/errors/app_failure.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
@@ -16,7 +17,6 @@ import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
-import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
@@ -59,10 +59,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final hasMore = page?.value?.nextCursor != null;
     final hasError = page != null && page.hasError && !page.hasValue;
     final isLoadingFirstPage = page != null && page.isLoading && !page.hasValue;
+    // Subjudul jujur: jumlah yang benar-benar dimuat, bukan total database.
+    // Tanpa "+" pengguna mengira "6 pembacaan tersimpan" = seluruh database
+    // padahal masih ada halaman berikut (bug klaim diam-diam).
+    final subtitle = deviceId == null
+        ? null
+        : hasMore
+        ? l10n.historyStoredCountMore(items.length)
+        : l10n.historyStoredCount(items.length);
 
     return LargeTitleScaffold(
       title: l10n.historyTitle,
-      subtitle: '${l10n.historySummaryTitle} · ${items.length}',
+      subtitle: subtitle,
       actions: [
         const SettingsGearButton(),
         PopupMenuButton<String>(
@@ -117,9 +125,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             _StatsComingSoon(l10n: l10n)
           else if (deviceId == null)
             EmptyView(
-              title: l10n.historyEmptyTitle,
-              message: l10n.historyEmptyBody,
-              icon: Icons.history_toggle_off_rounded,
+              title: l10n.historyNoDeviceTitle,
+              message: l10n.historyNoDeviceBody,
+              icon: Icons.link_off_rounded,
+              action: FilledButton.tonalIcon(
+                onPressed: () => const DevicesPath().go(context),
+                icon: const Icon(Icons.devices_other_rounded),
+                label: Text(l10n.historyNoDeviceAction),
+              ),
             )
           else if (hasError)
             ErrorView(
@@ -132,6 +145,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             _HistoryList(
               items: items,
               type: _type,
+              status: _status,
               hasMore: hasMore,
               onLoadMore: () =>
                   ref.read(historyLimitProvider.notifier).increase(),
@@ -140,6 +154,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 ref.read(historyLimitProvider.notifier).reset();
               },
               onFilterPressed: () => _openStatusSheet(),
+              onClearFilters: () {
+                setState(() {
+                  _type = null;
+                  _status = null;
+                });
+                ref.read(historyLimitProvider.notifier).reset();
+              },
             ),
         ],
       ),
@@ -240,7 +261,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   Future<void> _openStatusSheet() async {
     final l10n = AppLocalizations.of(context);
-    final selected = await showModalBottomSheet<ValidationStatus?>(
+    // "Semua" vs tutup-sheet (swipe/batal) keduanya null bila memakai
+    // `ValidationStatus?` langsung — filter aktif ikut ter-reset diam-diam
+    // saat pengguna hanya menutup sheet. Marker khusus membedakannya:
+    // null = dibatalkan (filter dipertahankan), marker = reset ke Semua.
+    final selected = await showModalBottomSheet<Object?>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
@@ -251,7 +276,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               leading: _status == null
                   ? const Icon(Icons.check_rounded)
                   : const SizedBox(width: 24),
-              onTap: () => Navigator.of(context).pop(null),
+              onTap: () => Navigator.of(context).pop(_kAllStatusFilter),
             ),
             for (final status in ValidationStatus.values)
               ListTile(
@@ -266,12 +291,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ),
       ),
     );
-    if (mounted) {
-      setState(() => _status = selected);
-      ref.read(historyLimitProvider.notifier).reset();
-    }
+    if (!mounted || selected == null) return;
+    setState(
+      () => _status = selected == _kAllStatusFilter
+          ? null
+          : selected as ValidationStatus,
+    );
+    ref.read(historyLimitProvider.notifier).reset();
   }
 }
+
+/// Marker "Semua" untuk sheet filter status (lihat [_HistoryScreenState]).
+const Object _kAllStatusFilter = Object();
 
 String _statusLabel(ValidationStatus status, AppLocalizations l10n) {
   return switch (status) {
@@ -286,18 +317,22 @@ class _HistoryList extends StatelessWidget {
   const _HistoryList({
     required this.items,
     required this.type,
+    required this.status,
     required this.hasMore,
     required this.onLoadMore,
     required this.onTypeChanged,
     required this.onFilterPressed,
+    required this.onClearFilters,
   });
 
   final List<Detection> items;
   final DetectionType? type;
+  final ValidationStatus? status;
   final bool hasMore;
   final VoidCallback onLoadMore;
   final ValueChanged<DetectionType?> onTypeChanged;
   final VoidCallback onFilterPressed;
+  final VoidCallback onClearFilters;
 
   @override
   Widget build(BuildContext context) {
@@ -344,11 +379,25 @@ class _HistoryList extends StatelessWidget {
           ),
         ),
         if (items.isEmpty)
-          EmptyView(
-            title: l10n.historyEmptyTitle,
-            message: l10n.historyEmptyBody,
-            icon: Icons.history_toggle_off_rounded,
-          )
+          // Jujur seperti Validasi: filter aktif yang kosong bukan berarti
+          // "belum ada pembacaan sama sekali" — beri jalan keluar satu ketuk.
+          if (type != null || status != null)
+            EmptyView(
+              title: l10n.historyFilterEmptyTitle,
+              message: l10n.historyFilterEmptyBody,
+              icon: Icons.filter_alt_off_rounded,
+              action: FilledButton.tonalIcon(
+                onPressed: onClearFilters,
+                icon: const Icon(Icons.visibility_rounded),
+                label: Text(l10n.historyFilterShowAll),
+              ),
+            )
+          else
+            EmptyView(
+              title: l10n.historyEmptyTitle,
+              message: l10n.historyEmptyBody,
+              icon: Icons.history_toggle_off_rounded,
+            )
         else
           _DayGroupedList(
             items: items,
@@ -377,17 +426,19 @@ class _DayGroupedList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final groups = _groupByDay(items);
+    // Nomor urut global (bukan per hari): cocok dengan subjudul "#N".
+    var number = 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final entry in groups.entries) ...[
           _DayHeader(label: _dayLabel(entry.key, l10n)),
-          for (var i = 0; i < entry.value.length; i++)
+          for (final detection in entry.value)
             _HistoryRow(
-              detection: entry.value[i],
-              number: items.indexOf(entry.value[i]) + 1,
-              onDelete: () => _delete(context, ref, entry.value[i]),
+              detection: detection,
+              number: ++number,
+              onDelete: () => _delete(context, ref, detection),
             ),
         ],
         Padding(
@@ -516,6 +567,13 @@ class _HistoryRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final statusColors = StatusColors.of(context);
+    final isMoney = detection.type == DetectionType.money;
+    final tone = switch (detection.validationStatus) {
+      ValidationStatus.pending => AppStatusTone.warn,
+      ValidationStatus.match => AppStatusTone.ok,
+      ValidationStatus.mismatch => AppStatusTone.bad,
+    };
 
     return Dismissible(
       key: ValueKey('history-${detection.id}'),
@@ -523,10 +581,10 @@ class _HistoryRow extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: DesignTokens.spacePage),
-        color: colorScheme.errorContainer,
+        color: statusColors.bad.container,
         child: Icon(
           Icons.delete_outline_rounded,
-          color: colorScheme.onErrorContainer,
+          color: statusColors.bad.content,
         ),
       ),
       confirmDismiss: (_) async {
@@ -534,7 +592,7 @@ class _HistoryRow extends StatelessWidget {
         return false;
       },
       child: InkWell(
-        onTap: () => context.push('/riwayat/${detection.id}'),
+        onTap: () => HistoryDetailPath(detection.id).push(context),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacePage,
@@ -542,14 +600,41 @@ class _HistoryRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              detection.thumbnailId == null
-                  ? ThumbnailTile.unavailable(
-                      semanticsLabel: l10n.validationNoImage,
-                    )
-                  : ThumbnailTile.unavailable(
-                      semanticsLabel:
+              // Ikon kategori (uang/teks) + titik status menempel — pola yang
+              // sama dengan aktivitas Beranda. Thumbnail asli dimuat di R3;
+              // sementara ini baris terbaca sebagai kartu mini, bukan daftar
+              // generik. Versi lama memakai ikon "gambar rusak" ganda yang
+              // menyesatkan (thumbnail belum ada pipeline, bukan rusak).
+              Stack(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(
+                        DesignTokens.radiusThumbnail,
+                      ),
+                    ),
+                    child: Icon(
+                      isMoney
+                          ? Icons.payments_rounded
+                          : Icons.document_scanner_rounded,
+                      size: 24,
+                      color: colorScheme.onSurfaceVariant,
+                      semanticLabel:
                           '${detection.displayLabel}, ${RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n)}',
                     ),
+                  ),
+                  Positioned(
+                    right: 2,
+                    bottom: 2,
+                    child: ExcludeSemantics(
+                      child: StatusDot(tone: tone, size: 12),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(width: DesignTokens.spaceMd),
               Expanded(
                 child: Column(
@@ -557,7 +642,9 @@ class _HistoryRow extends StatelessWidget {
                   children: [
                     Text(
                       detection.displayLabel,
-                      style: textTheme.bodyMedium,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -579,12 +666,14 @@ class _HistoryRow extends StatelessWidget {
                   ValidationStatus.match => l10n.statusMatch,
                   ValidationStatus.mismatch => l10n.statusMismatch,
                 },
-                tone: switch (detection.validationStatus) {
-                  ValidationStatus.pending => AppStatusTone.warn,
-                  ValidationStatus.match => AppStatusTone.ok,
-                  ValidationStatus.mismatch => AppStatusTone.bad,
-                },
+                tone: tone,
                 isDense: true,
+              ),
+              const SizedBox(width: DesignTokens.spaceXs),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
               ),
             ],
           ),

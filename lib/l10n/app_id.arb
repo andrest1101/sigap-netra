@@ -170,6 +170,10 @@
   "historyRecognitionResult": "Hasil pengenalan",
   "historyEmptyTitle": "Belum ada pembacaan",
   "historyEmptyBody": "Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.",
+  "historyNoDeviceTitle": "Belum ada perangkat terhubung",
+  "historyNoDeviceBody": "Riwayat membaca dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk melihat pembacaan.",
+  "historyNoDeviceAction": "Buka Perangkat",
+  "historyFilterShowAll": "Tampilkan semua",
 
   "devicesTitle": "Perangkat",
   "devicesEmptyTitle": "Belum ada perangkat",
@@ -349,6 +353,29 @@
 
   "historyListTab": "Daftar",
   "historyStatsTab": "Statistik",
+  "historyStoredCount": "{count} pembacaan tersimpan",
+  "historyStoredCountMore": "{count}+ pembacaan dimuat",
+  "historyFilterEmptyTitle": "Tidak ada hasil untuk filter ini",
+  "historyFilterEmptyBody": "Coba ubah kategori atau status validasi untuk melihat pembacaan lain.",
+  "historyCopied": "Teks disalin.",
+  "historyCopyAction": "Salin teks",
+  "historyValidatedByAt": "Divalidasi oleh {uid} · {time}",
+  "@historyStoredCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@historyStoredCountMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@historyValidatedByAt": {
+    "placeholders": {
+      "uid": { "type": "String" },
+      "time": { "type": "String" }
+    }
+  },
   "historyFilterAll": "Semua",
   "historyFilterMatch": "Cocok",
   "historyFilterMismatch": "Tidak cocok",

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
@@ -173,7 +174,12 @@ class HistoryDetailScreen extends ConsumerWidget {
           if (detection.validatedBy != null) ...[
             const SizedBox(height: DesignTokens.spaceSm),
             Text(
-              '${l10n.settingsSignedInUid}: ${detection.validatedBy}',
+              l10n.historyValidatedByAt(
+                detection.validatedBy!,
+                detection.validatedAt == null
+                    ? l10n.timeNever
+                    : RelativeTime.dateTime(detection.validatedAt!),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -421,10 +427,10 @@ class _OcrCardState extends State<_OcrCard> {
                   Clipboard.setData(ClipboardData(text: raw));
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(l10n.commonSave)));
+                  ).showSnackBar(SnackBar(content: Text(l10n.historyCopied)));
                 },
                 icon: const Icon(Icons.copy_rounded, size: 18),
-                tooltip: l10n.historyRecognitionResult,
+                tooltip: l10n.historyCopyAction,
               ),
             ],
           ),
@@ -456,6 +462,7 @@ class _ValidationActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final statusColors = StatusColors.of(context);
 
     if (detection.validationStatus != ValidationStatus.pending) {
       return OutlinedButton.icon(
@@ -473,8 +480,8 @@ class _ValidationActions extends ConsumerWidget {
             icon: const Icon(Icons.close_rounded),
             label: Text(l10n.validationMarkMismatch),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-              side: BorderSide(color: Theme.of(context).colorScheme.error),
+              foregroundColor: statusColors.bad.solid,
+              side: BorderSide(color: statusColors.bad.solid),
             ),
           ),
         ),
@@ -484,6 +491,12 @@ class _ValidationActions extends ConsumerWidget {
             onPressed: () => _submit(context, ref, ValidationStatus.match),
             icon: const Icon(Icons.check_rounded),
             label: Text(l10n.validationMarkMatch),
+            // Sama seperti Validasi (ui_spec §5.2): "Cocok" memakai `ok`,
+            // bukan primary — berpasangan dengan "Tidak cocok" warna `bad`.
+            style: FilledButton.styleFrom(
+              backgroundColor: statusColors.ok.solid,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+            ),
           ),
         ),
       ],
