@@ -31,6 +31,12 @@ import 'features/history/data/datasources/firestore_history_data_source.dart';
 import 'features/history/data/repositories/history_repository_impl.dart';
 import 'features/history/domain/repositories/history_repository.dart';
 import 'features/history/presentation/providers/history_providers.dart';
+import 'features/media/data/datasources/fake_media_data_source.dart';
+import 'features/media/data/datasources/firestore_media_data_source.dart';
+import 'features/media/data/datasources/media_data_source.dart';
+import 'features/media/data/repositories/media_repository_impl.dart';
+import 'features/media/domain/repositories/media_repository.dart';
+import 'features/media/presentation/providers/media_providers.dart';
 import 'features/monitoring/data/datasources/fake_detection_data_source.dart';
 import 'features/monitoring/data/datasources/firestore_detection_data_source.dart';
 import 'features/monitoring/data/repositories/detection_repository_impl.dart';
@@ -86,6 +92,7 @@ Future<void> main() async {
         detectionRepositoryProvider.overrideWithValue(repositories.detection),
         validationRepositoryProvider.overrideWithValue(repositories.validation),
         historyRepositoryProvider.overrideWithValue(repositories.history),
+        mediaRepositoryProvider.overrideWithValue(repositories.media),
         eventRepositoryProvider.overrideWithValue(repositories.events),
         commandRepositoryProvider.overrideWithValue(repositories.commands),
       ],
@@ -133,6 +140,7 @@ class AppRepositories {
     required this.detection,
     required this.validation,
     required this.history,
+    required this.media,
     required this.events,
     required this.commands,
   });
@@ -140,6 +148,7 @@ class AppRepositories {
   final DetectionRepository detection;
   final ValidationRepository validation;
   final HistoryRepository history;
+  final MediaRepository media;
   final EventRepository events;
   final CommandRepository commands;
 }
@@ -159,6 +168,7 @@ AppRepositories buildRepositories(
   switch (dataSource) {
     case DataSource.simulation:
       final detections = FakeDetectionDataSource();
+      final media = FakeMediaDataSource(detections);
       return AppRepositories(
         detection: FakeDetectionRepositoryImpl(
           detections,
@@ -168,10 +178,12 @@ AppRepositories buildRepositories(
           FakeValidationDataSource(detections),
         ),
         history: FakeHistoryRepositoryImpl(FakeHistoryDataSource(detections)),
+        media: FakeMediaRepositoryImpl(media),
         events: FakeEventRepositoryImpl(FakeEventDataSource()),
         commands: FakeCommandRepositoryImpl(FakeCommandDataSource()),
       );
     case DataSource.firebase:
+      final MediaDataSource mediaDataSource = FirestoreMediaDataSource();
       return AppRepositories(
         detection: DetectionRepositoryImpl(
           FirestoreDetectionDataSource(),
@@ -185,6 +197,7 @@ AppRepositories buildRepositories(
           FirestoreHistoryDataSource(),
           deviceNameOf: deviceNameCache.resolve,
         ),
+        media: MediaRepositoryImpl(mediaDataSource),
         events: EventRepositoryImpl(FirestoreEventDataSource()),
         commands: CommandRepositoryImpl(FirestoreCommandDataSource()),
       );

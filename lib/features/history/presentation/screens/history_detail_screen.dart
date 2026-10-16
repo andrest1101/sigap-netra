@@ -19,6 +19,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
+import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../monitoring/presentation/providers/monitoring_providers.dart';
 import '../../../sharing/domain/usecases/build_share_report.dart';
@@ -312,17 +313,18 @@ String _failureText(BuildContext context, Object error) {
 }
 
 /// Gambar besar dengan Hero; panel informatif bila tanpa gambar.
-class _DetailImage extends StatelessWidget {
+class _DetailImage extends ConsumerWidget {
   const _DetailImage({required this.detection});
 
   final Detection detection;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final id = detection.thumbnailId;
 
-    if (detection.thumbnailId == null) {
+    Widget panel() {
       return Container(
         padding: const EdgeInsets.all(DesignTokens.spacePage),
         decoration: BoxDecoration(
@@ -358,23 +360,64 @@ class _DetailImage extends StatelessWidget {
       );
     }
 
-    return Hero(
-      tag: 'detection-${detection.id}',
-      child: AspectRatio(
+    if (id == null || id.isEmpty) return panel();
+
+    final async = ref.watch(
+      thumbnailProvider(
+        ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: id),
+      ),
+    );
+    return async.when(
+      loading: () => AspectRatio(
         aspectRatio: 4 / 3,
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
           ),
-          child: Icon(
-            Icons.image_outlined,
-            size: 48,
-            color: colorScheme.onSurfaceVariant,
-            semanticLabel: l10n.historyRecognitionResult,
+          child: Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.radiusThumbnail,
+                ),
+              ),
+            ),
           ),
         ),
       ),
+      error: (_, _) => panel(),
+      data: (thumbnail) {
+        final bytes = thumbnail?.imageBytes;
+        if (bytes == null || bytes.isEmpty) return panel();
+        return Hero(
+          tag: 'detection-${detection.id}',
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+              child: Container(
+                color: colorScheme.surfaceContainerHigh,
+                child: Image.memory(
+                  bytes,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  semanticLabel: l10n.historyRecognitionResult,
+                  errorBuilder: (context, _, _) => Icon(
+                    Icons.broken_image_outlined,
+                    size: 48,
+                    color: colorScheme.onSurfaceVariant,
+                    semanticLabel: l10n.historyRecognitionResult,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

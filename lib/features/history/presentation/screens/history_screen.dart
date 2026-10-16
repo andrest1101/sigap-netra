@@ -17,9 +17,11 @@ import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
+import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
+import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../sharing/domain/entities/share_report.dart';
 import '../../../sharing/presentation/providers/sharing_providers.dart';
@@ -568,7 +570,6 @@ class _HistoryRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final statusColors = StatusColors.of(context);
-    final isMoney = detection.type == DetectionType.money;
     final tone = switch (detection.validationStatus) {
       ValidationStatus.pending => AppStatusTone.warn,
       ValidationStatus.match => AppStatusTone.ok,
@@ -600,41 +601,10 @@ class _HistoryRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Ikon kategori (uang/teks) + titik status menempel — pola yang
-              // sama dengan aktivitas Beranda. Thumbnail asli dimuat di R3;
-              // sementara ini baris terbaca sebagai kartu mini, bukan daftar
-              // generik. Versi lama memakai ikon "gambar rusak" ganda yang
-              // menyesatkan (thumbnail belum ada pipeline, bukan rusak).
-              Stack(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(
-                        DesignTokens.radiusThumbnail,
-                      ),
-                    ),
-                    child: Icon(
-                      isMoney
-                          ? Icons.payments_rounded
-                          : Icons.document_scanner_rounded,
-                      size: 24,
-                      color: colorScheme.onSurfaceVariant,
-                      semanticLabel:
-                          '${detection.displayLabel}, ${RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n)}',
-                    ),
-                  ),
-                  Positioned(
-                    right: 2,
-                    bottom: 2,
-                    child: ExcludeSemantics(
-                      child: StatusDot(tone: tone, size: 12),
-                    ),
-                  ),
-                ],
-              ),
+              // Thumbnail 48: foto asli bila ada, ikon kategori bila tanpa
+              // gambar (opt-in mati / belum diunggah). Titik status menempel
+              // — pola yang sama dengan aktivitas Beranda.
+              _RowThumb(detection: detection, tone: tone),
               const SizedBox(width: DesignTokens.spaceMd),
               Expanded(
                 child: Column(
@@ -679,6 +649,78 @@ class _HistoryRow extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Thumbnail 48 baris riwayat: foto bila ada, ikon kategori bila tanpa gambar.
+class _RowThumb extends ConsumerWidget {
+  const _RowThumb({required this.detection, required this.tone});
+
+  final Detection detection;
+  final AppStatusTone tone;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isMoney = detection.type == DetectionType.money;
+    final semantics =
+        '${detection.displayLabel}, ${RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n)}';
+    final id = detection.thumbnailId;
+
+    Widget thumb;
+    if (id == null || id.isEmpty) {
+      thumb = ThumbnailTile.unavailable(semanticsLabel: semantics);
+    } else {
+      final async = ref.watch(
+        thumbnailProvider(
+          ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: id),
+        ),
+      );
+      thumb = async.when(
+        loading: () => const ThumbnailTile.loading(),
+        error: (_, _) => ThumbnailTile.unavailable(semanticsLabel: semantics),
+        data: (thumbnail) {
+          final bytes = thumbnail?.imageBytes;
+          if (bytes == null || bytes.isEmpty) {
+            return ThumbnailTile.unavailable(semanticsLabel: semantics);
+          }
+          return ThumbnailTile.image(
+            imageBytes: bytes,
+            semanticsLabel: semantics,
+            heroTag: 'detection-${detection.id}',
+          );
+        },
+      );
+    }
+
+    return Stack(
+      children: [
+        thumb,
+        Positioned(
+          right: 2,
+          bottom: 2,
+          child: ExcludeSemantics(child: StatusDot(tone: tone, size: 12)),
+        ),
+        // Ikon kategori kecil di sudut kiri atas bila tanpa foto — tanpa
+        // menimpa makna "tanpa gambar" (ikon menggantikan area, bukan
+        // menuduh gambar rusak).
+        if (id == null || id.isEmpty)
+          Positioned(
+            left: 2,
+            top: 2,
+            child: ExcludeSemantics(
+              child: Icon(
+                isMoney
+                    ? Icons.payments_rounded
+                    : Icons.document_scanner_rounded,
+                size: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

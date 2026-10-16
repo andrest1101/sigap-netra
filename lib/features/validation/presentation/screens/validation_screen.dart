@@ -16,12 +16,12 @@ import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
-import '../../../../core/widgets/thumbnail_tile.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../providers/validation_providers.dart';
+import '../widgets/validation_photo.dart';
 
 /// Antrean validasi — identitas visual v3.
 ///
@@ -511,7 +511,13 @@ class _ValidationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _CardImage(detection: detection),
+            ValidationPhoto(
+              deviceId: detection.deviceId,
+              thumbnailId: detection.thumbnailId,
+              detectionId: detection.id,
+              semanticsLabel: detection.displayLabel,
+              onOpenDetail: () => HistoryDetailPath(detection.id).push(context),
+            ),
             Padding(
               padding: const EdgeInsets.all(DesignTokens.spaceLg),
               child: Column(
@@ -592,69 +598,6 @@ class _ValidationCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Area gambar 4:3, atau panel informatif bila gambar tidak diunggah.
-class _CardImage extends StatelessWidget {
-  const _CardImage({required this.detection});
-
-  final Detection detection;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final hasImage = detection.thumbnailId != null;
-
-    if (!hasImage) {
-      return Container(
-        color: colorScheme.surfaceContainerHigh,
-        padding: const EdgeInsets.all(DesignTokens.spacePage),
-        child: Row(
-          children: [
-            Icon(
-              Icons.image_not_supported_outlined,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: DesignTokens.spaceMd),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.validationNoImageTitle,
-                    style: textTheme.titleSmall,
-                  ),
-                  Text(
-                    l10n.validationNoImageBody,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Thumbnail dimuat di Fase 2 lanjutan (media lookup per thumbnailId);
-    // untuk presentasi tampilkan placeholder rasio 4:3 yang rapi.
-    return AspectRatio(
-      aspectRatio: 4 / 3,
-      child: Container(
-        color: colorScheme.surfaceContainerHigh,
-        child: Center(
-          child: ThumbnailTile.unavailable(
-            semanticsLabel: l10n.validationNoImage,
-            size: 72,
-          ),
         ),
       ),
     );

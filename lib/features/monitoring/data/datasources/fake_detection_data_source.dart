@@ -110,6 +110,7 @@ List<Detection> _sample() {
       amount: 100000,
       confidence: 0.95,
       distanceCm: 30,
+      thumbnailId: 'det-money-100k',
     ),
     Detection(
       id: 'det-money-50k',
@@ -120,6 +121,7 @@ List<Detection> _sample() {
       amount: 50000,
       confidence: 0.92,
       distanceCm: 35,
+      thumbnailId: 'det-money-50k',
       validationStatus: ValidationStatus.match,
       validatedBy: kDemoUserId,
       validatedAt: now.subtract(const Duration(seconds: 40)),
@@ -135,6 +137,7 @@ List<Detection> _sample() {
       ocrText: 'AYAM GORENG — Rp15.000',
       confidence: 0.9,
       distanceCm: 25,
+      thumbnailId: 'det-text-menu',
       validationStatus: ValidationStatus.match,
       validatedBy: kDemoUserId,
       validatedAt: now.subtract(const Duration(minutes: 1, seconds: 30)),
@@ -161,6 +164,8 @@ List<Detection> _sample() {
       ocrText: 'PANDUAN\nBELAJAR BRAILLE',
       confidence: 0.86,
       distanceCm: null,
+      // Sengaja TANPA thumbnail: demo panel "tidak diunggah" tetap hidup
+      // (opt-in mati / upload gagal) di samping kartu bergambar.
     ),
     Detection(
       id: 'det-money-20k',

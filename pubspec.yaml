@@ -80,8 +80,11 @@ flutter:
 
   # Logo merek pihak ketiga (Google "G") tidak tersedia sebagai ikon
   # Material, jadi di-bundle sebagai PNG transparan 1x.
+  # Foto dummy demonstrasi (bukan hasil bacaan alat): JPEG ≤ 60 KB sesuai
+  # batas thumbnail privasi, dipakai FakeMediaDataSource untuk det-money-100k.
   assets:
     - assets/images/google_g_logo.png
+    - assets/images/demo_money_100k.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
