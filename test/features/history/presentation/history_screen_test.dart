@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/theme/status_colors.dart';
+import 'package:sigap_netra_app/core/widgets/confirm_sheet.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/domain/repositories/device_repository.dart';
@@ -161,6 +162,59 @@ void main() {
       );
       // Latar hapus memakai `color` langsung (bukan decoration).
       expect(container.color, bad);
+    });
+
+    testWidgets('hapus baris menghilangkan baris + snackbar berlabel', (
+      tester,
+    ) async {
+      final graph = FakeAppGraph();
+      await pumpHistory(tester, graph: graph);
+      await pumpFrames(tester);
+
+      expect(find.textContaining('100.000'), findsWidgets);
+
+      // Geser penuh ke kiri → sheet konfirmasi (bukan langsung hapus).
+      // confirmDismiss me-return false: Dismissible memanggil onDelete lalu
+      // menahan kartu di tempat sampai sheet dijawab.
+      final row = find
+          .ancestor(
+            of: find.textContaining('100.000'),
+            matching: find.byType(Dismissible),
+          )
+          .first;
+      await tester.drag(row, const Offset(-600, 0));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Konfirmasi sheet: ketuk "Hapus" di dalam ConfirmSheet (bukan teks
+      // "Hapus" lain — cari eksplisit di bawah judul sheet).
+      expect(find.text('Hapus pembacaan ini?'), findsOneWidget);
+      final confirm = find.descendant(
+        of: find.byType(ConfirmSheet),
+        matching: find.text('Hapus'),
+      );
+      expect(confirm, findsOneWidget);
+      await tester.ensureVisible(confirm);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(confirm);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await pumpFrames(tester);
+
+      // Regresi bug basi: baris harus hilang dari UI (invalidate kunci
+      // family tepat), snackbar menyebut nama yang dihapus. Assert via key
+      // baris (ValueKey history-<id>): snackbar sukses sendiri mengandung
+      // "100.000" sehingga pencarian teks mentah salah sasaran.
+      expect(tester.takeException(), isNull);
+      expect(
+        find.byKey(const ValueKey('history-det-money-100k')),
+        findsNothing,
+      );
+      expect(find.text('Rp 100.000 dihapus dari riwayat.'), findsOneWidget);
+      expect(
+        graph.detections.itemsForTest.any((d) => d.id == 'det-money-100k'),
+        isFalse,
+      );
     });
   });
 

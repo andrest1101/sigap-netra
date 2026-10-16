@@ -11,18 +11,47 @@ void main() {
   }
 
   group('FakeMediaDataSource', () {
-    test('det-money-100k memuat dummy aset di bawah 60 KB', () async {
-      final thumbnail = await graph().getThumbnail(
+    test('dua dummy aset uang di bawah 60 KB dan bytes berbeda', () async {
+      final media = graph();
+      final money100k = await media.getThumbnail(
         deviceId: kDemoDeviceId,
         thumbnailId: 'det-money-100k',
       );
+      final money50k = await media.getThumbnail(
+        deviceId: kDemoDeviceId,
+        thumbnailId: 'det-money-50k',
+      );
 
-      expect(thumbnail, isNotNull);
-      expect(thumbnail!.imageBytes, isNotEmpty);
+      expect(money100k, isNotNull);
+      expect(money50k, isNotNull);
       expect(
-        thumbnail.imageBytes.length,
+        money100k!.imageBytes.length,
         lessThanOrEqualTo(kMaxThumbnailBytes),
       );
+      expect(
+        money50k!.imageBytes.length,
+        lessThanOrEqualTo(kMaxThumbnailBytes),
+      );
+      // Dua pecahan berbeda = dua foto berbeda, bukan satu gambar dipakai
+      // ulang.
+      expect(money100k.imageBytes, isNot(money50k.imageBytes));
+    });
+
+    test('evict membuang cache thumbnail yang dihapus', () async {
+      final media = graph();
+      final first = await media.getThumbnail(
+        deviceId: kDemoDeviceId,
+        thumbnailId: 'det-text-menu',
+      );
+      media.evict('det-text-menu');
+      final second = await media.getThumbnail(
+        deviceId: kDemoDeviceId,
+        thumbnailId: 'det-text-menu',
+      );
+
+      expect(first, isNotNull);
+      expect(second, isNotNull);
+      expect(identical(first, second), isFalse);
     });
 
     test('item lain dengan thumbnailId memakai prosedural PNG 96x72', () async {
