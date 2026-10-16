@@ -1,5 +1,12 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-16 R3 — Thumbnail media: Validasi + Riwayat berfoto, dummy 100rb Google
+
+Pipeline `media/{id}` lazy per kartu: Firestore lookup satu dokumen (bukan query daftar), `MediaModel` defensif (mime/size/base64/60KB → null), `thumbnailProvider` autoDispose family, cache memori sesi. `ValidationPhoto` 4 state (tanpa-ID / skeleton 4:3 / gagal + Coba lagi / Hero 4:3 tap→detail), `_RowThumb` + `_DetailImage` selaras. Demo: `det-money-100k` memakai foto dummy Google `assets/images/demo_money_100k.jpg` (JPEG ±55 KB, di bawah batas privasi 60 KB; BUKAN hasil bacaan alat), item lain prosedural PNG 96x72, `det-text-sampul` sengaja tanpa thumbnail (panel tetap hidup). Aturan foto 4:3 mendorong konten keluar viewport test 800px → drag -800 sebelum tap/assert + `skipOffstage:false`; gesture swipe dari pojok kartu bukan teks nominal.
+
+- **Test baru (13)**: `media_model_test` (6: valid, null, mime, size, base64, decode) + `fake_media_data_source_test` (4: dummy aset <60KB, prosedural header PNG + IHDR 96x72, null defensif, cache identik) + `validation_photo_test` (3: panel tanpa-ID, foto + Hero + tap, null → panel tanpa Image).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **208 lulus**; goldens Validasi (terang/gelap/swipe) + Riwayat terang di-regenerate (foto dummy ikut terkunci).
+
 ## 2026-10-16 P1 — Poles tab Riwayat R1: list/detail jujur selaras Validasi
 
 Audit UI/UX per halaman berlanjut (pola: 1 halaman selesai → lanjut). Halaman kedua: **Riwayat list + detail** (Statistik + CSV + thumbnail = R2/R3 terpisah).
