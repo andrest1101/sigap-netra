@@ -87,9 +87,16 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
-      expect(find.textContaining('50.000'), findsWidgets);
-      expect(find.text('Cocok'), findsWidgets);
-      expect(find.text('Batalkan validasi'), findsOneWidget);
+      // Foto 4:3 mendorong konten bawah keluar viewport test 800px —
+      // scroll dulu, baru assert + cari tanpa skip offstage.
+      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.pump();
+      expect(find.textContaining('50.000', skipOffstage: false), findsWidgets);
+      expect(find.text('Cocok', skipOffstage: false), findsWidgets);
+      expect(
+        find.text('Batalkan validasi', skipOffstage: false),
+        findsOneWidget,
+      );
     });
 
     testWidgets('item pending menampilkan pasangan ok/bad', (tester) async {
@@ -98,12 +105,14 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
-      expect(find.text('Tidak cocok'), findsOneWidget);
+      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.pump();
+      expect(find.text('Tidak cocok', skipOffstage: false), findsOneWidget);
 
       final matchButton = tester.widget<FilledButton>(
         find
             .ancestor(
-              of: find.text('Cocok'),
+              of: find.text('Cocok', skipOffstage: false),
               matching: find.byWidgetPredicate((w) => w is FilledButton),
             )
             .first,
@@ -122,7 +131,10 @@ void main() {
 
       expect(tester.takeException(), isNull);
       // Format jujur: "Divalidasi oleh <uid> · <waktu>".
-      expect(find.textContaining('Divalidasi oleh'), findsOneWidget);
+      expect(
+        find.textContaining('Divalidasi oleh', skipOffstage: false),
+        findsOneWidget,
+      );
       expect(find.textContaining('ID pengguna:'), findsNothing);
     });
 
@@ -135,6 +147,9 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
+      // Tombol salin di kartu OCR (bawah foto) — scroll sampai terlihat.
+      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.pump();
       final copy = find.byTooltip('Salin teks');
       expect(copy, findsOneWidget);
       await tester.tap(copy);
@@ -149,10 +164,14 @@ void main() {
       final graph = FakeAppGraph();
       await pumpDetail(tester, graph: graph, fromHome: true);
       await pumpFrames(tester);
+      expect(find.text('Buka detail'), findsOneWidget);
       await tester.tap(find.text('Buka detail'));
       await pumpFrames(tester);
       expect(find.byType(HistoryDetailScreen), findsOneWidget);
 
+      // Tombol validasi di bawah foto 4:3 — scroll sampai terlihat lalu tap.
+      await tester.drag(find.byType(ListView), const Offset(0, -800));
+      await tester.pump();
       await tester.tap(find.text('Batalkan validasi'));
       await pumpFrames(tester);
 
