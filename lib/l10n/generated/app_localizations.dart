@@ -916,6 +916,12 @@ abstract class AppLocalizations {
   /// **'Pembacaan dihapus.'**
   String get historyDeleted;
 
+  /// No description provided for @historyDeletedNamed.
+  ///
+  /// In id, this message translates to:
+  /// **'{label} dihapus dari riwayat.'**
+  String historyDeletedNamed(String label);
+
   /// No description provided for @historyResetDone.
   ///
   /// In id, this message translates to:
@@ -957,6 +963,30 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.'**
   String get historyEmptyBody;
+
+  /// No description provided for @historyNoDeviceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perangkat terhubung'**
+  String get historyNoDeviceTitle;
+
+  /// No description provided for @historyNoDeviceBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat membaca dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk melihat pembacaan.'**
+  String get historyNoDeviceBody;
+
+  /// No description provided for @historyNoDeviceAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Perangkat'**
+  String get historyNoDeviceAction;
+
+  /// No description provided for @historyFilterShowAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan semua'**
+  String get historyFilterShowAll;
 
   /// No description provided for @devicesTitle.
   ///
@@ -1702,6 +1732,42 @@ abstract class AppLocalizations {
   /// **'Pembatalan validasi gagal. Coba lagi.'**
   String get validationUndoFailed;
 
+  /// No description provided for @validationNoDeviceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perangkat terhubung'**
+  String get validationNoDeviceTitle;
+
+  /// No description provided for @validationNoDeviceBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi membaca antrean dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk mulai memvalidasi.'**
+  String get validationNoDeviceBody;
+
+  /// No description provided for @validationNoDeviceAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Perangkat'**
+  String get validationNoDeviceAction;
+
+  /// No description provided for @validationFilterEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada antrean di filter ini'**
+  String get validationFilterEmptyTitle;
+
+  /// No description provided for @validationFilterEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Masih ada {count} pembacaan menunggu di kategori lain.'**
+  String validationFilterEmptyBody(int count);
+
+  /// No description provided for @validationFilterShowAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan semua'**
+  String get validationFilterShowAll;
+
   /// No description provided for @historyListTab.
   ///
   /// In id, this message translates to:
@@ -1713,6 +1779,48 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Statistik'**
   String get historyStatsTab;
+
+  /// No description provided for @historyStoredCount.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} pembacaan tersimpan'**
+  String historyStoredCount(int count);
+
+  /// No description provided for @historyStoredCountMore.
+  ///
+  /// In id, this message translates to:
+  /// **'{count}+ pembacaan dimuat'**
+  String historyStoredCountMore(int count);
+
+  /// No description provided for @historyFilterEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada hasil untuk filter ini'**
+  String get historyFilterEmptyTitle;
+
+  /// No description provided for @historyFilterEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Coba ubah kategori atau status validasi untuk melihat pembacaan lain.'**
+  String get historyFilterEmptyBody;
+
+  /// No description provided for @historyCopied.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks disalin.'**
+  String get historyCopied;
+
+  /// No description provided for @historyCopyAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Salin teks'**
+  String get historyCopyAction;
+
+  /// No description provided for @historyValidatedByAt.
+  ///
+  /// In id, this message translates to:
+  /// **'Divalidasi oleh {uid} · {time}'**
+  String historyValidatedByAt(String uid, String time);
 
   /// No description provided for @historyFilterAll.
   ///

@@ -13,7 +13,7 @@ import '../../../helpers/fake_app_graph.dart';
 /// Golden tab Riwayat (terang): membuktikan label chip berwarna gelap
 /// terbaca di atas daftar terang — bukan putih yang menyatu dengan latar.
 void main() {
-  Future<void> pumpHistory(WidgetTester tester) async {
+  Future<FakeAppGraph> pumpHistory(WidgetTester tester) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
@@ -35,6 +35,7 @@ void main() {
         ),
       ),
     );
+    return graph;
   }
 
   Future<void> pumpFrames(WidgetTester tester) async {
@@ -42,6 +43,44 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     await tester.pump(const Duration(seconds: 16));
+    // Thumbnail baris (FutureProvider + decode Image.memory) butuh bingkai
+    // tambahan seperti golden Validasi: Future selesai cepat, decode butuh
+    // beberapa pump lagi sebelum capture.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
+
+  /// Menunggu decode foto baris selesai sebelum capture golden.
+  ///
+  /// Sama seperti golden Validasi: `Image.memory` decode asinkron sehingga
+  /// golden menangkap ubin kosong tanpa precache. Baca langsung dari fake
+  /// data source (bukan `ref.read(provider.future)`: provider `autoDispose`
+  /// tanpa listener langsung di-dispose sehingga future-nya menggantung
+  /// selamanya). `precacheImage` wajib di dalam `runAsync`: decode gambar
+  /// memakai real-async yang tidak pernah selesai di zona fake-async
+  /// `tester.pump`. `MemoryImage` dibandingkan berdasar isi bytes, jadi cache
+  /// hasil precache dipakai ulang oleh `ThumbnailTile.image` di baris.
+  Future<void> settleThumbnails(
+    WidgetTester tester,
+    FakeAppGraph graph,
+    Finder scope,
+  ) async {
+    final element = tester.element(scope);
+    await tester.runAsync(() async {
+      for (final detection in graph.detections.itemsForTest) {
+        final id = detection.thumbnailId;
+        if (id == null || id.isEmpty) continue;
+        final thumbnail = await graph.media.getThumbnail(
+          deviceId: detection.deviceId,
+          thumbnailId: id,
+        );
+        final bytes = thumbnail?.imageBytes;
+        if (bytes == null || bytes.isEmpty) continue;
+        await precacheImage(MemoryImage(bytes), element);
+      }
+    });
+    await tester.pump();
   }
 
   /// Warna efektif label chip: `Text.style` chip selalu null — warna
@@ -65,8 +104,9 @@ void main() {
 
   group('Golden tab Riwayat', () {
     testWidgets('chip kategori + filter berteks gelap (light)', (tester) async {
-      await pumpHistory(tester);
+      final graph = await pumpHistory(tester);
       await pumpFrames(tester);
+      await settleThumbnails(tester, graph, find.byType(HistoryScreen));
 
       expect(tester.takeException(), isNull);
       expect(find.text('Riwayat'), findsWidgets);

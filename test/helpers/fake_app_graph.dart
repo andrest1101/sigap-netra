@@ -7,6 +7,9 @@ import 'package:sigap_netra_app/features/events/data/datasources/fake_event_data
 import 'package:sigap_netra_app/features/events/presentation/providers/events_providers.dart';
 import 'package:sigap_netra_app/features/history/data/datasources/fake_history_data_source.dart';
 import 'package:sigap_netra_app/features/history/presentation/providers/history_providers.dart';
+import 'package:sigap_netra_app/features/media/data/datasources/fake_media_data_source.dart';
+import 'package:sigap_netra_app/features/media/data/repositories/media_repository_impl.dart';
+import 'package:sigap_netra_app/features/media/presentation/providers/media_providers.dart';
 import 'package:sigap_netra_app/features/monitoring/data/datasources/fake_detection_data_source.dart';
 import 'package:sigap_netra_app/features/monitoring/presentation/providers/monitoring_providers.dart';
 import 'package:sigap_netra_app/features/validation/data/datasources/fake_validation_data_source.dart';
@@ -57,11 +60,14 @@ class FakeAppGraph {
   FakeAppGraph()
     : detections = FakeDetectionDataSource(),
       events = FakeEventDataSource(),
-      commands = FakeCommandDataSource();
+      commands = FakeCommandDataSource() {
+    media = FakeMediaDataSource(detections);
+  }
 
   final FakeDetectionDataSource detections;
   final FakeEventDataSource events;
   final FakeCommandDataSource commands;
+  late final FakeMediaDataSource media;
 
   /// Override repository untuk `ProviderScope`.
   ///
@@ -81,8 +87,11 @@ class FakeAppGraph {
       FakeValidationRepositoryImpl(FakeValidationDataSource(detections)),
     ),
     historyRepositoryProvider.overrideWithValue(
-      FakeHistoryRepositoryImpl(FakeHistoryDataSource(detections)),
+      FakeHistoryRepositoryImpl(
+        FakeHistoryDataSource(detections, onEvictThumbnail: media.evict),
+      ),
     ),
+    mediaRepositoryProvider.overrideWithValue(FakeMediaRepositoryImpl(media)),
     eventRepositoryProvider.overrideWithValue(FakeEventRepositoryImpl(events)),
     commandRepositoryProvider.overrideWithValue(
       FakeCommandRepositoryImpl(commands),

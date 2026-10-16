@@ -1,5 +1,39 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-16 R3 — Thumbnail media: Validasi + Riwayat berfoto, dummy 100rb Google
+
+Pipeline `media/{id}` lazy per kartu: Firestore lookup satu dokumen (bukan query daftar), `MediaModel` defensif (mime/size/base64/60KB → null), `thumbnailProvider` autoDispose family, cache memori sesi. `ValidationPhoto` 4 state (tanpa-ID / skeleton 4:3 / gagal + Coba lagi / Hero 4:3 tap→detail), `_RowThumb` + `_DetailImage` selaras. Demo: `det-money-100k` memakai foto dummy Google `assets/images/demo_money_100k.jpg` (JPEG ±55 KB, di bawah batas privasi 60 KB; BUKAN hasil bacaan alat), item lain prosedural PNG 96x72, `det-text-sampul` sengaja tanpa thumbnail (panel tetap hidup). Aturan foto 4:3 mendorong konten keluar viewport test 800px → drag -800 sebelum tap/assert + `skipOffstage:false`; gesture swipe dari pojok kartu bukan teks nominal.
+
+- **Test baru (13)**: `media_model_test` (6: valid, null, mime, size, base64, decode) + `fake_media_data_source_test` (4: dummy aset <60KB, prosedural header PNG + IHDR 96x72, null defensif, cache identik) + `validation_photo_test` (3: panel tanpa-ID, foto + Hero + tap, null → panel tanpa Image).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **208 lulus**; goldens Validasi (terang/gelap/swipe) + Riwayat terang di-regenerate (foto dummy ikut terkunci).
+
+## 2026-10-16 P1 — Poles tab Riwayat R1: list/detail jujur selaras Validasi
+
+Audit UI/UX per halaman berlanjut (pola: 1 halaman selesai → lanjut). Halaman kedua: **Riwayat list + detail** (Statistik + CSV + thumbnail = R2/R3 terpisah).
+
+- **Subjudul jujur**: "Ringkasan harian · N" menyesatkan (kunci penamaan lama, bukan ringkasan) → "N pembacaan tersimpan", atau "N+ pembacaan dimuat" bila `nextCursor` masih ada (klaim total diam-diam = bug).
+- **Empty state 3 kasus** (pola Validasi): belum ada perangkat → "Buka Perangkat" (bukan "belum ada pembacaan"); riwayat benar-benar kosong; filter aktif kosong → "Tidak ada hasil untuk filter ini" + "Tampilkan semua" (reset kategori + status sekaligus).
+- **Baris daftar**: ikon kategori 48 + titik status menempel (pola Aktivitas Beranda) ganti ikon "gambar rusak" ganda yang menyesatkan (thumbnail belum ada pipeline di R1, bukan rusak); label SemiBold; nomor urut global (lama: `indexOf` per grup — nomor mengulang tiap hari); chevron; navigasi via `HistoryDetailPath().push()` (bukan path literal); latar hapus → `bad.container`/`bad.content` (selaras Validasi, dijaga test warna).
+- **Sheet filter status**: bug tutup-sheet me-reset filter diam-diam ("Semua" dan batal keduanya `null`) → marker `_kAllStatusFilter`; batal mempertahankan filter aktif.
+- **Detail**: snackbar salin "Simpan" (salah — tidak ada yang disimpan) → "Teks disalin." + tooltip "Salin teks"; validatedBy "ID pengguna: uid" (label mentah) → "Divalidasi oleh uid · waktu"; tombol Cocok/Tidak cocok selaras Validasi (`ok.solid` filled / `bad.solid` outlined, dijaga test warna).
+- **Import mati dibersihkan**: `ThumbnailTile`/`go_router` (list), `StatusPill` tetap dipakai list (tone enum) — detail masih memakai `status_pill.dart` untuk enum (R2 merapikan bila perlu).
+- **Test**: `history_screen_test.dart` (5: tanpa perangkat, subjudul, filter kosong + reset, ikon kategori + chip, warna hapus bad) + `history_detail_test.dart` (5 + 1 unit: label + chip + Urungkan, pasangan ok/bad, validatedBy, snackbar salin, undo via alur daftar→detail→kembali + status pending, format rupiah). Pelajaran: router test satu-route crash saat `pop` (`!_debugLocked`) — alur test wajib mulai dari halaman dummy lalu push.
+- **Golden**: `history_tab_light.png` di-regenerate + diinspeksi (baris ikon kategori + titik status + chip campur + chevron).
+- **Docs**: `docs/ui_spec.md` §5.3 diselaraskan (subjudul jujur, empty 3 kasus, baris, hapus konfirmasi-dulu tanpa undo, detail, sheet marker).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **195 lulus**.
+
+## 2026-10-15 P1 — Poles tab Validasi: empty state jujur, petunjuk geser ber-warna status, tumpukan kartu nyata
+
+Audit UI/UX per halaman dimulai (pola baru: 1 halaman selesai → lanjut halaman berikutnya). Halaman pertama: **Validasi**.
+
+- **Bug empty-state**: filter "Uang"/"Menu/Teks" yang kosong dulu menampilkan "Semua pembacaan sudah diperiksa" padahal kategori lain masih menunggu — dan sebelum perangkat terhubung pun sama. Sekarang tiga kasus terpisah dengan aksi masing-masing: belum ada perangkat → "Buka Perangkat"; antrean habis → "Buka Riwayat"; filter kosong → "Tidak ada antrean di filter ini" + "{count} pembacaan menunggu di kategori lain" + "Tampilkan semua" (reset filter). String baru di `app_id.arb` + regenerasi l10n.
+- **Petunjuk geser ber-warna status**: latar petunjuk kini tinted radius kartu — kiri `bad.container`/`bad.content` ("Tidak cocok"), kanan `ok.container`/`ok.content` ("Cocok"); sebelumnya ikon+teks `primary` polos tanpa latar. `Dismissible` dipindah agar **hanya tumpukan kartu** yang bergeser — tombol aksi dan kerangka layar tetap diam (sebelumnya seluruh kolom ikut terseret).
+- **Tombol keputusan selaras ui_spec §5.2**: "Cocok" filled `ok.solid` (teks `surface`), "Tidak cocok" outlined `bad.solid`; implementasi lama memakai primary/`colorScheme.error` (menyimpang dari spec) — kini dijaga unit test warna.
+- **Tumpukan kartu benar-benar terlihat**: kartu bayangan lama sepenuhnya tertutup kartu opak (efek "dua kartu samar" tak pernah tampak). Sekarang terdorong 12 px + inset 12 px per lapis, ruang peek disediakan via padding kartu depan, opacity 0,85/0,55 (iterasi 0,35→0,55→0,7→0,85 lewat inspeksi golden), tone `surfaceContainerHigh` + hairline. Pergantian kartu dianimasikan `AnimatedSwitcher` fade + slide 250 ms (key per-deteksi) — sebelumnya kartu berganti patah.
+- **Test**: +4 widget test — tanpa perangkat; filter kosong + "Tampilkan semua"; warna tombol `ok.solid`; text scale 1,3× di viewport ponsel 390×844. Golden baru: `validation_tab_light/dark.png` + `validation_swipe_light.png` (mid-drag; drag butuh dua `moveBy` karena gerakan pertama habis untuk touch slop) di `test/features/validation/goldens/` — diinspeksi termasuk zoom 4× tepi tumpukan.
+- **Docs**: `docs/ui_spec.md` §5.2 diselaraskan dengan realitas (subjudul progres, empty state 3 kasus, petunjuk geser berwarna, tumpukan + animasi, label maks 4 baris).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **183 lulus**.
+
 ## 2026-10-15 P1-hotfix — Lens Ring: busur progres kontinu ala donut ("timbul keluar")
 
 Follow-up review user (referensi gambar donut 25/50/75/100%): busur akurasi masih terlihat "masuk ke dalam"; minta gaya busur kontinu yang timbul keluar.

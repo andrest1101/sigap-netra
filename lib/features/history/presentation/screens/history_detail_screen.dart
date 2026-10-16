@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
@@ -18,6 +19,7 @@ import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
+import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../monitoring/presentation/providers/monitoring_providers.dart';
 import '../../../sharing/domain/usecases/build_share_report.dart';
@@ -173,7 +175,12 @@ class HistoryDetailScreen extends ConsumerWidget {
           if (detection.validatedBy != null) ...[
             const SizedBox(height: DesignTokens.spaceSm),
             Text(
-              '${l10n.settingsSignedInUid}: ${detection.validatedBy}',
+              l10n.historyValidatedByAt(
+                detection.validatedBy!,
+                detection.validatedAt == null
+                    ? l10n.timeNever
+                    : RelativeTime.dateTime(detection.validatedAt!),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -211,12 +218,25 @@ class HistoryDetailScreen extends ConsumerWidget {
             detectionId: detection.id,
             thumbnailId: detection.thumbnailId,
           );
+      // Daftar di belakang harus segar saat kembali: buang semua instance
+      // halaman family (filter boleh apa saja) + thumbnail yang dihapus.
+      ref.invalidate(historyPageProvider);
+      final thumb = detection.thumbnailId;
+      if (thumb != null && thumb.isNotEmpty) {
+        ref.invalidate(
+          thumbnailProvider(
+            ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: thumb),
+          ),
+        );
+      }
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.historyActionFailed)));
       return;
     }
     navigator.pop();
-    messenger.showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.historyDeletedNamed(detection.displayLabel))),
+    );
   }
 
   Future<void> _share(
@@ -306,17 +326,18 @@ String _failureText(BuildContext context, Object error) {
 }
 
 /// Gambar besar dengan Hero; panel informatif bila tanpa gambar.
-class _DetailImage extends StatelessWidget {
+class _DetailImage extends ConsumerWidget {
   const _DetailImage({required this.detection});
 
   final Detection detection;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final id = detection.thumbnailId;
 
-    if (detection.thumbnailId == null) {
+    Widget panel() {
       return Container(
         padding: const EdgeInsets.all(DesignTokens.spacePage),
         decoration: BoxDecoration(
@@ -352,23 +373,64 @@ class _DetailImage extends StatelessWidget {
       );
     }
 
-    return Hero(
-      tag: 'detection-${detection.id}',
-      child: AspectRatio(
+    if (id == null || id.isEmpty) return panel();
+
+    final async = ref.watch(
+      thumbnailProvider(
+        ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: id),
+      ),
+    );
+    return async.when(
+      loading: () => AspectRatio(
         aspectRatio: 4 / 3,
         child: Container(
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
           ),
-          child: Icon(
-            Icons.image_outlined,
-            size: 48,
-            color: colorScheme.onSurfaceVariant,
-            semanticLabel: l10n.historyRecognitionResult,
+          child: Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(
+                  DesignTokens.radiusThumbnail,
+                ),
+              ),
+            ),
           ),
         ),
       ),
+      error: (_, _) => panel(),
+      data: (thumbnail) {
+        final bytes = thumbnail?.imageBytes;
+        if (bytes == null || bytes.isEmpty) return panel();
+        return Hero(
+          tag: 'detection-${detection.id}',
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+              child: Container(
+                color: colorScheme.surfaceContainerHigh,
+                child: Image.memory(
+                  bytes,
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  semanticLabel: l10n.historyRecognitionResult,
+                  errorBuilder: (context, _, _) => Icon(
+                    Icons.broken_image_outlined,
+                    size: 48,
+                    color: colorScheme.onSurfaceVariant,
+                    semanticLabel: l10n.historyRecognitionResult,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -421,10 +483,10 @@ class _OcrCardState extends State<_OcrCard> {
                   Clipboard.setData(ClipboardData(text: raw));
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text(l10n.commonSave)));
+                  ).showSnackBar(SnackBar(content: Text(l10n.historyCopied)));
                 },
                 icon: const Icon(Icons.copy_rounded, size: 18),
-                tooltip: l10n.historyRecognitionResult,
+                tooltip: l10n.historyCopyAction,
               ),
             ],
           ),
@@ -456,6 +518,7 @@ class _ValidationActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final statusColors = StatusColors.of(context);
 
     if (detection.validationStatus != ValidationStatus.pending) {
       return OutlinedButton.icon(
@@ -473,8 +536,8 @@ class _ValidationActions extends ConsumerWidget {
             icon: const Icon(Icons.close_rounded),
             label: Text(l10n.validationMarkMismatch),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Theme.of(context).colorScheme.error,
-              side: BorderSide(color: Theme.of(context).colorScheme.error),
+              foregroundColor: statusColors.bad.solid,
+              side: BorderSide(color: statusColors.bad.solid),
             ),
           ),
         ),
@@ -484,6 +547,12 @@ class _ValidationActions extends ConsumerWidget {
             onPressed: () => _submit(context, ref, ValidationStatus.match),
             icon: const Icon(Icons.check_rounded),
             label: Text(l10n.validationMarkMatch),
+            // Sama seperti Validasi (ui_spec §5.2): "Cocok" memakai `ok`,
+            // bukan primary — berpasangan dengan "Tidak cocok" warna `bad`.
+            style: FilledButton.styleFrom(
+              backgroundColor: statusColors.ok.solid,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+            ),
           ),
         ),
       ],

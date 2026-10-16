@@ -438,6 +438,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyDeleted => 'Pembacaan dihapus.';
 
   @override
+  String historyDeletedNamed(String label) {
+    return '$label dihapus dari riwayat.';
+  }
+
+  @override
   String get historyResetDone => 'Status validasi direset.';
 
   @override
@@ -459,6 +464,19 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get historyEmptyBody =>
       'Riwayat akan muncul setelah perangkat mengirim pembacaan pertama.';
+
+  @override
+  String get historyNoDeviceTitle => 'Belum ada perangkat terhubung';
+
+  @override
+  String get historyNoDeviceBody =>
+      'Riwayat membaca dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk melihat pembacaan.';
+
+  @override
+  String get historyNoDeviceAction => 'Buka Perangkat';
+
+  @override
+  String get historyFilterShowAll => 'Tampilkan semua';
 
   @override
   String get devicesTitle => 'Perangkat';
@@ -864,10 +882,59 @@ class AppLocalizationsId extends AppLocalizations {
   String get validationUndoFailed => 'Pembatalan validasi gagal. Coba lagi.';
 
   @override
+  String get validationNoDeviceTitle => 'Belum ada perangkat terhubung';
+
+  @override
+  String get validationNoDeviceBody =>
+      'Validasi membaca antrean dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk mulai memvalidasi.';
+
+  @override
+  String get validationNoDeviceAction => 'Buka Perangkat';
+
+  @override
+  String get validationFilterEmptyTitle => 'Tidak ada antrean di filter ini';
+
+  @override
+  String validationFilterEmptyBody(int count) {
+    return 'Masih ada $count pembacaan menunggu di kategori lain.';
+  }
+
+  @override
+  String get validationFilterShowAll => 'Tampilkan semua';
+
+  @override
   String get historyListTab => 'Daftar';
 
   @override
   String get historyStatsTab => 'Statistik';
+
+  @override
+  String historyStoredCount(int count) {
+    return '$count pembacaan tersimpan';
+  }
+
+  @override
+  String historyStoredCountMore(int count) {
+    return '$count+ pembacaan dimuat';
+  }
+
+  @override
+  String get historyFilterEmptyTitle => 'Tidak ada hasil untuk filter ini';
+
+  @override
+  String get historyFilterEmptyBody =>
+      'Coba ubah kategori atau status validasi untuk melihat pembacaan lain.';
+
+  @override
+  String get historyCopied => 'Teks disalin.';
+
+  @override
+  String get historyCopyAction => 'Salin teks';
+
+  @override
+  String historyValidatedByAt(String uid, String time) {
+    return 'Divalidasi oleh $uid · $time';
+  }
 
   @override
   String get historyFilterAll => 'Semua';
