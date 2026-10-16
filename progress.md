@@ -1,5 +1,17 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-15 P1 — Poles tab Validasi: empty state jujur, petunjuk geser ber-warna status, tumpukan kartu nyata
+
+Audit UI/UX per halaman dimulai (pola baru: 1 halaman selesai → lanjut halaman berikutnya). Halaman pertama: **Validasi**.
+
+- **Bug empty-state**: filter "Uang"/"Menu/Teks" yang kosong dulu menampilkan "Semua pembacaan sudah diperiksa" padahal kategori lain masih menunggu — dan sebelum perangkat terhubung pun sama. Sekarang tiga kasus terpisah dengan aksi masing-masing: belum ada perangkat → "Buka Perangkat"; antrean habis → "Buka Riwayat"; filter kosong → "Tidak ada antrean di filter ini" + "{count} pembacaan menunggu di kategori lain" + "Tampilkan semua" (reset filter). String baru di `app_id.arb` + regenerasi l10n.
+- **Petunjuk geser ber-warna status**: latar petunjuk kini tinted radius kartu — kiri `bad.container`/`bad.content` ("Tidak cocok"), kanan `ok.container`/`ok.content` ("Cocok"); sebelumnya ikon+teks `primary` polos tanpa latar. `Dismissible` dipindah agar **hanya tumpukan kartu** yang bergeser — tombol aksi dan kerangka layar tetap diam (sebelumnya seluruh kolom ikut terseret).
+- **Tombol keputusan selaras ui_spec §5.2**: "Cocok" filled `ok.solid` (teks `surface`), "Tidak cocok" outlined `bad.solid`; implementasi lama memakai primary/`colorScheme.error` (menyimpang dari spec) — kini dijaga unit test warna.
+- **Tumpukan kartu benar-benar terlihat**: kartu bayangan lama sepenuhnya tertutup kartu opak (efek "dua kartu samar" tak pernah tampak). Sekarang terdorong 12 px + inset 12 px per lapis, ruang peek disediakan via padding kartu depan, opacity 0,85/0,55 (iterasi 0,35→0,55→0,7→0,85 lewat inspeksi golden), tone `surfaceContainerHigh` + hairline. Pergantian kartu dianimasikan `AnimatedSwitcher` fade + slide 250 ms (key per-deteksi) — sebelumnya kartu berganti patah.
+- **Test**: +4 widget test — tanpa perangkat; filter kosong + "Tampilkan semua"; warna tombol `ok.solid`; text scale 1,3× di viewport ponsel 390×844. Golden baru: `validation_tab_light/dark.png` + `validation_swipe_light.png` (mid-drag; drag butuh dua `moveBy` karena gerakan pertama habis untuk touch slop) di `test/features/validation/goldens/` — diinspeksi termasuk zoom 4× tepi tumpukan.
+- **Docs**: `docs/ui_spec.md` §5.2 diselaraskan dengan realitas (subjudul progres, empty state 3 kasus, petunjuk geser berwarna, tumpukan + animasi, label maks 4 baris).
+- Verifikasi: `dart format` bersih; `flutter analyze` No issues; `flutter test` **183 lulus**.
+
 ## 2026-10-15 P1-hotfix — Lens Ring: busur progres kontinu ala donut ("timbul keluar")
 
 Follow-up review user (referensi gambar donut 25/50/75/100%): busur akurasi masih terlihat "masuk ke dalam"; minta gaya busur kontinu yang timbul keluar.

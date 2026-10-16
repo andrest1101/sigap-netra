@@ -116,11 +116,11 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 ### 5.2 Validasi
 
-- **App bar:** "Validasi", subjudul "N menunggu"; di bawahnya `SegmentedButton`: Gabungan · Uang · Menu/Teks; indikator progres linear "1 / N".
-- **Tumpukan kartu:** kartu teratas menampilkan gambar (rasio 4:3, radius 20, ketuk untuk zoom), kategori sebagai chip, label kecil **TERBACA SEBAGAI** + nilai besar (teks OCR panjang bisa di-scroll), lalu baris `MetricChip`: Confidence `0,96` · Jarak `35 cm` · Waktu `949 ms`. Dua kartu berikutnya terlihat samar di belakang.
-- **Aksi:** bar bawah dengan dua tombol besar sejajar: **Tidak cocok** (outlined, warna `bad`) dan **Cocok** (filled, warna `ok`). **Geser kartu** kiri/kanan = pintasan yang sama; tombol tetap ada (aksesibilitas). Setelah memilih: kartu berikutnya naik + snackbar **Urungkan** (5 dtk).
-- **Tanpa gambar** (unggah gambar dimatikan): area gambar menjadi panel informatif "Gambar tidak diunggah" + ajakan membuka pengaturan privasi; validasi tetap bisa dengan peringatan.
-- **Kosong:** "Semua pembacaan sudah diperiksa" + tombol ke Riwayat.
+- **App bar:** "Validasi", subjudul progres "1 dari N" (muncul bersama antrean; disembunyikan saat memuat / tanpa perangkat / antrean kosong); di bawahnya `SegmentedButton`: Gabungan · Uang · Menu/Teks + indikator progres linear tipis 6 dp.
+- **Tumpukan kartu:** kartu teratas menampilkan area gambar (panel informatif "Gambar tidak diunggah" bila tanpa gambar; thumbnail rasio 4:3 saat media dimuat), kategori sebagai chip + nama perangkat, label kecil **TERBACA AS** + nilai besar (maks 4 baris), lalu baris `MetricChip`: keyakinan · jarak · waktu. Kartu di belakang **terlihat tepinya** sebagai tumpukan: terdorong 12 px ke bawah + menyempit 12 px per lapis, tone `surfaceContainerHigh` + hairline, samar (opacity bertingkat).
+- **Aksi:** bar bawah dua tombol besar sejajar: **Tidak cocok** (outlined `bad.solid`) dan **Cocok** (filled `ok.solid`, teks `surface`). **Geser kartu** kiri/kanan = pintasan yang sama — hanya kartu yang bergeser (tombol & kerangka tetap diam), latar petunjuk berwarna status: kiri `bad.container` "Tidak cocok", kanan `ok.container` "Cocok". Setelah memilih: kartu berikutnya naik dengan animasi fade + slide 250 ms + snackbar **Urungkan** (5 dtk).
+- **Tanpa gambar** (unggah gambar dimatikan): area gambar menjadi panel informatif "Gambar tidak diunggah" + ajakan membuka pengaturan privasi; validasi tetap bisa.
+- **Empty state (3 kasus, jujur):** ① belum ada perangkat → "Belum ada perangkat terhubung" + "Buka Perangkat"; ② antrean habis → "Semua pembacaan sudah diperiksa" + "Buka Riwayat"; ③ filter aktif kosong padahal kategori lain masih menunggu → "Tidak ada antrean di filter ini" + jumlah yang menunggu + "Tampilkan semua" (reset filter ke Gabungan).
 
 ### 5.3 Riwayat
 
