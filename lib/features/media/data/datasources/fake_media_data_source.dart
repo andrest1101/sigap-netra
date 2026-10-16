@@ -10,16 +10,22 @@ import 'media_data_source.dart';
 
 /// Aset dummy demonstrasi (bukan hasil bacaan alat).
 ///
-/// Hanya untuk item 100rb agar kartu Validasi/Riwayat terlihat hidup saat
-/// demo. JPEG ±55 KB — di bawah batas privasi 60 KB.
+/// Satu aset per pecahan agar demo terlihat bervariasi: 100rb (pending) dan
+/// 50rb (sudah Cocok). Masing-masing JPEG ≤ 60 KB — di bawah batas privasi.
 const String kDemoMoney100kAsset = 'assets/images/demo_money_100k.jpg';
+const String kDemoMoney50kAsset = 'assets/images/demo_money_50k.jpg';
 
-/// Sumber data thumbnail simulasi: dummy 100rb dari aset + prosedural kecil.
+/// Peta thumbnailId demo → aset dummy.
 ///
-/// Item `det-money-100k` memakai foto dummy Google dari aset; item lain yang
-/// punya `thumbnailId` memakai bytes PNG prosedural (96x72, tanpa biner di
-/// repo). Item tanpa `thumbnailId` tetap null (panel "tanpa gambar"), sama
-/// seperti produksi saat opt-in mati.
+/// Item lain yang punya `thumbnailId` memakai bytes PNG prosedural (96x72,
+/// tanpa biner di repo). Item tanpa `thumbnailId` tetap null (panel "tanpa
+/// gambar"), sama seperti produksi saat opt-in mati.
+const Map<String, String> kDemoAssetThumbnails = {
+  'det-money-100k': kDemoMoney100kAsset,
+  'det-money-50k': kDemoMoney50kAsset,
+};
+
+/// Sumber data thumbnail simulasi: dummy dari aset + prosedural kecil.
 class FakeMediaDataSource implements MediaDataSource {
   FakeMediaDataSource(this._detections);
 
@@ -27,6 +33,12 @@ class FakeMediaDataSource implements MediaDataSource {
 
   /// Cache memori sesi: bangkitkan sekali per ID, pakai ulang selama sesi.
   final Map<String, MediaThumbnail> _cache = {};
+
+  /// Membuang satu entri cache (dipanggil setelah deteksi dihapus).
+  ///
+  /// Tanpa ini bytes thumbnail ID yang dihapus tetap hidup di memori dan
+  /// bisa tampil basi bila ID dipakai ulang.
+  void evict(String thumbnailId) => _cache.remove(thumbnailId);
 
   @override
   Future<MediaThumbnail?> getThumbnail({
@@ -40,8 +52,9 @@ class FakeMediaDataSource implements MediaDataSource {
     if (!known) return null;
     final cached = _cache[thumbnailId];
     if (cached != null) return cached;
-    final thumbnail = thumbnailId == 'det-money-100k'
-        ? await _demoMoney100k(deviceId, thumbnailId)
+    final asset = kDemoAssetThumbnails[thumbnailId];
+    final thumbnail = asset != null
+        ? await _demoAsset(deviceId, thumbnailId, asset)
         : MediaThumbnail(
             deviceId: deviceId,
             mediaId: thumbnailId,
@@ -53,13 +66,14 @@ class FakeMediaDataSource implements MediaDataSource {
     return thumbnail;
   }
 
-  /// Memuat dummy 100rb dari aset; null bila aset hilang/rusak.
-  Future<MediaThumbnail?> _demoMoney100k(
+  /// Memuat dummy dari aset; null bila aset hilang/rusak.
+  Future<MediaThumbnail?> _demoAsset(
     String deviceId,
     String thumbnailId,
+    String asset,
   ) async {
     try {
-      final data = await rootBundle.load(kDemoMoney100kAsset);
+      final data = await rootBundle.load(asset);
       final bytes = data.buffer.asUint8List();
       if (bytes.isEmpty) return null;
       return MediaThumbnail(

@@ -10,11 +10,15 @@ import 'history_data_source.dart';
 /// Sumber data riwayat simulasi untuk mode pengembang.
 ///
 /// Berbagi penyimpanan dengan [FakeDetectionDataSource] supaya Validasi,
-/// Riwayat, dan Beranda melihat data yang sama.
+/// Riwayat, dan Beranda melihat data yang sama. Cache thumbnail ikut
+/// dibersihkan saat deteksi dihapus supaya tidak tampil basi.
 class FakeHistoryDataSource implements HistoryDataSource {
-  FakeHistoryDataSource(this._detections);
+  FakeHistoryDataSource(this._detections, {this.onEvictThumbnail});
 
   final FakeDetectionDataSource _detections;
+
+  /// Dipanggil dengan `thumbnailId` setiap deteksi dihapus (boleh null).
+  final void Function(String thumbnailId)? onEvictThumbnail;
 
   @override
   Future<DetectionPage> getDetectionsPage({
@@ -65,6 +69,8 @@ class FakeHistoryDataSource implements HistoryDataSource {
         .where((item) => item.id != detectionId)
         .toList(growable: false);
     _detections.replaceAll(remaining);
+    final thumb = thumbnailId;
+    if (thumb != null && thumb.isNotEmpty) onEvictThumbnail?.call(thumb);
   }
 
   @override

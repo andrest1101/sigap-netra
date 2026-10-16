@@ -87,7 +87,9 @@ class FakeAppGraph {
       FakeValidationRepositoryImpl(FakeValidationDataSource(detections)),
     ),
     historyRepositoryProvider.overrideWithValue(
-      FakeHistoryRepositoryImpl(FakeHistoryDataSource(detections)),
+      FakeHistoryRepositoryImpl(
+        FakeHistoryDataSource(detections, onEvictThumbnail: media.evict),
+      ),
     ),
     mediaRepositoryProvider.overrideWithValue(FakeMediaRepositoryImpl(media)),
     eventRepositoryProvider.overrideWithValue(FakeEventRepositoryImpl(events)),

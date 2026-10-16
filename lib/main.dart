@@ -177,7 +177,9 @@ AppRepositories buildRepositories(
         validation: FakeValidationRepositoryImpl(
           FakeValidationDataSource(detections),
         ),
-        history: FakeHistoryRepositoryImpl(FakeHistoryDataSource(detections)),
+        history: FakeHistoryRepositoryImpl(
+          FakeHistoryDataSource(detections, onEvictThumbnail: media.evict),
+        ),
         media: FakeMediaRepositoryImpl(media),
         events: FakeEventRepositoryImpl(FakeEventDataSource()),
         commands: FakeCommandRepositoryImpl(FakeCommandDataSource()),
