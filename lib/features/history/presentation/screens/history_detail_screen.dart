@@ -218,12 +218,25 @@ class HistoryDetailScreen extends ConsumerWidget {
             detectionId: detection.id,
             thumbnailId: detection.thumbnailId,
           );
+      // Daftar di belakang harus segar saat kembali: buang semua instance
+      // halaman family (filter boleh apa saja) + thumbnail yang dihapus.
+      ref.invalidate(historyPageProvider);
+      final thumb = detection.thumbnailId;
+      if (thumb != null && thumb.isNotEmpty) {
+        ref.invalidate(
+          thumbnailProvider(
+            ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: thumb),
+          ),
+        );
+      }
     } catch (_) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.historyActionFailed)));
       return;
     }
     navigator.pop();
-    messenger.showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.historyDeletedNamed(detection.displayLabel))),
+    );
   }
 
   Future<void> _share(

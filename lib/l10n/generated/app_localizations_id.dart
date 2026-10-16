@@ -438,6 +438,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyDeleted => 'Pembacaan dihapus.';
 
   @override
+  String historyDeletedNamed(String label) {
+    return '$label dihapus dari riwayat.';
+  }
+
+  @override
   String get historyResetDone => 'Status validasi direset.';
 
   @override

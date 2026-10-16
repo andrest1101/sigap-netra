@@ -916,6 +916,12 @@ abstract class AppLocalizations {
   /// **'Pembacaan dihapus.'**
   String get historyDeleted;
 
+  /// No description provided for @historyDeletedNamed.
+  ///
+  /// In id, this message translates to:
+  /// **'{label} dihapus dari riwayat.'**
+  String historyDeletedNamed(String label);
+
   /// No description provided for @historyResetDone.
   ///
   /// In id, this message translates to:

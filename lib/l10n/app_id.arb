@@ -163,6 +163,12 @@
   "historyDeleteTitle": "Hapus pembacaan ini?",
   "historyDeleteBody": "Pembacaan dan thumbnail terkait akan dihapus permanen.",
   "historyDeleted": "Pembacaan dihapus.",
+  "historyDeletedNamed": "{label} dihapus dari riwayat.",
+  "@historyDeletedNamed": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
   "historyResetDone": "Status validasi direset.",
   "historyActionFailed": "Tindakan gagal. Periksa koneksi lalu coba lagi.",
   "historySummaryTitle": "Ringkasan harian",

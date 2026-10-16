@@ -50,13 +50,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final deviceId = ref.watch(primaryDeviceIdProvider);
-    final page = deviceId == null
+    final id = deviceId;
+    final pageKey = id == null
         ? null
-        : ref.watch(
-            historyPageProvider(
-              HistoryPageKey(deviceId: deviceId, type: _type, status: _status),
-            ),
-          );
+        : HistoryPageKey(deviceId: id, type: _type, status: _status);
+    final page = pageKey == null
+        ? null
+        : ref.watch(historyPageProvider(pageKey));
     final items = page?.value?.items ?? const <Detection>[];
     final hasMore = page?.value?.nextCursor != null;
     final hasError = page != null && page.hasError && !page.hasValue;
@@ -149,6 +149,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               type: _type,
               status: _status,
               hasMore: hasMore,
+              // Cabang deviceId null sudah kembali via EmptyView di atas,
+              // jadi pageKey di sini selalu non-null.
+              // ignore: cast_nullable_to_non_nullable
+              pageKey: pageKey as HistoryPageKey,
               onLoadMore: () =>
                   ref.read(historyLimitProvider.notifier).increase(),
               onTypeChanged: (value) {
@@ -321,6 +325,7 @@ class _HistoryList extends StatelessWidget {
     required this.type,
     required this.status,
     required this.hasMore,
+    required this.pageKey,
     required this.onLoadMore,
     required this.onTypeChanged,
     required this.onFilterPressed,
@@ -331,6 +336,12 @@ class _HistoryList extends StatelessWidget {
   final DetectionType? type;
   final ValidationStatus? status;
   final bool hasMore;
+
+  /// Kunci halaman yang sedang tampil — dipakai invalidate tepat setelah
+  /// hapus/reset. Tanpa kunci, `ref.invalidate(historyPageProvider)` tanpa
+  /// argumen tidak menyentuh instance family yang tampil sehingga baris yang
+  /// dihapus tetap terlihat (bug basi).
+  final HistoryPageKey pageKey;
   final VoidCallback onLoadMore;
   final ValueChanged<DetectionType?> onTypeChanged;
   final VoidCallback onFilterPressed;
@@ -404,6 +415,7 @@ class _HistoryList extends StatelessWidget {
           _DayGroupedList(
             items: items,
             hasMore: hasMore,
+            pageKey: pageKey,
             onLoadMore: onLoadMore,
           ),
         const SizedBox(height: DesignTokens.spaceSection),
@@ -417,11 +429,13 @@ class _DayGroupedList extends ConsumerWidget {
   const _DayGroupedList({
     required this.items,
     required this.hasMore,
+    required this.pageKey,
     required this.onLoadMore,
   });
 
   final List<Detection> items;
   final bool hasMore;
+  final HistoryPageKey pageKey;
   final VoidCallback onLoadMore;
 
   @override
@@ -492,7 +506,9 @@ class _DayGroupedList extends ConsumerWidget {
   ///
   /// Tidak ada undo — Firestore tidak menyediakan pemulihan dokumen, dan app
   /// dilarang membuat ulang dokumen deteksi (skema bagian 1). Karena itu
-  /// konfirmasi muncul sebelum penghapusan, bukan sesudah.
+  /// konfirmasi muncul sebelum penghapusan, bukan sesudah. Sukses memakai
+  /// snackbar berlabel jelas (nama pembacaan ikut disebut), bukan dialog —
+  /// dialog sukses akan menambah ketukan sia-sia setelah konfirmasi.
   Future<void> _delete(
     BuildContext context,
     WidgetRef ref,
@@ -507,6 +523,7 @@ class _DayGroupedList extends ConsumerWidget {
       icon: Icons.delete_outline_rounded,
     );
     if (!confirmed || !context.mounted) return;
+    HapticFeedback.mediumImpact();
     try {
       await ref
           .read(deleteDetectionProvider)
@@ -515,11 +532,24 @@ class _DayGroupedList extends ConsumerWidget {
             detectionId: detection.id,
             thumbnailId: detection.thumbnailId,
           );
-      ref.invalidate(historyPageProvider);
+      // Invalidate instance halaman yang tampil + thumbnail yang dihapus:
+      // tanpa kunci family yang tepat, FutureProvider basi tetap dipakai dan
+      // baris yang dihapus masih terlihat meski snackbar sudah muncul.
+      ref.invalidate(historyPageProvider(pageKey));
+      final thumb = detection.thumbnailId;
+      if (thumb != null && thumb.isNotEmpty) {
+        ref.invalidate(
+          thumbnailProvider(
+            ThumbnailQuery(deviceId: detection.deviceId, thumbnailId: thumb),
+          ),
+        );
+      }
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.historyDeleted)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.historyDeletedNamed(detection.displayLabel)),
+          ),
+        );
       }
     } catch (_) {
       if (context.mounted) {
