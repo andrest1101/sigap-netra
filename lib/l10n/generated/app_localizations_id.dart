@@ -864,6 +864,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get validationUndoFailed => 'Pembatalan validasi gagal. Coba lagi.';
 
   @override
+  String get validationNoDeviceTitle => 'Belum ada perangkat terhubung';
+
+  @override
+  String get validationNoDeviceBody =>
+      'Validasi membaca antrean dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk mulai memvalidasi.';
+
+  @override
+  String get validationNoDeviceAction => 'Buka Perangkat';
+
+  @override
+  String get validationFilterEmptyTitle => 'Tidak ada antrean di filter ini';
+
+  @override
+  String validationFilterEmptyBody(int count) {
+    return 'Masih ada $count pembacaan menunggu di kategori lain.';
+  }
+
+  @override
+  String get validationFilterShowAll => 'Tampilkan semua';
+
+  @override
   String get historyListTab => 'Daftar';
 
   @override

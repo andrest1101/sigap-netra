@@ -1702,6 +1702,42 @@ abstract class AppLocalizations {
   /// **'Pembatalan validasi gagal. Coba lagi.'**
   String get validationUndoFailed;
 
+  /// No description provided for @validationNoDeviceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perangkat terhubung'**
+  String get validationNoDeviceTitle;
+
+  /// No description provided for @validationNoDeviceBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Validasi membaca antrean dari kacamata SIGAP-NETRA. Hubungkan perangkat dulu untuk mulai memvalidasi.'**
+  String get validationNoDeviceBody;
+
+  /// No description provided for @validationNoDeviceAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Perangkat'**
+  String get validationNoDeviceAction;
+
+  /// No description provided for @validationFilterEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada antrean di filter ini'**
+  String get validationFilterEmptyTitle;
+
+  /// No description provided for @validationFilterEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Masih ada {count} pembacaan menunggu di kategori lain.'**
+  String validationFilterEmptyBody(int count);
+
+  /// No description provided for @validationFilterShowAll.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan semua'**
+  String get validationFilterShowAll;
+
   /// No description provided for @historyListTab.
   ///
   /// In id, this message translates to:
