@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sigap_netra_app/core/constants/demo_ids.dart';
+import 'package:sigap_netra_app/core/theme/status_colors.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
+import 'package:sigap_netra_app/features/devices/domain/repositories/device_repository.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/monitoring/data/datasources/fake_detection_data_source.dart';
 import 'package:sigap_netra_app/features/monitoring/domain/entities/detection.dart';
@@ -55,24 +59,54 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> signOut() async {}
 }
 
+/// Repository tanpa perangkat — menguji empty state "belum ada perangkat".
+class _EmptyDeviceRepository implements DeviceRepository {
+  const _EmptyDeviceRepository();
+
+  @override
+  Stream<List<Device>> watchMyDevices({required String uid}) =>
+      Stream<List<Device>>.value(const <Device>[]);
+
+  @override
+  Stream<Device?> watchDevice(String deviceId) => Stream<Device?>.value(null);
+}
+
 /// Regression test: tab Validasi pernah gagal render total karena `Expanded`
 /// di dalam sliver tanpa batas tinggi. Test ini memastikan kartu antrean
 /// tampil dan tombol aksi tersedia.
 void main() {
-  Future<void> pumpValidation(WidgetTester tester) async {
-    final graph = FakeAppGraph();
+  Future<void> pumpValidation(
+    WidgetTester tester, {
+    FakeAppGraph? graph,
+    DeviceRepository? deviceRepository,
+    double textScale = 1.0,
+  }) async {
+    final appGraph = graph ?? FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authRepositoryProvider.overrideWithValue(const _StubAuthRepository()),
-          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
-          ...graph.overrides,
+          deviceRepositoryProvider.overrideWithValue(
+            deviceRepository ?? DemoDeviceRepository(),
+          ),
+          ...appGraph.overrides,
         ],
-        child: const MaterialApp(
-          locale: Locale('id'),
+        child: MaterialApp(
+          locale: const Locale('id'),
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          home: ValidationScreen(),
+          home: textScale == 1.0
+              ? const ValidationScreen()
+              // Text scale sistem 1,3x (batas dukungan spec) diuji lewat
+              // MediaQuery override — bukan parameter test yang fiktif.
+              : Builder(
+                  builder: (context) => MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: TextScaler.linear(textScale)),
+                    child: const ValidationScreen(),
+                  ),
+                ),
         ),
       ),
     );
@@ -158,6 +192,99 @@ void main() {
       // Kartu kembali: progres "1 dari 2" lagi.
       expect(find.text('1 dari 2', skipOffstage: false), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tanpa perangkat menampilkan ajakan hubungkan perangkat', (
+      tester,
+    ) async {
+      await pumpValidation(
+        tester,
+        deviceRepository: const _EmptyDeviceRepository(),
+      );
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Belum ada perangkat terhubung'), findsOneWidget);
+      expect(find.text('Buka Perangkat'), findsOneWidget);
+      // Bukan pesan "semua selesai" — tidak ada perangkat, bukan tuntas.
+      expect(find.text('Semua pembacaan sudah diperiksa'), findsNothing);
+    });
+
+    testWidgets('filter kosong jujur, bukan "semua sudah diperiksa"', (
+      tester,
+    ) async {
+      final graph = FakeAppGraph();
+      // Hanya satu item menunggu, bertipe uang → filter Menu/Teks kosong
+      // padahal antrean kategori lain masih ada.
+      graph.detections.replaceAll([
+        Detection(
+          id: 'det-test-money',
+          deviceId: kDemoDeviceId,
+          deviceName: kDemoDeviceName,
+          type: DetectionType.money,
+          createdAt: DateTime.now(),
+          amount: 75000,
+          confidence: 0.9,
+          distanceCm: 25,
+        ),
+      ]);
+      await pumpValidation(tester, graph: graph);
+      await pumpFrames(tester);
+
+      final segment = find.text('Menu/Teks').first;
+      await tester.ensureVisible(segment);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(segment);
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Tidak ada antrean di filter ini'), findsOneWidget);
+      expect(find.textContaining('1 pembacaan menunggu'), findsOneWidget);
+      expect(find.text('Semua pembacaan sudah diperiksa'), findsNothing);
+
+      // "Tampilkan semua" mengembalikan antrean tanpa pindah tab.
+      await tester.tap(find.text('Tampilkan semua'));
+      await pumpFrames(tester);
+      expect(find.textContaining('75.000'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tombol Cocok memakai warna status ok (ui_spec §5.2)', (
+      tester,
+    ) async {
+      await pumpValidation(tester);
+      await pumpFrames(tester);
+
+      // `FilledButton.icon` merender subclass privat `FilledButton`, jadi
+      // pencarian memakai predicate `w is FilledButton`.
+      final matchButton = tester.widget<FilledButton>(
+        find
+            .ancestor(
+              of: find.text('Cocok'),
+              matching: find.byWidgetPredicate((w) => w is FilledButton),
+            )
+            .first,
+      );
+      expect(
+        matchButton.style?.backgroundColor?.resolve(<WidgetState>{}),
+        StatusColors.light.ok.solid,
+      );
+    });
+
+    testWidgets('teks 1,3x tetap tanpa overflow di viewport ponsel', (
+      tester,
+    ) async {
+      // 390x844 @3x — ukuran ponsel nyata; batas ketat untuk teks besar.
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+
+      await pumpValidation(tester, textScale: 1.3);
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Cocok'), findsOneWidget);
+      expect(find.text('Tidak cocok'), findsOneWidget);
     });
   });
 
