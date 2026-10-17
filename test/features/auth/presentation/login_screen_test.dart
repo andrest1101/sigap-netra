@@ -8,6 +8,8 @@ import 'package:sigap_netra_app/features/auth/presentation/screens/login_screen.
 import 'package:sigap_netra_app/features/auth/presentation/widgets/sign_up_sheet.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/precache_logo.dart';
+
 /// Widget test layar masuk baru: hero, validasi, sheet daftar, tamu.
 void main() {
   late FakeAuthDataSource dataSource;
@@ -19,6 +21,8 @@ void main() {
     WidgetTester tester, {
     ThemeMode mode = ThemeMode.light,
   }) async {
+    // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
+    await precacheLogoMark(tester);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

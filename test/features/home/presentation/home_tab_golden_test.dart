@@ -15,6 +15,7 @@ import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/precache_logo.dart';
 
 /// Repository tiruan: satu perangkat online, baterai 82.
 class _FakeDeviceRepository implements DeviceRepository {
@@ -55,6 +56,8 @@ void main() {
     WidgetTester tester, {
     ThemeMode mode = ThemeMode.light,
   }) async {
+    // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
+    await precacheLogoMark(tester);
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
