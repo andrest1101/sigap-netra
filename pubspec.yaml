@@ -43,7 +43,6 @@ dependencies:
   path_provider: ^2.1.5
   equatable: ^2.1.0
   qr_flutter: ^4.1.0
-  fl_chart: ^1.1.0
   share_plus: ^12.0.2
   firebase_core: ^4.15.0
   firebase_auth: ^6.7.0
@@ -78,11 +77,14 @@ flutter:
   # user-facing string in a widget must come from that file.
   generate: true
 
+  # Logo merek SIGAP-NETRA (mark mata + gelombang sinyal) sudah dipangkas dan
+  # dioptimalkan dari sumber logo.jpeg; lihat lib/core/widgets/logo_mark.dart.
   # Logo merek pihak ketiga (Google "G") tidak tersedia sebagai ikon
   # Material, jadi di-bundle sebagai PNG transparan 1x.
   # Foto dummy demonstrasi (bukan hasil bacaan alat): JPEG ≤ 60 KB sesuai
   # batas thumbnail privasi, dipakai FakeMediaDataSource untuk det-money-100k.
   assets:
+    - assets/images/logo_mark.png
     - assets/images/google_g_logo.png
     - assets/images/demo_money_100k.jpg
     - assets/images/demo_money_50k.jpg

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/logo_mark.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 /// Kepala brand layar masuk: lensa + nama aplikasi + kartu 3 poin.
@@ -26,19 +27,9 @@ class LoginHero extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               const LensRing(diameter: 88, mode: LensRingMode.focusing),
-              Container(
-                width: 52,
-                height: 52,
-                decoration: ShapeDecoration(
-                  color: colorScheme.primaryContainer,
-                  shape: const CircleBorder(),
-                ),
-                child: Icon(
-                  Icons.visibility_rounded,
-                  size: 28,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-              ),
+              // Mark merek di tengah cincin fokus — identitas SIGAP-NETRA,
+              // bukan ikon lensa generik.
+              const LogoMark(size: 52),
             ],
           ),
         ),

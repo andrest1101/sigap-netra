@@ -25,6 +25,14 @@ abstract interface class HistoryRepository {
     required String? thumbnailId,
   });
 
+  /// Menghitung jumlah pembacaan yang cocok dengan [filter] memakai agregasi
+  /// `count()` di server — bukan mengunduh dokumen.
+  ///
+  /// Dipakai panel Statistik (Riwayat) untuk angka total per hari/minggu dan
+  /// per status validasi. Filter wajib menyertakan `deviceId`
+  /// (`docs/firestore_schema.md` §7.3 poin 3).
+  Future<int> countDetections({required DetectionFilter filter});
+
   /// Mereset validasi satu pembacaan ke `pending` dengan tetap menyimpan
   /// [validatedBy] sebagai jejak pembatalan (skema bagian 4.2).
   Future<void> resetValidation({

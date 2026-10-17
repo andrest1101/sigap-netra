@@ -5,6 +5,7 @@ import '../../../../core/utils/retry_policy.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../domain/entities/detection_filter.dart';
 import '../../domain/entities/detection_page.dart';
+import '../../domain/entities/history_insights.dart';
 import '../../domain/repositories/history_repository.dart';
 import '../../domain/usecases/history_usecases.dart';
 
@@ -32,6 +33,10 @@ final resetValidationProvider = Provider<ResetValidation>(
 
 final resetAllValidationsProvider = Provider<ResetAllValidations>(
   (ref) => ResetAllValidations(ref.watch(historyRepositoryProvider)),
+);
+
+final getHistoryInsightsProvider = Provider<GetHistoryInsights>(
+  (ref) => GetHistoryInsights(ref.watch(historyRepositoryProvider)),
 );
 
 /// Kunci halaman riwayat: perangkat + filter aktif.
@@ -83,5 +88,32 @@ final historyPageProvider = FutureProvider.autoDispose
               deviceId: key.deviceId,
             ),
             limit: limit,
+          );
+    }, retry: noRetry);
+
+/// Kunci panel Statistik: perangkat + jendela waktu yang dipilih.
+class HistoryInsightsKey extends Equatable {
+  const HistoryInsightsKey({required this.deviceId, required this.window});
+
+  final String deviceId;
+  final HistoryWindow window;
+
+  @override
+  List<Object?> get props => [deviceId, window];
+}
+
+/// Ringkasan agregat panel Statistik (Riwayat → segmen Statistik).
+///
+/// Batas jendela dihitung dari `DateTime.now()` saat provider pertama dibaca;
+/// angka ikut disegarkan ketika halaman invalidate provider ini (hapus baris,
+/// reset validasi) — bukan timer, supaya tidak ada hitungan yang menganggur.
+final historyInsightsProvider = FutureProvider.autoDispose
+    .family<HistoryInsights, HistoryInsightsKey>((ref, key) {
+      return ref
+          .watch(getHistoryInsightsProvider)
+          .call(
+            deviceId: key.deviceId,
+            window: key.window,
+            now: DateTime.now(),
           );
     }, retry: noRetry);

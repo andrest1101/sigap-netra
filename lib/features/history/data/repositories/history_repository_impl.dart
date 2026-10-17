@@ -46,6 +46,17 @@ class HistoryRepositoryImpl implements HistoryRepository {
   }
 
   @override
+  Future<int> countDetections({required DetectionFilter filter}) {
+    final deviceId = filter.deviceId;
+    if (deviceId == null || deviceId.isEmpty) {
+      throw ArgumentError(
+        'DetectionFilter.deviceId wajib diisi: riwayat selalu per perangkat.',
+      );
+    }
+    return _dataSource.countDetections(filter: filter);
+  }
+
+  @override
   Future<void> resetValidation({
     required String deviceId,
     required String detectionId,

@@ -20,6 +20,7 @@ import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/lens_ring.dart';
+import '../widgets/logo_mark.dart';
 
 /// Nama path route sebagai konstanta.
 ///
@@ -407,19 +408,7 @@ class SplashScreen extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   const LensRing(diameter: 120, mode: LensRingMode.focusing),
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: ShapeDecoration(
-                      color: colorScheme.primaryContainer,
-                      shape: const CircleBorder(),
-                    ),
-                    child: Icon(
-                      Icons.visibility_rounded,
-                      size: 40,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
+                  const LogoMark(size: 72),
                 ],
               ),
             ),

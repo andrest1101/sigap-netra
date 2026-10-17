@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
@@ -26,12 +27,18 @@ import '../../../monitoring/domain/entities/detection.dart';
 import '../../../sharing/domain/entities/share_report.dart';
 import '../../../sharing/presentation/providers/sharing_providers.dart';
 import '../providers/history_providers.dart';
+import '../widgets/history_stats_view.dart';
 
 /// Riwayat — identitas visual v3.
 ///
-/// Segmen Daftar | Statistik. Daftar: chip kategori + sheet filter status,
-/// dikelompokkan per hari (header lengket), baris thumbnail 56/radius 14,
-/// geser-hapus + Urungkan 5 dtk, menu ⋯ (Reset…, Ekspor CSV, Bagikan).
+/// Segmen **Daftar | Statistik**:
+/// - Daftar: chip kategori + sheet filter status, grup per hari dengan
+///   ringkasan jenis bacaan, baris thumbnail 48/radius 14 dengan pil
+///   keyakinan & jarak, geser-hapus + konfirmasi, menu ⋯ (Reset…, Ekspor CSV,
+///   Bagikan).
+/// - Statistik: agregat jendela 7 hari/4 minggu dari `count()` server —
+///   ring akurasi, grafik batang per hari/minggu, komposisi jenis & status
+///   validasi (lihat `HistoryStatsView`).
 enum _HistoryTab { list, stats }
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -123,9 +130,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               ),
             ),
           ),
-          if (_tab == _HistoryTab.stats)
-            _StatsComingSoon(l10n: l10n)
-          else if (deviceId == null)
+          if (deviceId == null)
             EmptyView(
               title: l10n.historyNoDeviceTitle,
               message: l10n.historyNoDeviceBody,
@@ -136,6 +141,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                 label: Text(l10n.historyNoDeviceAction),
               ),
             )
+          else if (_tab == _HistoryTab.stats)
+            HistoryStatsView(deviceId: deviceId)
           else if (hasError)
             ErrorView(
               message: _failureText(context, page.error!),
@@ -205,6 +212,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             validatedBy: ref.read(currentUserProvider)?.uid,
           );
       ref.invalidate(historyPageProvider);
+      // Angka panel Statistik ikut berubah setelah reset (semua validasi
+      // kembali "Menunggu") — tanpa ini panel menunjukkan angka lama.
+      ref.invalidate(historyInsightsProvider);
     } catch (_) {
       if (mounted) _snack(l10n.historyActionFailed);
       return;
@@ -309,6 +319,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
 /// Marker "Semua" untuk sheet filter status (lihat [_HistoryScreenState]).
 const Object _kAllStatusFilter = Object();
+
+/// Jam baris riwayat ("14.32") — 24 jam gaya Indonesia, tanpa AM/PM.
+final DateFormat _rowTimeFormat = DateFormat('HH.mm');
 
 String _statusLabel(ValidationStatus status, AppLocalizations l10n) {
   return switch (status) {
@@ -448,9 +461,21 @@ class _DayGroupedList extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final entry in groups.entries) ...[
-          _DayHeader(label: _dayLabel(entry.key, l10n)),
-          for (final detection in entry.value)
+        for (var i = 0; i < groups.length; i++) ...[
+          _DayHeader(
+            // Kunci per tanggal: elemen dipakai ulang dengan tepat saat "Muat
+            // lagi" menambah baris ke grup hari yang sudah tampil.
+            key: ValueKey('day-${groups[i].day.toIso8601String()}'),
+            label: _dayLabel(groups[i].day, l10n),
+            count: groups[i].items.length,
+            money: groups[i].money,
+            text: groups[i].text,
+            // Grup terakhir terpotong bila masih ada halaman berikutnya:
+            // jumlahnya "sekurangnya N" — ditandai "+" dan rincian jenis
+            // disembunyikan supaya tidak mengklaim angka yang belum dimuat.
+            partial: hasMore && i == groups.length - 1,
+          ),
+          for (final detection in groups[i].items)
             _HistoryRow(
               detection: detection,
               number: ++number,
@@ -461,7 +486,7 @@ class _DayGroupedList extends ConsumerWidget {
           padding: const EdgeInsets.all(DesignTokens.spacePage),
           child: hasMore
               ? Center(
-                  child: OutlinedButton.icon(
+                  child: FilledButton.tonalIcon(
                     onPressed: onLoadMore,
                     icon: const Icon(Icons.expand_more_rounded),
                     label: Text(l10n.historyLoadMore),
@@ -479,7 +504,7 @@ class _DayGroupedList extends ConsumerWidget {
     );
   }
 
-  Map<DateTime, List<Detection>> _groupByDay(List<Detection> items) {
+  List<_DayGroup> _groupByDay(List<Detection> items) {
     final groups = <DateTime, List<Detection>>{};
     for (final item in items) {
       final day = DateTime(
@@ -489,7 +514,9 @@ class _DayGroupedList extends ConsumerWidget {
       );
       groups.putIfAbsent(day, () => []).add(item);
     }
-    return groups;
+    return [
+      for (final entry in groups.entries) _DayGroup(entry.key, entry.value),
+    ];
   }
 
   String _dayLabel(DateTime day, AppLocalizations l10n) {
@@ -536,6 +563,8 @@ class _DayGroupedList extends ConsumerWidget {
       // tanpa kunci family yang tepat, FutureProvider basi tetap dipakai dan
       // baris yang dihapus masih terlihat meski snackbar sudah muncul.
       ref.invalidate(historyPageProvider(pageKey));
+      // Jumlah per hari/minggu di panel Statistik juga berkurang satu.
+      ref.invalidate(historyInsightsProvider);
       final thumb = detection.thumbnailId;
       if (thumb != null && thumb.isNotEmpty) {
         ref.invalidate(
@@ -561,13 +590,48 @@ class _DayGroupedList extends ConsumerWidget {
   }
 }
 
+/// Satu grup hari pada daftar riwayat.
+class _DayGroup {
+  _DayGroup(this.day, this.items);
+
+  final DateTime day;
+  final List<Detection> items;
+
+  int get money => items.where((d) => d.type == DetectionType.money).length;
+
+  int get text => items.length - money;
+}
+
+/// Header grup hari: label hari + ringkasan bacaan hari itu.
+///
+/// Ringkasan hanya menyebut angka yang benar-benar dimuat. Grup terakhir yang
+/// masih terpotong halaman berikutnya ditandai "+" dan rincian jenisnya
+/// disembunyikan (`partial`) — jangan mengklaim total yang belum diambil.
 class _DayHeader extends StatelessWidget {
-  const _DayHeader({required this.label});
+  const _DayHeader({
+    required this.label,
+    required this.count,
+    required this.money,
+    required this.text,
+    required this.partial,
+    super.key,
+  });
 
   final String label;
+  final int count;
+  final int money;
+  final int text;
+  final bool partial;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final stat = partial
+        ? l10n.historyDayStatMore(count)
+        : l10n.historyDayStat(count);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         DesignTokens.spacePage,
@@ -577,7 +641,37 @@ class _DayHeader extends StatelessWidget {
       ),
       child: Semantics(
         header: true,
-        child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+        child: Row(
+          // Kedua sisi fleksibel & bisa dipotong dengan elipsis: di layar
+          // sempit label hari menang, ringkasan angka menyusut — tidak ada
+          // yang meluber keluar kartu.
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: DesignTokens.spaceSm),
+            Flexible(
+              child: Text(
+                partial ? stat : '$stat · ${l10n.historyDayTypes(money, text)}',
+                textAlign: TextAlign.end,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -605,6 +699,11 @@ class _HistoryRow extends StatelessWidget {
       ValidationStatus.match => AppStatusTone.ok,
       ValidationStatus.mismatch => AppStatusTone.bad,
     };
+    // Pil keyakinan: angka pendek (±95%), makna lengkap ada di semantik.
+    final confidenceValue = detection.confidence;
+    final confidence = confidenceValue == null
+        ? null
+        : NumberFormatId.percentWithSign(confidenceValue * 100);
 
     return Dismissible(
       key: ValueKey('history-${detection.id}'),
@@ -648,26 +747,56 @@ class _HistoryRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      '${l10n.historyReadNumber(number)} · ${detection.confidence == null ? '–' : l10n.historyConfidenceValue(NumberFormatId.percentWithSign(detection.confidence! * 100))}${detection.distanceCm == null ? '' : ' · ${l10n.historyDistanceValue(detection.distanceCm!)}'}',
-                      style: textTheme.labelMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 2),
+                    // Baris meta: nomor & jam sebagai teks tenang, lalu pil
+                    // keyakinan, jarak, dan status validasi. Semua ditaruh di
+                    // dalam satu `Wrap` (bukan chip status yang dipaku di
+                    // kanan) supaya di layar 360 dp isinya turun ke run
+                    // berikutnya dengan rapi — tidak ada yang terpotong.
+                    Wrap(
+                      spacing: DesignTokens.spaceSm,
+                      runSpacing: DesignTokens.spaceXs,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          '${l10n.historyReadNumber(number)} · '
+                          '${_rowTimeFormat.format(detection.createdAt)}',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        if (confidence != null)
+                          Semantics(
+                            label: l10n.historyConfidenceValue(confidence),
+                            excludeSemantics: true,
+                            child: MetricChip(
+                              icon: Icons.center_focus_strong_rounded,
+                              label: confidence,
+                              isDense: true,
+                            ),
+                          ),
+                        if (detection.distanceCm != null)
+                          MetricChip(
+                            icon: Icons.straighten_rounded,
+                            label: l10n.historyDistanceValue(
+                              detection.distanceCm!,
+                            ),
+                            isDense: true,
+                          ),
+                        StatusChip(
+                          label: switch (detection.validationStatus) {
+                            ValidationStatus.pending => l10n.statusPending,
+                            ValidationStatus.match => l10n.statusMatch,
+                            ValidationStatus.mismatch => l10n.statusMismatch,
+                          },
+                          tone: tone,
+                          isDense: true,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: DesignTokens.spaceSm),
-              StatusChip(
-                label: switch (detection.validationStatus) {
-                  ValidationStatus.pending => l10n.statusPending,
-                  ValidationStatus.match => l10n.statusMatch,
-                  ValidationStatus.mismatch => l10n.statusMismatch,
-                },
-                tone: tone,
-                isDense: true,
               ),
               const SizedBox(width: DesignTokens.spaceXs),
               Icon(
@@ -788,57 +917,4 @@ String _failureText(BuildContext context, Object error) {
   final l10n = AppLocalizations.of(context);
   if (error is AppFailure) return failureMessage(error, l10n);
   return l10n.stateErrorBody;
-}
-
-/// Segmen Statistik (P1): placeholder rapi, bukan layar kosong.
-class _StatsComingSoon extends StatelessWidget {
-  const _StatsComingSoon({required this.l10n});
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        DesignTokens.spacePage,
-        DesignTokens.spaceMd,
-        DesignTokens.spacePage,
-        0,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(DesignTokens.spaceSection),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.bar_chart_rounded,
-              size: 48,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: DesignTokens.spaceMd),
-            Text(
-              l10n.historyStatsComingSoonTitle,
-              style: textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: DesignTokens.spaceSm),
-            Text(
-              l10n.historyStatsComingSoonBody,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

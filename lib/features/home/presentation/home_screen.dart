@@ -13,6 +13,7 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/logo_mark.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
@@ -135,19 +136,9 @@ class DeviceHeroCard extends ConsumerWidget {
               children: [
                 Stack(
                   children: [
-                    Container(
-                      width: DesignTokens.deviceAvatarSize,
-                      height: DesignTokens.deviceAvatarSize,
-                      decoration: ShapeDecoration(
-                        color: colorScheme.surface,
-                        shape: const CircleBorder(),
-                      ),
-                      child: Icon(
-                        Icons.visibility_rounded,
-                        size: 28,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
+                    // Avatar kacamata cerdas memakai mark merek — satu
+                    // identitas dengan detail perangkat & layar masuk.
+                    const LogoMark(size: DesignTokens.deviceAvatarSize),
                     Positioned(
                       right: 0,
                       bottom: 0,

@@ -85,8 +85,9 @@ void main() {
       await pumpFrames(tester);
 
       expect(tester.takeException(), isNull);
-      // Sampel demo 6 item dalam satu halaman: tanpa "+" (tidak ada lagi).
-      expect(find.text('6 pembacaan tersimpan'), findsOneWidget);
+      // Sampel demo lebih dari satu halaman (123 bacaan, halaman 25 baris):
+      // subjudul wajib memakai "+" supaya tidak mengklaim memuat semuanya.
+      expect(find.text('25+ pembacaan dimuat'), findsOneWidget);
     });
 
     testWidgets('filter kosong jujur + Tampilkan semua', (tester) async {
