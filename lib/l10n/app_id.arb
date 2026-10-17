@@ -390,12 +390,78 @@
   "historyReadNumber": "No. {number}",
   "historyConfidenceValue": "Keyakinan {value}",
   "historyDistanceValue": "{value} cm",
-  "historyStatsComingSoonTitle": "Statistik segera hadir",
-  "historyStatsComingSoonBody": "Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.",
+  "historyStatsRange7": "7 hari terakhir",
+  "historyStatsRange4Weeks": "4 minggu terakhir",
+  "historyStatsChartDaily": "Pembacaan per hari",
+  "historyStatsChartWeekly": "Pembacaan per minggu",
+  "historyStatsChartSemantics": "Grafik pembacaan: {total} pembacaan dalam {days} hari terakhir",
+  "historyStatsEmptyTitle": "Belum ada pembacaan pada rentang ini",
+  "historyStatsEmptyBody": "Coba rentang waktu yang lebih panjang, atau pastikan perangkat sudah mengirim pembacaan.",
+  "historyStatsEmptyAction": "Lihat 4 minggu terakhir",
+  "historyStatsAccuracyTitle": "Akurasi bacaan",
+  "historyStatsAccuracyCaption": "dari {count} validasi",
+  "historyStatsNoValidation": "Belum ada validasi pada rentang ini",
+  "historyStatsTotalLabel": "Total pembacaan",
+  "historyStatsPerDayLabel": "Per hari",
+  "historyStatsPendingLabel": "Menunggu validasi",
+  "historyStatsTypesTitle": "Jenis pembacaan",
+  "historyStatsTypeSemantics": "Uang {money}, teks {text}",
+  "historyStatsValidationTitle": "Status validasi",
+  "historyStatsValidationSemantics": "Cocok {matched}, tidak cocok {mismatched}, menunggu {pending}",
+  "historyStatsLegendValue": "{count} · {percent}%",
+  "historyDayStat": "{count} pembacaan",
+  "historyDayStatMore": "{count}+ pembacaan",
+  "historyDayTypes": "{money} uang · {text} teks",
   "historyResetMenu": "Reset status validasi...",
   "historyExportCsv": "Ekspor CSV",
   "historyShareSummary": "Bagikan ringkasan",
   "historyExportComingSoon": "Ekspor CSV segera hadir.",
+  "@historyStatsChartSemantics": {
+    "placeholders": {
+      "total": { "type": "int" },
+      "days": { "type": "int" }
+    }
+  },
+  "@historyStatsAccuracyCaption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@historyStatsTypeSemantics": {
+    "placeholders": {
+      "money": { "type": "int" },
+      "text": { "type": "int" }
+    }
+  },
+  "@historyStatsValidationSemantics": {
+    "placeholders": {
+      "matched": { "type": "int" },
+      "mismatched": { "type": "int" },
+      "pending": { "type": "int" }
+    }
+  },
+  "@historyStatsLegendValue": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "percent": { "type": "int" }
+    }
+  },
+  "@historyDayStat": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@historyDayStatMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "@historyDayTypes": {
+    "placeholders": {
+      "money": { "type": "int" },
+      "text": { "type": "int" }
+    }
+  },
   "@historyReadNumber": {
     "placeholders": {
       "number": { "type": "int" }

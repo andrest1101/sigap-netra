@@ -967,11 +967,91 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get historyStatsComingSoonTitle => 'Statistik segera hadir';
+  String get historyStatsRange7 => '7 hari terakhir';
 
   @override
-  String get historyStatsComingSoonBody =>
-      'Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.';
+  String get historyStatsRange4Weeks => '4 minggu terakhir';
+
+  @override
+  String get historyStatsChartDaily => 'Pembacaan per hari';
+
+  @override
+  String get historyStatsChartWeekly => 'Pembacaan per minggu';
+
+  @override
+  String historyStatsChartSemantics(int total, int days) {
+    return 'Grafik pembacaan: $total pembacaan dalam $days hari terakhir';
+  }
+
+  @override
+  String get historyStatsEmptyTitle => 'Belum ada pembacaan pada rentang ini';
+
+  @override
+  String get historyStatsEmptyBody =>
+      'Coba rentang waktu yang lebih panjang, atau pastikan perangkat sudah mengirim pembacaan.';
+
+  @override
+  String get historyStatsEmptyAction => 'Lihat 4 minggu terakhir';
+
+  @override
+  String get historyStatsAccuracyTitle => 'Akurasi bacaan';
+
+  @override
+  String historyStatsAccuracyCaption(int count) {
+    return 'dari $count validasi';
+  }
+
+  @override
+  String get historyStatsNoValidation => 'Belum ada validasi pada rentang ini';
+
+  @override
+  String get historyStatsTotalLabel => 'Total pembacaan';
+
+  @override
+  String get historyStatsPerDayLabel => 'Per hari';
+
+  @override
+  String get historyStatsPendingLabel => 'Menunggu validasi';
+
+  @override
+  String get historyStatsTypesTitle => 'Jenis pembacaan';
+
+  @override
+  String historyStatsTypeSemantics(int money, int text) {
+    return 'Uang $money, teks $text';
+  }
+
+  @override
+  String get historyStatsValidationTitle => 'Status validasi';
+
+  @override
+  String historyStatsValidationSemantics(
+    int matched,
+    int mismatched,
+    int pending,
+  ) {
+    return 'Cocok $matched, tidak cocok $mismatched, menunggu $pending';
+  }
+
+  @override
+  String historyStatsLegendValue(int count, int percent) {
+    return '$count · $percent%';
+  }
+
+  @override
+  String historyDayStat(int count) {
+    return '$count pembacaan';
+  }
+
+  @override
+  String historyDayStatMore(int count) {
+    return '$count+ pembacaan';
+  }
+
+  @override
+  String historyDayTypes(int money, int text) {
+    return '$money uang · $text teks';
+  }
 
   @override
   String get historyResetMenu => 'Reset status validasi...';

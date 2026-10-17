@@ -1870,17 +1870,141 @@ abstract class AppLocalizations {
   /// **'{value} cm'**
   String historyDistanceValue(int value);
 
-  /// No description provided for @historyStatsComingSoonTitle.
+  /// No description provided for @historyStatsRange7.
   ///
   /// In id, this message translates to:
-  /// **'Statistik segera hadir'**
-  String get historyStatsComingSoonTitle;
+  /// **'7 hari terakhir'**
+  String get historyStatsRange7;
 
-  /// No description provided for @historyStatsComingSoonBody.
+  /// No description provided for @historyStatsRange4Weeks.
   ///
   /// In id, this message translates to:
-  /// **'Grafik pembacaan per hari, per kategori, dan tren kecocokan sedang disiapkan.'**
-  String get historyStatsComingSoonBody;
+  /// **'4 minggu terakhir'**
+  String get historyStatsRange4Weeks;
+
+  /// No description provided for @historyStatsChartDaily.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan per hari'**
+  String get historyStatsChartDaily;
+
+  /// No description provided for @historyStatsChartWeekly.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan per minggu'**
+  String get historyStatsChartWeekly;
+
+  /// No description provided for @historyStatsChartSemantics.
+  ///
+  /// In id, this message translates to:
+  /// **'Grafik pembacaan: {total} pembacaan dalam {days} hari terakhir'**
+  String historyStatsChartSemantics(int total, int days);
+
+  /// No description provided for @historyStatsEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada pembacaan pada rentang ini'**
+  String get historyStatsEmptyTitle;
+
+  /// No description provided for @historyStatsEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Coba rentang waktu yang lebih panjang, atau pastikan perangkat sudah mengirim pembacaan.'**
+  String get historyStatsEmptyBody;
+
+  /// No description provided for @historyStatsEmptyAction.
+  ///
+  /// In id, this message translates to:
+  /// **'Lihat 4 minggu terakhir'**
+  String get historyStatsEmptyAction;
+
+  /// No description provided for @historyStatsAccuracyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Akurasi bacaan'**
+  String get historyStatsAccuracyTitle;
+
+  /// No description provided for @historyStatsAccuracyCaption.
+  ///
+  /// In id, this message translates to:
+  /// **'dari {count} validasi'**
+  String historyStatsAccuracyCaption(int count);
+
+  /// No description provided for @historyStatsNoValidation.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada validasi pada rentang ini'**
+  String get historyStatsNoValidation;
+
+  /// No description provided for @historyStatsTotalLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Total pembacaan'**
+  String get historyStatsTotalLabel;
+
+  /// No description provided for @historyStatsPerDayLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Per hari'**
+  String get historyStatsPerDayLabel;
+
+  /// No description provided for @historyStatsPendingLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu validasi'**
+  String get historyStatsPendingLabel;
+
+  /// No description provided for @historyStatsTypesTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Jenis pembacaan'**
+  String get historyStatsTypesTitle;
+
+  /// No description provided for @historyStatsTypeSemantics.
+  ///
+  /// In id, this message translates to:
+  /// **'Uang {money}, teks {text}'**
+  String historyStatsTypeSemantics(int money, int text);
+
+  /// No description provided for @historyStatsValidationTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Status validasi'**
+  String get historyStatsValidationTitle;
+
+  /// No description provided for @historyStatsValidationSemantics.
+  ///
+  /// In id, this message translates to:
+  /// **'Cocok {matched}, tidak cocok {mismatched}, menunggu {pending}'**
+  String historyStatsValidationSemantics(
+    int matched,
+    int mismatched,
+    int pending,
+  );
+
+  /// No description provided for @historyStatsLegendValue.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} · {percent}%'**
+  String historyStatsLegendValue(int count, int percent);
+
+  /// No description provided for @historyDayStat.
+  ///
+  /// In id, this message translates to:
+  /// **'{count} pembacaan'**
+  String historyDayStat(int count);
+
+  /// No description provided for @historyDayStatMore.
+  ///
+  /// In id, this message translates to:
+  /// **'{count}+ pembacaan'**
+  String historyDayStatMore(int count);
+
+  /// No description provided for @historyDayTypes.
+  ///
+  /// In id, this message translates to:
+  /// **'{money} uang · {text} teks'**
+  String historyDayTypes(int money, int text);
 
   /// No description provided for @historyResetMenu.
   ///

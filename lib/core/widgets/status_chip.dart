@@ -104,20 +104,29 @@ class StatusChip extends StatelessWidget {
 /// Chip metrik kecil: ikon + nilai, mis. Confidence `0,96` atau Jarak `35 cm`.
 ///
 /// Netral secara visual (permukaan tonal), bukan warna status — angka bukan
-/// status.
+/// status. Varian [isDense] untuk baris daftar (padding 8, ikon 12, label
+/// kecil) supaya dua pil muat berdampingan dengan nomor & jam pada layar
+/// 360 dp tanpa memotong apa pun.
 class MetricChip extends StatelessWidget {
-  const MetricChip({required this.icon, required this.label, super.key});
+  const MetricChip({
+    required this.icon,
+    required this.label,
+    super.key,
+    this.isDense = false,
+  });
 
   final IconData icon;
   final String label;
+  final bool isDense;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignTokens.spaceMd,
-        vertical: DesignTokens.spaceXs,
+      padding: EdgeInsets.symmetric(
+        horizontal: isDense ? DesignTokens.spaceSm : DesignTokens.spaceMd,
+        vertical: isDense ? 2 : DesignTokens.spaceXs,
       ),
       decoration: ShapeDecoration(
         color: colorScheme.surfaceContainerHigh,
@@ -126,13 +135,16 @@ class MetricChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: DesignTokens.spaceXs),
+          Icon(
+            icon,
+            size: isDense ? 12 : 14,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          SizedBox(width: isDense ? 2 : DesignTokens.spaceXs),
           Text(
             label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: colorScheme.onSurface),
+            style: (isDense ? textTheme.labelSmall : textTheme.labelMedium)
+                ?.copyWith(color: colorScheme.onSurface),
           ),
         ],
       ),
