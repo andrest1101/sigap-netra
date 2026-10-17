@@ -10,6 +10,7 @@ import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/logo_mark.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
@@ -112,18 +113,8 @@ class _DeviceDetailBody extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: DesignTokens.deviceAvatarSize,
-                height: DesignTokens.deviceAvatarSize,
-                decoration: ShapeDecoration(
-                  color: colorScheme.primaryContainer,
-                  shape: const CircleBorder(),
-                ),
-                child: Icon(
-                  Icons.visibility_rounded,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-              ),
+              // Mark merek kacamata cerdas (selaras Hero Beranda).
+              const LogoMark(size: DesignTokens.deviceAvatarSize),
               const SizedBox(width: DesignTokens.spaceLg),
               Expanded(
                 child: Column(

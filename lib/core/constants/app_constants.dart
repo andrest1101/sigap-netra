@@ -67,6 +67,11 @@ const String kWifiQrPayloadNote =
 /// memakai aset ini. Ukuran asli 3840px — selalu tampilkan kecil (20-24dp).
 const String kGoogleLogoAsset = 'assets/images/google_g_logo.png';
 
+/// Mark merek SIGAP-NETRA (mata + gelombang sinyal), sudah dipangkas dari
+/// `assets/images/logo.jpeg`. Dipakai lewat `LogoMark` — jangan `Image.asset`
+/// langsung di layar.
+const String kLogoMarkAsset = 'assets/images/logo_mark.png';
+
 /// Minimum panjang kata sandi Wi-Fi yang diterima.
 const int kMinWifiPasswordLength = 8;
 
