@@ -95,9 +95,12 @@ class FakeDetectionDataSource implements DetectionDataSource {
 /// jalan, papan reklame, atau dokumen yang tidak dihadapkan ke kamera.
 /// Jangan menambah contoh selain dua jenis ini.
 ///
-/// Sebagian item sudah divalidasi supaya demo memperlihatkan antrean Validasi,
-/// akurasi, dan Riwayat yang terisi: 2 menunggu, 3 cocok, 1 tidak cocok —
-/// akurasi 75% dari 4 validasi.
+/// Struktur data demo:
+/// - 6 bacaan **hari ini** (relatif ke `now`, jadi "aktivitas terbaru"
+///   Beranda selalu terlihat hidup): 2 menunggu, 3 cocok, 1 tidak cocok.
+/// - [_pastDetections]: 27 hari ke belakang dari [_pastDayPattern] supaya
+///   panel Statistik dan paginasi Riwayat punya data nyata untuk dihitung —
+///   bukan grafik kosong.
 List<Detection> _sample() {
   final now = DateTime.now();
   return [
@@ -180,7 +183,101 @@ List<Detection> _sample() {
       validatedBy: kDemoUserId,
       validatedAt: now.subtract(const Duration(minutes: 4, seconds: 30)),
     ),
+    ..._pastDetections(now),
   ];
+}
+
+/// Pola bacaan 27 hari ke belakang: indeks 0 = kemarin.
+///
+/// (uang, teks, tidak cocok) per hari. Ada hari bernilai nol dengan sengaja:
+/// alat memang tidak dipakai setiap hari, dan panel Statistik harus
+/// memperlihatkan jeda itu apa adanya — bukan grafik rata buatan.
+const List<(int, int, int)> _pastDayPattern = [
+  (4, 2, 0), // kemarin
+  (5, 1, 0),
+  (3, 2, 1),
+  (0, 0, 0), // tidak dipakai
+  (4, 1, 0),
+  (6, 2, 1),
+  (5, 1, 0),
+  (4, 2, 0),
+  (3, 1, 0),
+  (0, 0, 0),
+  (5, 2, 1),
+  (4, 1, 0),
+  (6, 1, 0),
+  (3, 1, 0),
+  (5, 1, 1),
+  (0, 0, 0),
+  (4, 2, 0),
+  (6, 1, 0),
+  (3, 1, 0),
+  (4, 2, 1),
+  (2, 1, 0),
+  (3, 1, 0),
+  (0, 0, 0),
+  (4, 1, 0),
+  (3, 1, 1),
+  (0, 0, 0),
+  (3, 0, 0),
+];
+
+/// Bacaan 27 hari terakhir untuk demo, dibangkitkan dari [_pastDayPattern].
+///
+/// Deterministik (tanpa acak) supaya golden test dan angka panel Statistik
+/// stabil, dan jam-nya dipatok ke tanggal (`today - n`) supaya pengelompokan
+/// per hari tidak berubah tergantung jam test dijalankan. Semua entri sudah
+/// diperiksa pendamping: hanya bacaan hari ini yang masih menunggu validasi.
+/// Tanpa thumbnail — media demo hanya ada untuk beberapa item hari ini, dan
+/// baris tanpa gambar memang keadaan nyata saat opt-in thumbnail mati.
+List<Detection> _pastDetections(DateTime today) {
+  const amounts = [100000, 50000, 20000, 10000, 5000, 2000, 1000];
+  const labels = [
+    'NASI GORENG — Rp18.000',
+    'MIE AYAM — Rp12.000',
+    'ES TEH MANIS — Rp5.000',
+    'SUSU KOTAK 250 ML',
+    'MADU 500 ML',
+    'TISU 250 LEMBAR',
+  ];
+  const confidences = [0.94, 0.9, 0.87, 0.95, 0.92, 0.85, 0.89];
+
+  final items = <Detection>[];
+  var pick = 0;
+  for (var index = 0; index < _pastDayPattern.length; index++) {
+    final (money, text, mismatch) = _pastDayPattern[index];
+    final daysAgo = index + 1;
+    for (var i = 0; i < money + text; i++) {
+      final isMoney = i < money;
+      final createdAt = DateTime(
+        today.year,
+        today.month,
+        today.day - daysAgo,
+        8 + ((daysAgo * 3 + i * 2) % 11),
+        (daysAgo * 7 + i * 17) % 60,
+      );
+      items.add(
+        Detection(
+          id: 'det-history-$daysAgo-$i',
+          deviceId: kDemoDeviceId,
+          deviceName: kDemoDeviceName,
+          type: isMoney ? DetectionType.money : DetectionType.text,
+          createdAt: createdAt,
+          amount: isMoney ? amounts[pick % amounts.length] : null,
+          ocrText: isMoney ? null : labels[pick % labels.length],
+          confidence: confidences[pick % confidences.length],
+          distanceCm: 20 + (pick * 3) % 25,
+          validationStatus: i < mismatch
+              ? ValidationStatus.mismatch
+              : ValidationStatus.match,
+          validatedBy: kDemoUserId,
+          validatedAt: createdAt.add(const Duration(minutes: 2)),
+        ),
+      );
+      pick++;
+    }
+  }
+  return items;
 }
 
 /// Implementasi [DetectionRepository] untuk data simulasi.

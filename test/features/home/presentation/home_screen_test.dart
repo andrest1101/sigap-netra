@@ -325,8 +325,9 @@ void main() {
       expect(find.textContaining('·'), findsWidgets);
       // Tile Hari ini: breakdown kategori dari data demo (4 uang · 2 teks).
       expect(find.textContaining('uang ·'), findsOneWidget);
-      // Footer akurasi: sampel demo berisi 4 validasi (3 cocok, 1 tidak).
-      expect(find.text('dari 4 validasi'), findsOneWidget);
+      // Footer akurasi: seluruh sampel demo sudah divalidasi pendamping
+      // (114 cocok + 7 tidak cocok = 121 validasi; 2 hari ini masih menunggu).
+      expect(find.text('dari 121 validasi'), findsOneWidget);
     });
 
     testWidgets('tile Sinkron terakhir dan Hari ini sama tinggi', (
