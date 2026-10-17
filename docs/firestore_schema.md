@@ -244,6 +244,8 @@ Rekomendasi: **tulis `lastSeen` tidak lebih cepat dari 60 detik** (tetap di bawa
 5. Ringkasan harian memakai agregasi pada rentang `createdAt`, bukan iterasi dokumen.
 6. `StreamProvider` harus `autoDispose`, dan provider `tick` (15 detik) hanya memicu penilaian konektivitas ulang di memori, bukan query baru.
 7. Fan-out per detik harus dihindari: satu perangkat dengan heartbeat 60 detik dan satu listener per anggota akan menagih 1 baca per perubahan dokumen, yang masih wajar, tetapi menambah anggota berarti menambah aliran baca untuk dokumen yang sama. [PERLU KONFIRMASI] jumlah anggota maksimal per perangkat (poin 4 di bagian 6).
+8. Panel Statistik Riwayat hanya memakai `count()` agregat: **2 hitungan per batang** (`type` uang dan teks) + **3 hitungan status** pada jendela yang sama → maksimum **17 hitungan** untuk rentang 7 hari dan **11 hitungan** untuk 4 minggu, dijalankan paralel. Grafik tidak pernah mengunduh dokumen; menambah rentang atau lebar batang baru wajib menghitung anggaran ini lebih dulu.
+9. Akurasi panel Statistik dihitung di klien dari hasil `count()`: `cocok / (cocok + tidak cocok)` **pada jendela yang sama**; `pending` tidak pernah dihitung sebagai benar (prinsip integritas validasi). Rentang memakai `createdAt` dengan pagar setengah terbuka `[since, before)`, bukan `validatedAt`, supaya angka sepakat dengan tanggal yang tampil di daftar.
 
 ### 7.4 Penyimpanan dan retensi
 
@@ -256,15 +258,15 @@ Rekomendasi: **tulis `lastSeen` tidak lebih cepat dari 60 detik** (tetap di bawa
 
 ## 8. Indeks yang dibutuhkan
 
-Firestore menyediakan indeks single-field otomatis, sehingga indeks composite hanya perlu untuk kombinasi filter dengan `orderBy`. Tabel di bawah adalah daftar **final** yang harus dicerminkan persis oleh `firebase/firestore.indexes.json`. Bila perubahan skema membuat tabel ini berubah, kedua file harus diubah dalam satu changeset yang sama.
+Firestore menyediakan indeks single-field otomatis, sehingga indeks composite hanya perlu untuk: **(a)** kombinasi filter setara dengan `orderBy` pada field lain, dan **(b)** kombinasi filter setara dengan rentang/ketidaksamaan pada field lain (mis. `type == 'money'` + rentang `createdAt` di panel Statistik). Tabel di bawah adalah daftar **final** yang harus dicerminkan persis oleh `firebase/firestore.indexes.json`. Bila perubahan skema membuat tabel ini berubah, kedua file harus diubah dalam satu changeset yang sama.
 
 | # | Collection path | Filter | `orderBy` | Composite | Pemakai |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `devices/{deviceId}/detections` | `validationStatus == 'pending'` | `createdAt DESC` | ya | `WatchPendingDetections` (halaman Validasi) |
-| 2 | `devices/{deviceId}/detections` | `validationStatus == 'match'` | `createdAt DESC` | ya | `GetAccuracy` lewat `count()` |
-| 3 | `devices/{deviceId}/detections` | `validationStatus == 'mismatch'` | `createdAt DESC` | ya | `GetAccuracy` lewat `count()` |
-| 4 | `devices/{deviceId}/detections` | `type == 'money'` | `createdAt DESC` | ya | filter jenis di Riwayat |
-| 5 | `devices/{deviceId}/detections` | `type == 'text'` | `createdAt DESC` | ya | filter jenis di Riwayat |
+| 2 | `devices/{deviceId}/detections` | `validationStatus == 'match'` | `createdAt DESC` | ya | `GetAccuracy` lewat `count()`; status "Cocok" panel Statistik (jendela `createdAt`) |
+| 3 | `devices/{deviceId}/detections` | `validationStatus == 'mismatch'` | `createdAt DESC` | ya | `GetAccuracy` lewat `count()`; status "Tidak cocok" panel Statistik (jendela `createdAt`) |
+| 4 | `devices/{deviceId}/detections` | `type == 'money'` | `createdAt DESC` | ya | filter jenis di Riwayat; batang "uang" panel Statistik `count()` |
+| 5 | `devices/{deviceId}/detections` | `type == 'text'` | `createdAt DESC` | ya | filter jenis di Riwayat; batang "teks" panel Statistik `count()` |
 | 6 | `devices/{deviceId}/detections` | `type` plus `validationStatus` | `createdAt DESC` | ya | filter gabungan di Riwayat |
 | 7 | `devices/{deviceId}/events` | `severity == 'warning'` atau `'error'` | `createdAt DESC` | ya | filter severity di layar Koneksi dan sinkronisasi |
 | 8 | `devices/{deviceId}/commands` | `status == 'pending'` | `createdAt ASC` | ya | device mengambil antrean; app memantau status |
@@ -276,7 +278,9 @@ Yang **tidak** butuh composite (single-field otomatis):
 - `detections` dengan `createdAt >= <timestamp>` dan `orderBy createdAt`, untuk ringkasan harian (satu field).
 - `commands` dengan `orderBy createdAt DESC` saja, untuk riwayat perintah.
 - `events` dengan `orderBy createdAt DESC` saja, untuk daftar event terbaru.
-- `count()` tanpa `orderBy`.
+- `count()` **tanpa** rentang `createdAt` (badge Validasi, akurasi Beranda): hanya satu filter setara, cukup indeks single-field otomatis.
+
+Panel Statistik Riwayat (agregat `count()` per batang) memakai filter setara **plus** rentang `createdAt`, jadi butuh composite — dan itu **indeks #2-#5 yang sudah ada**. Supaya tidak ada indeks baru, jalur agregat di `firestore_history_data_source.dart` memakai `orderBy createdAt DESC` yang sama dengan daftar, bukan query tanpa urutan yang arahnya belum tentu dicocokkan Firestore. Tidak ada indeks tambahan untuk grafik; biaya bacanya dijaga aturan §7.3 poin 8.
 
 Belum ada collection group query. Bila nanti ditambahkan `collectionGroup('detections')`, misalnya untuk statistik lintas perangkat, indeks tambahan harus dibuat dan biaya baca dievaluasi ulang.
 

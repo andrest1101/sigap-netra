@@ -93,7 +93,7 @@ Detail UI per layar ada di `docs/ui_spec.md`.
 | F2  | **Beranda**                                     | Kartu status (online/offline, baterai atau "–", menunggu validasi, terakhir sinkron); ringkasan (menunggu, % kecocokan); 5 aktivitas terbaru realtime; online = `lastSeen` < 90 dtk                                                      |
 | F3  | **QR Wi-Fi**                                    | Input SSID + password → QR tampil; password tidak disimpan; format payload **identik** dengan yang dipahami firmware ⚠️; menunggu heartbeat pertama (batas 2 menit) lalu status berubah Terhubung                                        |
 | F4  | **Validasi**                                    | Antrean `pending` dengan filter Gabungan/Uang/Menu-Teks; kartu menampilkan gambar, nilai, confidence, jarak, waktu; Cocok/Tidak cocok menyimpan `validationStatus` + `validatedBy/At`; snackbar **Urungkan**; badge tab = jumlah pending |
-| F5  | **Riwayat**                                     | Daftar 20/halaman, filter kategori, badge Cocok/Tidak cocok/Belum, hapus (dengan konfirmasi, juga gambar), detail, **Reset Status Validasi** (batch + konfirmasi)                                                                        |
+| F5  | **Riwayat**                                     | Daftar 25/halaman (dikelompokkan per hari + ringkasan jujur per hari), filter kategori & status, badge Cocok/Tidak cocok/Belum, hapus (dengan konfirmasi, juga gambar), detail, **Reset Status Validasi** (batch + konfirmasi), segmen **Statistik** (F11) |
 | F6  | **Pengaturan**                                  | Tema terang/gelap/sistem; menu Koneksi & sinkronisasi; QR Wi-Fi; Mode pengembang; akun                                                                                                                                                   |
 | F7  | **Log event/error** (di Koneksi & sinkronisasi) | Daftar severity berwarna, filter severity, kode + pesan                                                                                                                                                                                  |
 | F8  | **Persetujuan unggah gambar**                   | Dialog consent menjelaskan data apa yang dikirim; default **mati**; pengaturan dapat dicabut kapan saja (`set_upload_thumbnails`)                                                                                                        |
@@ -104,7 +104,7 @@ Detail UI per layar ada di `docs/ui_spec.md`.
 | --- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | F9  | **Kontrol jarak jauh**              | `sync_now`, `ping`, volume, ambang confidence, aktif/nonaktif deteksi, restart; status `pending→acked→done/failed`; `expired` bila 60 dtk tak di-ack              |
 | F10 | **Share hasil**                     | Ringkasan (teks + kartu gambar tanpa gambar asli bila consent belum diberikan) → share sheet; dialog persetujuan + peringatan teks OCR; tanpa ID perangkat/lokasi |
-| F11 | **Statistik & grafik** (`fl_chart`) | Pembacaan per hari/minggu, per kategori, tren % kecocokan                                                                                                         |
+| F11 | **Statistik & grafik**              | ✅ Riwayat → Statistik: rentang 7 hari / 4 minggu, ring akurasi (cocok ÷ (cocok + tidak cocok); pending tidak dihitung), KPI total · per hari · menunggu, grafik batang bertumpuk uang/teks + komposisi jenis & status. Semua angka dari `count()` agregat; grafik digambar sendiri karena `fl_chart 1.1.0` tidak kompilasi dengan SDK Flutter 3.32.8 (`docs/ui_spec.md` §5.3) |
 | F12 | **Ekspor CSV**                      | Riwayat sesuai filter tanggal                                                                                                                                     |
 | F13 | **Mode pengembang**                 | Sumber data Firebase/Simulasi (provider override), tampilkan IP/ID/versi                                                                                          |
 
@@ -138,7 +138,8 @@ Notifikasi lokal · multi-perangkat penuh · TTS di aplikasi (`flutter_tts`) · 
 | Event + command + validasi                                      | < 500 tulis                              |
 | Poll command 10 dtk (24 jam)                                    | ≈ 8.640 baca                             |
 | `get()` di Rules                                                | ≈ +1 baca per tulis oleh alat/pendamping |
-| Antrean validasi / riwayat (20 dokumen + 20 media tiap halaman) | ≈ 40 baca per muat halaman               |
+| Antrean validasi / riwayat (25 dokumen + 25 media tiap halaman) | ≈ 50 baca per muat halaman               |
+| Panel Statistik Riwayat (hanya `count()` agregat)               | 17 baca (7 hari) / 11 baca (4 minggu)   |
 
 Penyimpanan thumbnail: ~300 pembacaan × ≤ 60 KB × 30 hari ≈ ≤ 540 MB bila penuh (jauh di bawah itu pada praktiknya); pantau, dan turunkan kualitas/ukuran bila perlu.
 
