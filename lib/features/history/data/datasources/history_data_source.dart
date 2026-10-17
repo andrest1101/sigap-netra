@@ -22,6 +22,9 @@ abstract interface class HistoryDataSource {
     required String? thumbnailId,
   });
 
+  /// Jumlah pembacaan yang cocok dengan [filter] (agregasi, tanpa dokumen).
+  Future<int> countDetections({required DetectionFilter filter});
+
   Future<void> resetValidation({
     required String deviceId,
     required String detectionId,

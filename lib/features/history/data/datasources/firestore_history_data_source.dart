@@ -19,19 +19,23 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
 
   final FirebaseFirestore _firestore;
 
-  Query<Map<String, dynamic>> _query(
-    DetectionFilter filter, {
-    DetectionPageCursor? startAfter,
-  }) {
+  /// Query dasar: hanya klausa filter, TANPA `orderBy`.
+  ///
+  /// Dipakai dua jalur: paginasi daftar (menambahkan `orderBy createdAt DESC`)
+  /// dan agregasi panel Statistik (`count()`). Kedua jalur menambahkan
+  /// `orderBy createdAt DESC` sendiri supaya Firestore dijamin memakai indeks
+  /// composite yang sama — `docs/firestore_schema.md` §8 indeks #2-#5 — bukan
+  /// indeks lain yang mungkin diminta untuk query tanpa urutan.
+  Query<Map<String, dynamic>> _filteredQuery(DetectionFilter filter) {
     final deviceId = filter.deviceId;
     if (deviceId == null || deviceId.isEmpty) {
       throw ArgumentError(
         'DetectionFilter.deviceId wajib diisi: riwayat selalu per perangkat.',
       );
     }
-    var query = _firestore
-        .collection(detectionsCollectionPath(deviceId))
-        .orderBy(DetectionFields.createdAt, descending: true);
+    Query<Map<String, dynamic>> query = _firestore.collection(
+      detectionsCollectionPath(deviceId),
+    );
 
     final type = filter.type;
     if (type != null) {
@@ -53,6 +57,32 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
         },
       );
     }
+    // Rentang waktu memakai pagar setengah terbuka `[since, before)` supaya
+    // dokumen tepat di tengah malam hanya masuk ke satu batang statistik.
+    final since = filter.since;
+    if (since != null) {
+      query = query.where(
+        DetectionFields.createdAt,
+        isGreaterThanOrEqualTo: Timestamp.fromDate(since),
+      );
+    }
+    final before = filter.before;
+    if (before != null) {
+      query = query.where(
+        DetectionFields.createdAt,
+        isLessThan: Timestamp.fromDate(before),
+      );
+    }
+    return query;
+  }
+
+  Query<Map<String, dynamic>> _query(
+    DetectionFilter filter, {
+    DetectionPageCursor? startAfter,
+  }) {
+    var query = _filteredQuery(
+      filter,
+    ).orderBy(DetectionFields.createdAt, descending: true);
     if (startAfter != null) {
       // Kursor memakai nilai createdAt item terakhir halaman sebelumnya.
       query = query.startAfter([Timestamp.fromDate(startAfter.createdAt)]);
@@ -92,6 +122,21 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
           ? DetectionPageCursor.fromDetection(items.last)
           : null,
     );
+  }
+
+  @override
+  Future<int> countDetections({required DetectionFilter filter}) async {
+    // `count()` = agregasi di server: satu baca per 1.000 entri indeks, bukan
+    // satu baca per dokumen. Kunci agar panel Statistik tetap muat kuota Spark.
+    //
+    // `orderBy createdAt DESC` sengaja dipasang walau hitungan tidak butuh
+    // urutan: query jadi identik dengan daftar sehingga dijamin dilayani
+    // indeks composite #2-#5 (`docs/firestore_schema.md` §8) tanpa indeks
+    // tambahan. Agregat tetap dihitung di server — tidak ada dokumen diunduh.
+    final snapshot = await _filteredQuery(
+      filter,
+    ).orderBy(DetectionFields.createdAt, descending: true).count().get();
+    return snapshot.count ?? 0;
   }
 
   @override

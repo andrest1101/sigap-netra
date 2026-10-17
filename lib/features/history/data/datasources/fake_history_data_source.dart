@@ -60,6 +60,11 @@ class FakeHistoryDataSource implements HistoryDataSource {
   }
 
   @override
+  Future<int> countDetections({required DetectionFilter filter}) async {
+    return _detections.itemsForTest.where(filter.matches).length;
+  }
+
+  @override
   Future<void> deleteDetection({
     required String deviceId,
     required String detectionId,
