@@ -6,6 +6,7 @@ import 'package:sigap_netra_app/features/devices/domain/repositories/device_repo
 import 'package:sigap_netra_app/features/events/data/datasources/fake_event_data_source.dart';
 import 'package:sigap_netra_app/features/events/presentation/providers/events_providers.dart';
 import 'package:sigap_netra_app/features/history/data/datasources/fake_history_data_source.dart';
+import 'package:sigap_netra_app/features/history/domain/repositories/history_repository.dart';
 import 'package:sigap_netra_app/features/history/presentation/providers/history_providers.dart';
 import 'package:sigap_netra_app/features/media/data/datasources/fake_media_data_source.dart';
 import 'package:sigap_netra_app/features/media/data/repositories/media_repository_impl.dart';
@@ -57,7 +58,7 @@ class DemoDeviceRepository implements DeviceRepository {
 /// validasi di satu layar langsung terlihat di layar lain. Setiap test
 /// membuat instance baru supaya state tidak bocor antar test.
 class FakeAppGraph {
-  FakeAppGraph()
+  FakeAppGraph({this.historyRepositoryBuilder})
     : detections = FakeDetectionDataSource(),
       events = FakeEventDataSource(),
       commands = FakeCommandDataSource() {
@@ -68,6 +69,18 @@ class FakeAppGraph {
   final FakeEventDataSource events;
   final FakeCommandDataSource commands;
   late final FakeMediaDataSource media;
+
+  /// Bila diisi, dipakai untuk membuat repository Riwayat **pengganti**.
+  ///
+  /// Dipakai test yang perlu memaksa jalur gagal (mis. `count()` panel
+  /// Statistik melempar error) sambil tetap berbagi penyimpanan deteksi dengan
+  /// seluruh layar lain. Hanya satu override per provider boleh ada dalam satu
+  /// container, jadi penggantinya harus lewat pintu ini.
+  final HistoryRepository Function(
+    FakeDetectionDataSource detections,
+    FakeMediaDataSource media,
+  )?
+  historyRepositoryBuilder;
 
   /// Override repository untuk `ProviderScope`.
   ///
@@ -87,9 +100,10 @@ class FakeAppGraph {
       FakeValidationRepositoryImpl(FakeValidationDataSource(detections)),
     ),
     historyRepositoryProvider.overrideWithValue(
-      FakeHistoryRepositoryImpl(
-        FakeHistoryDataSource(detections, onEvictThumbnail: media.evict),
-      ),
+      historyRepositoryBuilder?.call(detections, media) ??
+          FakeHistoryRepositoryImpl(
+            FakeHistoryDataSource(detections, onEvictThumbnail: media.evict),
+          ),
     ),
     mediaRepositoryProvider.overrideWithValue(FakeMediaRepositoryImpl(media)),
     eventRepositoryProvider.overrideWithValue(FakeEventRepositoryImpl(events)),
