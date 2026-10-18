@@ -4,7 +4,7 @@ Dokumen ini adalah **sumber kebenaran sisi antarmuka (UI)**. Versi lama (tema te
 
 **Tujuan:** semua **fungsi dan fitur sama** dengan aplikasi Kotlin lama, tetapi tampilan, warna, tata letak, dan widget dirancang ulang agar jelas aplikasi milik tim SIGAP-NETRA — bukan salinan aplikasi lama.
 
-Pengguna: **pendamping / keluarga / peneliti** (bukan penyandang tunanetra). Platform: Android (prioritas uji), iOS (kode lintas platform). Material 3, mode **Terang / Gelap / Ikuti sistem**. Semua teks Bahasa Indonesia lewat `lib/l10n/app_id.arb`.
+Pengguna: **pendamping / keluarga / peneliti** (bukan penyandang tunanetra). Platform: Android (prioritas uji), iOS (kode lintas platform). Material 3, **terang-saja** (keputusan produk 2026-10-18: mode gelap dihapus). Semua teks Bahasa Indonesia lewat `lib/l10n/app_id.arb`.
 
 ---
 
@@ -23,16 +23,16 @@ Elemen khas (signature):
 
 ### Warna
 
-| Token                                              | Terang        | Gelap                                             |
-| -------------------------------------------------- | ------------- | ------------------------------------------------- |
-| `brandSeed` (Netra Indigo)                         | `#4A47D6`     | sama (`ColorScheme.fromSeed`, varian _tonalSpot_) |
-| `accent` (Lensa Amber, dipakai sebagai `tertiary`) | `#F5A524`     | `#FFC15A`                                         |
-| `background`                                       | `#F6F6FB`     | `#0E0F1A`                                         |
-| `surfaceContainer*`                                | dari skema M3 | dari skema M3                                     |
-| `ok` (Terhubung / Cocok)                           | `#1E9E63`     | `#5FD39A`                                         |
-| `bad` (Terputus / Tidak cocok / Error)             | `#D64550`     | `#FF8A92`                                         |
-| `warn` (Menunggu / Peringatan)                     | `#E5A00D`     | `#FFC857`                                         |
-| `neutral` (Belum / Tidak tersedia)                 | `#6B6F80`     | `#9EA3B5`                                         |
+| Token                                              | Nilai                                                  |
+| -------------------------------------------------- | ------------------------------------------------------ |
+| `brandSeed` (Netra Indigo)                         | `#4A47D6` (`ColorScheme.fromSeed`, varian _tonalSpot_) |
+| `accent` (Lensa Amber, dipakai sebagai `tertiary`) | `#F5A524`                                              |
+| `background`                                       | `#F6F6FB`                                              |
+| `surfaceContainer*`                                | dari skema M3                                          |
+| `ok` (Terhubung / Cocok)                           | `#1E9E63`                                              |
+| `bad` (Terputus / Tidak cocok / Error)             | `#D64550`                                              |
+| `warn` (Menunggu / Peringatan)                     | `#E5A00D`                                              |
+| `neutral` (Belum / Tidak tersedia)                 | `#6B6F80`                                              |
 
 `ok / bad / warn / neutral` didefinisikan sebagai `ThemeExtension` (`StatusColors`) — jangan memakai warna mentah di widget. Semua pasangan teks/latar harus lolos kontras WCAG AA (4.5:1 teks normal, 3:1 teks besar/ikon). Warna **tidak boleh** menjadi satu-satunya pembawa makna: selalu sertakan ikon atau label (✓ Cocok, ✕ Tidak cocok, • Belum).
 
@@ -93,10 +93,10 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 | Validasi: filter Gabungan/Uang/Menu-Teks, "1 dari N", gambar, TERBACA SEBAGAI, confidence, jarak, waktu, Cocok/Tidak cocok | Tab **Validasi**                                                            |
 | Riwayat: filter, daftar, status Cocok/Belum, hapus                                                                         | Tab **Riwayat**                                                             |
 | **Reset Status Validasi**                                                                                                  | Riwayat → menu ⋯ → konfirmasi                                               |
-| Pengaturan → Tema                                                                                                          | Pengaturan (avatar) → Tampilan                                              |
+| Pengaturan → Tema                                                                                                          | Dihapus 2026-10-18 — aplikasi terang-saja (tanpa pemilih tema)              |
 | Pengaturan → Koneksi dan sinkronisasi                                                                                      | Tab **Perangkat**                                                           |
 | Pengaturan → Mode pengembang                                                                                               | Pengaturan → Lanjutan                                                       |
-| Ikon QR + toggle tema di header                                                                                            | QR → Beranda/Perangkat; tema → Pengaturan                                   |
+| Ikon QR + toggle tema di header                                                                                            | QR → Beranda/Perangkat; toggle tema dihapus (terang-saja)                   |
 
 ## 5. Layar
 
@@ -141,8 +141,11 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 - **Kepala:** ringkasan status (titik status, baterai, versi firmware/model, terakhir terlihat/sinkron).
 - **Hubungkan:** kartu dengan tombol **Tampilkan QR Wi-Fi** + teks bantuan singkat → `/wifi-qr`.
-- **Kontrol (P1):** slider volume, slider ambang confidence, saklar deteksi aktif, saklar **Unggah gambar** (membuka sheet persetujuan), tombol Restart aplikasi alat. Setiap perubahan = command dengan status ditampilkan (menunggu → diterima → selesai/gagal).
-- **Aktivitas & error:** timeline event dengan ikon severity (info/peringatan/error/kritis) + kode + pesan; filter severity; "Lihat semua".
+- **Kontrol (fungsional sejak 2026-10-18):** kartu dengan slider **Volume** (satu perintah `set_volume` per penyesuaian selesai, bukan per geseran; angka tabular), tombol **Sinkronkan sekarang** (filled tonal), chip **Ucapkan teks** (sheet teks, batas 200 karakter) dan **Mulai ulang** (konfirmasi dulu). "Lihat semua" → layar Kontrol jarak jauh. Perintah boleh dikirim saat alat offline — diantre dan dieksekusi saat alat kembali, dengan catatan jujur di bawah tombol selama alat tidak tersambung; status menunggu selalu berbunyi **"Menunggu alat · {waktu}"**, tidak pernah "kedaluwarsa".
+- **Timeline dua seksi:** **Kejadian terakhir** (event + ikon severity + kode + pesan; filter severity; "Lihat semua" → Log koneksi) dan **Perintah terakhir** (3 perintah terbaru: judul + baris waktu + chip status; kosong → "Belum ada perintah yang dikirim dari aplikasi"). Dua seksi tidak boleh digabung dalam satu daftar tanpa label.
+- **Sub-layar Kontrol jarak jauh:** deretan aksi (Sinkron · Ucapkan · Volume · Restart · Pasang ulang Wi-Fi) + daftar `CommandTile` bersama (ikon jenis, judul, baris waktu, ringkasan payload yang aman ditampilkan — level volume / teks yang diucapkan, chip status). Tile yang sama dipakai tab "Perintah jarak jauh" di Log koneksi supaya bahasa status tidak pernah divergen.
+- **Sub-layar Log koneksi:** tab **Event** punya dua mode jujur — **Semua** = streaming realtime 50 kejadian terbaru + catatan "Menampilkan N kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh."; **saringan severity** = query server berhalaman (`getEventsPage`, indeks `severity + createdAt`, 25 per halaman) dengan tombol **Muat lagi**, spinner saat memuat, retry inline tanpa menghapus daftar yang sudah tampil, dan "Semua kejadian pada saringan ini sudah dimuat." saat habis. Tanpa perangkat terpilih saringan disembunyikan (schema tidak mengizinkan query lintas perangkat).
+- **[PERLU KONFIRMASI] Kontrol yang menunggu kontrak firmware — jangan bangun UI palsu:** slider ambang keyakinan, saklar deteksi aktif/nonaktif, dan saklar unggah thumbnail jarak jauh belum punya jenis perintah di `docs/firestore_schema.md` §4.5; ditahan sampai tim perangkat mengonfirmasi.
 - Mode pengembang aktif → tampil IP, ID perangkat, versi.
 
 ### 5.5 QR Wi-Fi (`/wifi-qr`, layar penuh)
@@ -150,13 +153,13 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 Stepper 3 langkah:
 
 1. **Jaringan:** segmen _Hotspot ponsel_ / _Wi-Fi rumah_; isian SSID dan password (sembunyikan/tampilkan). Opsi "Ingat nama jaringan" (password **tidak pernah disimpan**).
-2. **Tampilkan QR:** QR hitam di atas panel putih (selalu, termasuk mode gelap, agar terbaca kamera), kecerahan layar dinaikkan bila memungkinkan, petunjuk "Arahkan ke kamera SIGAP-NETRA".
-3. **Menunggu alat:** Lens Ring "fokus" berdenyut, hitung mundur 2 menit, mendengarkan heartbeat pertama → **Terhubung ✓** atau status gagal + coba lagi.
+2. **Tampilkan QR:** QR hitam di atas panel putih (selalu putih agar terbaca kamera alat), kecerahan layar dinaikkan bila memungkinkan, petunjuk "Arahkan ke kamera SIGAP-NETRA".
+3. **Menunggu alat:** Lens Ring "fokus" berdenyut + hitung mundur 2 menit. Tiga keadaan jujur: **menunggu** (denyut fokus + tombol Kembali); **Terhubung ✓** (ring penuh `ok.solid` + centang, hanya saat `lastSeen` perangkat maju melewati patokan saat langkah dibuka — bukti detak baru, bukan klaim kosong; tombol Selesai); **Belum tersambung** (hitung mundur habis tanpa detak: ring "Wi-Fi off", penjelasan, tombol Kembali + Coba lagi yang mengambil patokan ulang). App tidak pernah mengklaim "terhubung" tanpa detak baru.
    ⚠️ Format payload QR **harus identik** dengan yang dibuat aplikasi lama/dipahami firmware (lihat `docs/device_protocol.md` §7).
 
 ### 5.6 Pengaturan (`/settings`, via avatar)
 
-- **Tampilan:** Tema — segmen Terang / Gelap / Sistem.
+- **Tampilan:** tidak ada pemilih tema — aplikasi terang-saja (keputusan produk 2026-10-18).
 - **Privasi & data:** status unggah gambar (ubah/cabut), retensi 30 hari, hapus semua data perangkat (P1).
 - **Lanjutan:** **Mode pengembang** → sumber data (Firebase / Simulasi), tampilkan IP/ID/versi. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
 - **Akun:** email, keluar. **Tentang:** versi aplikasi.
@@ -173,7 +176,7 @@ Semua widget menerima data lewat parameter; tidak ada akses Firebase di dalamnya
 
 ## 7. State & Kasus Tepi (wajib di tiap layar)
 
-Loading (skeleton) · kosong · error + coba lagi · data dari cache ("data mungkin lama") · alat offline · baterai tidak tersedia · pembacaan tanpa jarak · teks OCR panjang · tanpa gambar · `permission-denied` · koneksi pulih (pembaruan halus, tanpa kedip) · text scale besar · mode gelap.
+Loading (skeleton) · kosong · error + coba lagi · data dari cache ("data mungkin lama") · alat offline · baterai tidak tersedia · pembacaan tanpa jarak · teks OCR panjang · tanpa gambar · `permission-denied` · koneksi pulih (pembaruan halus, tanpa kedip) · text scale besar.
 
 ## 8. Aksesibilitas
 

@@ -1,5 +1,31 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-18 Batch B — Perangkat: Kontrol fungsional, timeline dua seksi, Log berhalaman, QR tiga hasil
+
+Batch ini mengubah tab **Perangkat** dari tampilan dekoratif menjadi benar-benar bekerja, sekaligus menutup tiga "kebohongan halus": chip Kontrol yang hanya berpindah layar, timeline yang mencampur event + perintah tanpa label, dan langkah "Menunggu alat" yang berakhir tanpa jawaban.
+
+- **Kontrol fungsional di tab:** slider **Volume** (satu perintah `set_volume` per penyesuaian selesai — bukan per geseran), tombol **Sinkronkan sekarang**, chip **Ucapkan teks** (sheet) dan **Mulai ulang** (konfirmasi). Chip dekoratif lama dihapus. Perintah boleh dikirim saat alat offline (diantre device), dengan catatan jujur di bawah tombol saat alat tidak tersambung.
+- **Bahasa pending jujur:** status `pending` selalu tampil **"Menunggu alat · {waktu}"** — tidak pernah "kedaluwarsa"/"gagal", karena perintah offline tetap dieksekusi saat alat kembali. Berlaku di tile bersama, timeline, dan layar Kontrol.
+- **Aksi & tile bersama (anti-divergensi):** `commands/presentation/command_actions.dart` (satu jalur kirim/sheet/konfirmasi + snackbar), `widgets/command_tile.dart`, `widgets/command_presentation.dart` (label/ikon/nada/ringkasan payload). Dipakai tab Perangkat, layar Kontrol, dan tab Perintah di Log koneksi.
+- **Timeline dua seksi:** **Kejadian terakhir** (event + filter severity + "Lihat semua") dan **Perintah terakhir** (3 terbaru) dipisah dengan loading/error/empty masing-masing; empty saringan tidak lagi menyamar sebagai "belum ada kejadian".
+- **Subtitle multi-perangkat jujur:** saat akun punya >1 perangkat, muncul catatan "Menampilkan perangkat utama dari N perangkat" (sebelumnya subtitle menghitung semua tetapi hanya satu dirender).
+- **Log koneksi — dua mode jujur:** "Semua" tetap realtime 50 terbaru + catatan batas; **saringan severity** memakai query server berhalaman (`getEventsPage`, indeks `severity + createdAt`, 25/halaman) dengan **Muat lagi**, spinner, retry inline yang tidak menghapus daftar, dan catatan "sudah dimuat". Provider `getEventsPageProvider` + `kEventsPageSize` ditambahkan; guard balapan (`_fetchGeneration`) menjaga hasil fetch lama tidak menimpa saringan baru.
+- **QR Wi-Fi langkah 3 — tiga hasil:** menunggu (denyut fokus + hitung mundur) / **Terhubung ✓** (ring penuh + centang; hanya saat `lastSeen` maju melewati patokan saat langkah dibuka — lewat stream `deviceProvider`, bukan polling) / **Belum tersambung** (timeout 2 menit: Kembali + Coba lagi yang mengambil patokan ulang). Layar menjadi `ConsumerStatefulWidget`; smoke test QR diperbarui ke `ProviderScope`.
+- **Bug diperbaiki saat pengujian:** controller sheet "Ucapkan teks" dulu di-dispose segera setelah `pop()` sehingga terpakai selama animasi keluar (crash "used after being disposed" + overflow); sekarang dimiliki `_SpeakTextSheet` (`State.dispose`) dengan `isScrollControlled` + ruang aman keyboard.
+- **[PERLU KONFIRMASI] Kontrol tertahan firmware (tidak dibuatkan UI palsu):** ambang keyakinan, saklar deteksi aktif, dan unggah thumbnail jarak jauh belum punya jenis perintah di `docs/firestore_schema.md` §4.5. Kandidat syarat tambahan QR (`wifiSsid` cocok) juga menunggu konfirmasi apakah firmware memperbarui field itu saat reprovision.
+- **Test:** suite baru `commands_screen_test` (pending jujur, sheet volume, sheet teks + ringkasan payload) dan `connection_logs_screen_test` (catatan realtime, saringan server, Muat lagi 30 item, tab Perintah); perluasan `wifi_provisioning_screen_test` (terhubung via detak baru, timeout + coba lagi) dan `device_tab_golden_test` (kirim sungguhan, slider, dua seksi; surface 800×1400). Golden `device_tab_light.png` diregenerasi dan diperiksa manual. `flutter analyze` bersih, **238 test lulus** (dari 226).
+- **Dokumentasi:** `docs/ui_spec.md` §5.4 (Kontrol fungsional, timeline dua seksi, sub-layar Kontrol + Log koneksi, blok [PERLU KONFIRMASI]) dan §5.5 langkah 3 (tiga keadaan).
+
+## 2026-10-18 Batch A — Terang-saja: mode gelap dihapus seluruhnya
+
+Keputusan produk (dipilih user): aplikasi **terang-saja**. Mode gelap tidak lagi ditawarkan maupun mengikuti setelan ponsel — satu identitas visual, tanpa pemilih tema. Batch ini hanya menyentuh tema; **golden terang diverifikasi tetap byte-identik** (invarian paling penting dari batch ini).
+
+- **Inti tema:** `AppTheme.dark()` dihapus; `_build()` tidak lagi menerima `Brightness` dan selalu membangun skema terang. `StatusColors.dark` dihapus; `StatusColors.of()` kini fallback ke `light` untuk `ThemeData` polos (ada regression test-nya di `lens_ring_test`). Token `accentDark`/`backgroundDark` dihapus, `backgroundLight` → `BrandColors.background`.
+- **Preferensi:** `AppPreferences.themeMode` + kunci `'theme_mode'` + `theme_providers.dart` dihapus. Kunci lama di instalasi lawas diabaikan (tidak dibaca lagi) — tidak ada migrasi yang perlu dijalankan.
+- **Pengaturan:** seksi "Tampilan" (SegmentedButton tema) dihapus; seksi Privasi kini seksi pertama. Kunci l10n `settingsThemeSystem/Light/Dark`, `settingsAppearance`, `settingsDisplayTitle` dihapus dari `app_id.arb` + regenerate.
+- **Test:** 5 golden gelap dihapus (Beranda, Validasi, Perangkat, Login, Statistik Riwayat) beserta seluruh kabel `darkTheme`/`themeMode`/`pump*(mode:)`; 1 test baru: fallback `StatusColors.of` pada tema polos. Hasil: `flutter analyze` bersih, **226 test lulus** (dari 232; −8 test gelap +1 fallback + perubahan kabel).
+- **Dokumentasi:** `docs/ui_spec.md` (design token jadi satu kolom nilai; catatan QR; seksi 5.6; daftar state), `PRD.md` (ringkasan §1 + acceptance F6), `AGENTS.md` §5 (terang-saja; paket `fl_chart` & `fake_cloud_firestore` dikeluarkan dari daftar). Mode gelap tidak lagi muncul di dokumen mana pun.
+
 ## 2026-10-17 P1 — Riwayat R2: segmen Statistik nyata (`count()` agregat) + poles daftar + logo brand asli
 
 Dua pekerjaan dalam satu batch, keduanya menyentuh tampilan kasat mata: **(A)** mark logo SIGAP-NETRA asli menggantikan logo lama, **(B)** halaman Riwayat dinaikkan satu tingkat — segmen **Statistik** yang benar-benar hidup (tanpa mengunduh dokumen) dan daftar yang lebih terbaca. Pola audit per halaman tetap: 1 halaman selesai → lanjut.
