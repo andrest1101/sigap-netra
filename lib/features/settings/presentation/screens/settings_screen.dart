@@ -10,13 +10,13 @@ import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/settings_providers.dart';
-import '../providers/theme_providers.dart';
 
 /// Layar Pengaturan — identitas visual v3.
 ///
-/// Dibuka lewat avatar (bukan tab). Seksi: Tampilan (segmen tema),
-/// Privasi & data (consent eksplisit), Lanjutan (mode pengembang +
-/// sumber data), Akun, Tentang (versi dinamis).
+/// Dibuka lewat avatar (bukan tab). Seksi: Privasi & data (consent
+/// eksplisit), Lanjutan (mode pengembang + sumber data), Akun, Tentang
+/// (versi dinamis). Tidak ada pemilih tema: aplikasi terang-saja (keputusan
+/// produk 2026-10-18).
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -38,7 +38,6 @@ class SettingsScreen extends ConsumerWidget {
         ),
         children: const [
           _AccountHeader(),
-          _AppearanceSection(),
           _PrivacySection(),
           _AdvancedSection(),
           _AboutSection(),
@@ -80,53 +79,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _AppearanceSection extends ConsumerWidget {
-  const _AppearanceSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final theme = ref.watch(appThemePreferenceProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionTitle(l10n.settingsDisplayTitle, isFirst: true),
-        SizedBox(
-          width: double.infinity,
-          child: SegmentedButton<AppThemePreference>(
-            segments: [
-              ButtonSegment(
-                value: AppThemePreference.light,
-                label: Text(l10n.settingsThemeLight),
-                icon: const Icon(Icons.light_mode_outlined, size: 18),
-              ),
-              ButtonSegment(
-                value: AppThemePreference.dark,
-                label: Text(l10n.settingsThemeDark),
-                icon: const Icon(Icons.dark_mode_outlined, size: 18),
-              ),
-              ButtonSegment(
-                value: AppThemePreference.system,
-                label: Text(l10n.settingsThemeSystem),
-                icon: const Icon(Icons.settings_suggest_outlined, size: 18),
-              ),
-            ],
-            selected: {theme},
-            onSelectionChanged: (selected) => ref
-                .read(appThemePreferenceProvider.notifier)
-                .set(selected.single),
-            showSelectedIcon: false,
-            style: const ButtonStyle(
-              shape: WidgetStatePropertyAll(StadiumBorder()),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _PrivacySection extends ConsumerWidget {
   const _PrivacySection();
 
@@ -140,7 +92,7 @@ class _PrivacySection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionTitle(l10n.settingsPrivacyTitle),
+        _SectionTitle(l10n.settingsPrivacyTitle, isFirst: true),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.settingsUploadThumbnails),

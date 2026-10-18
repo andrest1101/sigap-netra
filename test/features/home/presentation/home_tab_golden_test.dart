@@ -52,10 +52,7 @@ void main() {
   setUp(() => repository = _FakeDeviceRepository());
   tearDown(() => repository.close());
 
-  Future<void> pumpHome(
-    WidgetTester tester, {
-    ThemeMode mode = ThemeMode.light,
-  }) async {
+  Future<void> pumpHome(WidgetTester tester) async {
     // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
     await precacheLogoMark(tester);
     final graph = FakeAppGraph();
@@ -73,8 +70,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: mode,
           home: const HomeScreen(),
         ),
       ),
@@ -124,22 +119,6 @@ void main() {
       await expectLater(
         find.byType(HomeScreen),
         matchesGoldenFile('../goldens/home_tab_light.png'),
-      );
-    });
-
-    testWidgets('dark: render aktual + golden tema gelap', (tester) async {
-      await pumpHome(tester, mode: ThemeMode.dark);
-      repository.emit([device()]);
-      await pumpFrames(tester);
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('Kacamata Cerdas'), findsWidgets);
-
-      // Golden gelap: memastikan tone kartu & ring tetap terbaca di mode
-      // gelap (bukan hanya "tidak error").
-      await expectLater(
-        find.byType(HomeScreen),
-        matchesGoldenFile('../goldens/home_tab_dark.png'),
       );
     });
   });

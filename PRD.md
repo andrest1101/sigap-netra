@@ -19,7 +19,7 @@ Rilis ini membangun ulang aplikasi dengan **Flutter** dan menambah kemampuan lin
 
 1. **Lintas jaringan & realtime** — alat di rumah user, pendamping/tim memantau dari mana saja.
 2. **Fungsi lama dipertahankan** — Beranda, Validasi, Riwayat, Pengaturan, QR Wi-Fi.
-3. **Tampilan lebih profesional** (Material 3, Netra Indigo `#4A47D6`, mode gelap) — isi dan fungsi tetap.
+3. **Tampilan lebih profesional** (Material 3, Netra Indigo `#4A47D6`, tema terang-saja — keputusan produk 2026-10-18) — isi dan fungsi tetap.
 4. **Fitur baru:** log error/baterai realtime, kontrol jarak jauh, share hasil ke media sosial, statistik.
 5. **Validasi = data kebenaran lapangan** (_ground truth_) untuk mengukur akurasi model dan memutuskan kapan dataset perlu diperbarui.
 
@@ -94,7 +94,7 @@ Detail UI per layar ada di `docs/ui_spec.md`.
 | F3  | **QR Wi-Fi**                                    | Input SSID + password → QR tampil; password tidak disimpan; format payload **identik** dengan yang dipahami firmware ⚠️; menunggu heartbeat pertama (batas 2 menit) lalu status berubah Terhubung                                        |
 | F4  | **Validasi**                                    | Antrean `pending` dengan filter Gabungan/Uang/Menu-Teks; kartu menampilkan gambar, nilai, confidence, jarak, waktu; Cocok/Tidak cocok menyimpan `validationStatus` + `validatedBy/At`; snackbar **Urungkan**; badge tab = jumlah pending |
 | F5  | **Riwayat**                                     | Daftar 25/halaman (dikelompokkan per hari + ringkasan jujur per hari), filter kategori & status, badge Cocok/Tidak cocok/Belum, hapus (dengan konfirmasi, juga gambar), detail, **Reset Status Validasi** (batch + konfirmasi), segmen **Statistik** (F11) |
-| F6  | **Pengaturan**                                  | Tema terang/gelap/sistem; menu Koneksi & sinkronisasi; QR Wi-Fi; Mode pengembang; akun                                                                                                                                                   |
+| F6  | **Pengaturan**                                  | Terang-saja (tanpa pemilih tema — keputusan produk 2026-10-18); menu Koneksi & sinkronisasi; QR Wi-Fi; Mode pengembang; akun                                                                                                                                                   |
 | F7  | **Log event/error** (di Koneksi & sinkronisasi) | Daftar severity berwarna, filter severity, kode + pesan                                                                                                                                                                                  |
 | F8  | **Persetujuan unggah gambar**                   | Dialog consent menjelaskan data apa yang dikirim; default **mati**; pengaturan dapat dicabut kapan saja (`set_upload_thumbnails`)                                                                                                        |
 

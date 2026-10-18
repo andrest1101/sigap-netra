@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/entities/app_preferences.dart';
@@ -12,12 +11,14 @@ import 'preferences_data_source.dart';
 /// device, bukan app (`docs/firestore_schema.md` bagian 5). Consent lokal di
 /// sini adalah izin pengguna di sisi aplikasi; tidak ada tulis Firestore
 /// untuk preferensi ini.
+///
+/// Aplikasi terang-saja (keputusan produk 2026-10-18) — preferensi tema
+/// dihapus; kunci `theme_mode` lama (bila ada di instalasi lawas) diabaikan.
 class SharedPreferencesDataSource implements PreferencesDataSource {
   SharedPreferencesDataSource(this._preferences);
 
   final SharedPreferences _preferences;
 
-  static const String themeModeKey = 'theme_mode';
   static const String uploadThumbnailsKey = 'upload_thumbnails_privacy';
 
   final StreamController<AppPreferences> _controller =
@@ -35,7 +36,6 @@ class SharedPreferencesDataSource implements PreferencesDataSource {
   /// Membaca preferensi saat ini.
   AppPreferences read() {
     return AppPreferences(
-      themeMode: _readThemeMode(_preferences.getString(themeModeKey)),
       uploadThumbnailsConsented:
           _preferences.getBool(uploadThumbnailsKey) ?? false,
     );
@@ -43,37 +43,10 @@ class SharedPreferencesDataSource implements PreferencesDataSource {
 
   @override
   Future<void> savePreferences(AppPreferences preferences) async {
-    await _preferences.setString(
-      themeModeKey,
-      _writeThemeMode(preferences.themeMode),
-    );
     await _preferences.setBool(
       uploadThumbnailsKey,
       preferences.uploadThumbnailsConsented,
     );
     _controller.add(preferences);
-  }
-
-  static ThemeMode _readThemeMode(String? raw) {
-    switch (raw) {
-      case 'light':
-        return ThemeMode.light;
-      case 'dark':
-        return ThemeMode.dark;
-      case 'system':
-      default:
-        return ThemeMode.system;
-    }
-  }
-
-  static String _writeThemeMode(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.light:
-        return 'light';
-      case ThemeMode.dark:
-        return 'dark';
-      case ThemeMode.system:
-        return 'system';
-    }
   }
 }

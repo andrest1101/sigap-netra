@@ -7,45 +7,34 @@ import 'status_colors.dart';
 ///
 /// Seed Netra Indigo `#4A47D6`, aksen Lensa Amber sebagai `tertiary`, font
 /// Plus Jakarta Sans (di-bundle), kartu tonal tanpa shadow, tombol & chip
-/// bentuk pil, NavigationBar standar M3. Light + dark + system.
+/// bentuk pil, NavigationBar standar M3.
+///
+/// Terang-saja: mode gelap dihapus berdasarkan keputusan produk 2026-10-18
+/// (satu identitas visual; tanpa pemilih tema di Pengaturan).
 abstract final class AppTheme {
   /// Nama family font yang di-bundle di `assets/fonts/`.
   static const String fontFamily = 'PlusJakartaSans';
 
-  /// Tema terang.
+  /// Tema aplikasi (terang-saja).
   static ThemeData light() => _build(
-    Brightness.light,
-    scaffold: BrandColors.backgroundLight,
+    scaffold: BrandColors.background,
     accent: BrandColors.accent,
     status: StatusColors.light,
   );
 
-  /// Tema gelap.
-  static ThemeData dark() => _build(
-    Brightness.dark,
-    scaffold: BrandColors.backgroundDark,
-    accent: BrandColors.accentDark,
-    status: StatusColors.dark,
-  );
-
-  static ThemeData _build(
-    Brightness brightness, {
+  static ThemeData _build({
     required Color scaffold,
     required Color accent,
     required StatusColors status,
   }) {
     var colorScheme = ColorScheme.fromSeed(
       seedColor: BrandColors.seed,
-      brightness: brightness,
+      brightness: Brightness.light,
     );
     // Aksen Lensa Amber sebagai tertiary sesuai identitas v3.
     colorScheme = colorScheme.copyWith(tertiary: accent, surface: scaffold);
 
-    final textTheme = _textTheme(
-      brightness == Brightness.dark
-          ? ThemeData.dark().textTheme
-          : ThemeData.light().textTheme,
-    );
+    final textTheme = _textTheme(ThemeData.light().textTheme);
 
     return ThemeData(
       useMaterial3: true,

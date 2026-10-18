@@ -49,7 +49,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
           home: const HistoryScreen(),
         ),
       ),

@@ -10,7 +10,7 @@ import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 import '../../../helpers/fake_app_graph.dart';
 
-/// Golden tab Validasi (terang + gelap).
+/// Golden tab Validasi (terang-saja).
 ///
 /// Mengunci: tumpukan kartu + tepi dua kartu samar di belakang (tone
 /// `surfaceContainerHigh` + hairline), tombol "Tidak cocok" outlined `bad`
@@ -18,10 +18,7 @@ import '../../../helpers/fake_app_graph.dart';
 /// `MetricChip`. Warna/palet dari `StatusColors` theme extension ikut
 /// terverifikasi lewat PNG — bukan hanya "tidak error".
 void main() {
-  Future<FakeAppGraph> pumpValidation(
-    WidgetTester tester, {
-    ThemeMode mode = ThemeMode.light,
-  }) async {
+  Future<FakeAppGraph> pumpValidation(WidgetTester tester) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
@@ -39,8 +36,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: mode,
           home: const ValidationScreen(),
         ),
       ),
@@ -108,20 +103,6 @@ void main() {
       await expectLater(
         find.byType(ValidationScreen),
         matchesGoldenFile('../goldens/validation_tab_light.png'),
-      );
-    });
-
-    testWidgets('dark: tone kartu + tombol tetap terbaca', (tester) async {
-      final graph = await pumpValidation(tester, mode: ThemeMode.dark);
-      await pumpFrames(tester);
-      await settleThumbnails(tester, graph, find.byType(ValidationScreen));
-
-      expect(tester.takeException(), isNull);
-      expect(find.textContaining('100.000'), findsWidgets);
-
-      await expectLater(
-        find.byType(ValidationScreen),
-        matchesGoldenFile('../goldens/validation_tab_dark.png'),
       );
     });
 
