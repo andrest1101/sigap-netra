@@ -22,6 +22,8 @@
   "commonUnknown": "Tidak diketahui",
   "commonSeeAll": "Lihat semua",
   "commonSeeDetail": "Lihat detail",
+  "commonLoadMore": "Muat lagi",
+  "commonDone": "Selesai",
 
   "stateLoading": "Memuat data...",
   "stateEmptyTitle": "Belum ada data",
@@ -184,6 +186,12 @@
   "devicesTitle": "Perangkat",
   "devicesEmptyTitle": "Belum ada perangkat",
   "devicesEmptyBody": "Tambahkan perangkat untuk mulai memantau.",
+  "devicesMultipleNote": "Menampilkan perangkat utama dari {count} perangkat.",
+  "@devicesMultipleNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "deviceDetailTitle": "Detail perangkat",
   "deviceFirmwareLabel": "Versi firmware",
   "deviceModelLabel": "Model",
@@ -211,6 +219,9 @@
   "provisioningInvalidSsid": "Nama Wi-Fi tidak valid.",
   "provisioningPasswordTooShort": "Kata sandi Wi-Fi minimal 8 karakter.",
   "provisioningPasswordNotStored": "Kata sandi tidak disimpan di aplikasi.",
+  "provisioningSuccessHint": "Alat sudah mengirim detak dari jaringan ini. Layar ini bisa ditutup.",
+  "provisioningTimeoutTitle": "Belum tersambung",
+  "provisioningTimeoutBody": "Alat belum mengirim detak dalam 2 menit. Periksa nama jaringan dan kata sandi, lalu coba lagi.",
 
   "commandsTitle": "Kontrol jarak jauh",
   "commandsSyncNow": "Sinkronkan sekarang",
@@ -229,6 +240,24 @@
   "commandsConfirmRestartBody": "Kacamata akan berhenti sejenak dan perlu dipakai kembali.",
   "commandsSent": "Perintah dikirim.",
   "commandsSendFailed": "Perintah gagal dikirim. Coba lagi.",
+  "commandsWaitingForDevice": "Menunggu alat · {time}",
+  "commandsVolumeValue": "Volume {level}",
+  "commandsDetailSpeakText": "Teks: “{text}”",
+  "@commandsWaitingForDevice": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "@commandsVolumeValue": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "@commandsDetailSpeakText": {
+    "placeholders": {
+      "text": { "type": "String" }
+    }
+  },
 
   "eventsTitle": "Koneksi dan sinkronisasi",
   "eventsEmptyTitle": "Belum ada catatan",
@@ -236,12 +265,15 @@
   "eventsSeverityInfo": "Info",
   "eventsSeverityWarning": "Peringatan",
   "eventsSeverityError": "Gangguan",
+  "eventsLatestNote": "Menampilkan {count} kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.",
+  "eventsAllLoaded": "Semua kejadian pada saringan ini sudah dimuat.",
+  "@eventsLatestNote": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "settingsTitle": "Pengaturan",
-  "settingsAppearance": "Tampilan",
-  "settingsThemeSystem": "Ikuti sistem",
-  "settingsThemeLight": "Terang",
-  "settingsThemeDark": "Gelap",
   "settingsLanguage": "Bahasa",
   "settingsPrivacy": "Privasi",
   "settingsUploadThumbnails": "Kirim thumbnail pembacaan",
@@ -482,7 +514,10 @@
   "deviceConnectBody": "Tampilkan QR Wi-Fi ke kamera kacamata untuk menghubungkan perangkat ke jaringan.",
   "deviceShowQr": "Tampilkan QR Wi-Fi",
   "deviceControlTitle": "Kontrol",
-  "deviceActivityTitle": "Aktivitas dan error",
+  "deviceControlOfflineNote": "Alat sedang tidak tersambung — perintah dijalankan otomatis begitu alat kembali.",
+  "deviceEventsTitle": "Kejadian terakhir",
+  "deviceCommandsTitle": "Perintah terakhir",
+  "deviceCommandsEmpty": "Belum ada perintah yang dikirim dari aplikasi.",
   "deviceLastSeenLabel": "Terakhir terlihat",
   "deviceFirmwareShort": "Firmware {version}",
   "deviceModelShort": "Model {model}",
@@ -511,7 +546,6 @@
     }
   },
 
-  "settingsDisplayTitle": "Tampilan",
   "settingsPrivacyTitle": "Privasi dan data",
   "settingsAdvancedTitle": "Lanjutan",
   "settingsAccountTitle": "Akun",

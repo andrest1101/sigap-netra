@@ -1,37 +1,55 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/theme/status_colors.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../domain/entities/wifi_credentials.dart';
 import '../../domain/usecases/build_wifi_qr_payload.dart';
 
 /// Layar QR Wi-Fi — identitas visual v3.
 ///
 /// Stepper 3 langkah: Jaringan (Hotspot/Wi-Fi rumah + SSID/password) →
-/// Tampilkan QR (panel putih, hitam di atas putih bahkan di mode gelap) →
-/// Menunggu alat (Lens Ring fokus + hitung mundur 2 menit).
+/// Tampilkan QR (panel putih, hitam di atas putih agar selalu terbaca kamera
+/// alat) → Menunggu alat.
+///
+/// Langkah 3 punya tiga keadaan yang jujur:
+/// - **menunggu** — Lens Ring fokus + hitung mundur 2 menit;
+/// - **terhubung** — `lastSeen` perangkat bergerak maju melewati patokan saat
+///   langkah ini dibuka (bukti detak baru, bukan klaim kosong);
+/// - **belum tersambung** — hitung mundur habis tanpa detak baru, dengan
+///   tombol "Coba lagi" yang mengambil patokan ulang.
+///
+/// [PERLU KONFIRMASI] Apakah firmware memperbarui `wifiSsid` secara andal saat
+/// reprovision: begitu dikonfirmasi, kecocokan SSID bisa dijadikan syarat
+/// tambahan selain detak baru (lihat `progress.md`).
 ///
 /// Payload QR memakai format aplikasi Kotlin lama
 /// (`WIFI:T:WPA;S:<ssid>;P:<sandi>;;`, lihat `buildWifiQrPayload`), tetapi
 /// firmware MaixCAM belum memindai QR — catatan status jujur ditampilkan di
 /// bawah kode.
-class WifiProvisioningScreen extends StatefulWidget {
+class WifiProvisioningScreen extends ConsumerStatefulWidget {
   const WifiProvisioningScreen({required this.deviceId, super.key});
 
   final String deviceId;
 
   @override
-  State<WifiProvisioningScreen> createState() => _WifiProvisioningScreenState();
+  ConsumerState<WifiProvisioningScreen> createState() =>
+      _WifiProvisioningScreenState();
 }
 
-class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
+class _WifiProvisioningScreenState
+    extends ConsumerState<WifiProvisioningScreen> {
+  static const int _countdownSeconds = 120;
+
   final TextEditingController _ssidController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -40,8 +58,14 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
   bool _useHotspot = true;
   bool _rememberSsid = false;
   bool _obscurePassword = true;
-  int _countdown = 120;
+  int _countdown = _countdownSeconds;
   Timer? _timer;
+
+  /// `lastSeen` saat langkah menunggu dibuka; detak yang lebih baru dari ini
+  /// adalah bukti alat benar-benar hidup setelah pemindaian.
+  DateTime? _baselineLastSeen;
+  bool _connected = false;
+  bool _timedOut = false;
 
   @override
   void dispose() {
@@ -53,11 +77,44 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
 
   void _startCountdown() {
     _timer?.cancel();
-    setState(() => _countdown = 120);
+    setState(() => _countdown = _countdownSeconds);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
-      setState(() => _countdown = _countdown > 0 ? _countdown - 1 : 0);
+      setState(() {
+        _countdown = _countdown > 0 ? _countdown - 1 : 0;
+        if (_countdown == 0 && !_connected) _timedOut = true;
+      });
       if (_countdown == 0) timer.cancel();
+    });
+  }
+
+  DateTime? _currentLastSeen() {
+    return ref.read(deviceProvider(widget.deviceId)).value?.lastSeen;
+  }
+
+  void _enterWaiting() {
+    _baselineLastSeen = _currentLastSeen();
+    _connected = false;
+    _timedOut = false;
+    setState(() => _step = 2);
+    _startCountdown();
+  }
+
+  void _retryWaiting() {
+    _baselineLastSeen = _currentLastSeen();
+    setState(() {
+      _connected = false;
+      _timedOut = false;
+    });
+    _startCountdown();
+  }
+
+  void _leaveWaiting(int step) {
+    _timer?.cancel();
+    setState(() {
+      _step = step;
+      _connected = false;
+      _timedOut = false;
     });
   }
 
@@ -80,6 +137,28 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
+    // Detak pertama setelah pemindaian: `lastSeen` maju melewati patokan →
+    // alat benar-benar hidup di jaringan baru. Dibaca lewat stream dokumen
+    // perangkat, bukan polling.
+    ref.listen(deviceProvider(widget.deviceId), (previous, next) {
+      final device = next.value;
+      if (device == null || _step != 2 || _connected) return;
+      final baseline = _baselineLastSeen;
+      if (baseline == null) {
+        // Data pertama baru tiba setelah layar dibuka: jadikan patokan.
+        _baselineLastSeen = device.lastSeen;
+        return;
+      }
+      final lastSeen = device.lastSeen;
+      if (lastSeen != null && lastSeen.isAfter(baseline)) {
+        _timer?.cancel();
+        setState(() {
+          _connected = true;
+          _timedOut = false;
+        });
+      }
+    });
+
     return Scaffold(
       appBar: BackAppBar(
         title: Text(l10n.provisioningTitle),
@@ -88,7 +167,7 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
       body: Stepper(
         currentStep: _step,
         onStepTapped: (index) {
-          if (index < _step) setState(() => _step = index);
+          if (index < _step) _leaveWaiting(index);
         },
         controlsBuilder: (context, details) => const SizedBox.shrink(),
         steps: [
@@ -117,23 +196,21 @@ class _WifiProvisioningScreenState extends State<WifiProvisioningScreen> {
             state: _step > 1 ? StepState.complete : StepState.indexed,
             content: _QrShell(
               payload: _qrPayload,
-              onNext: () {
-                setState(() => _step = 2);
-                _startCountdown();
-              },
-              onBack: () => setState(() => _step = 0),
+              onNext: _enterWaiting,
+              onBack: () => _leaveWaiting(0),
             ),
           ),
           Step(
             title: Text(l10n.provisioningStepWaiting),
             isActive: _step >= 2,
-            state: StepState.indexed,
+            state: _connected ? StepState.complete : StepState.indexed,
             content: _WaitingStep(
               countdown: _countdown,
-              onBack: () {
-                _timer?.cancel();
-                setState(() => _step = 1);
-              },
+              connected: _connected,
+              timedOut: _timedOut,
+              onBack: () => _leaveWaiting(1),
+              onRetry: _retryWaiting,
+              onFinish: () => Navigator.of(context).maybePop(),
             ),
           ),
         ],
@@ -252,7 +329,7 @@ class _NetworkForm extends StatelessWidget {
   }
 }
 
-/// Panel QR: hitam di atas putih SELALU (termasuk mode gelap) agar terbaca
+/// Panel QR: hitam di atas putih SELALU (bukan warna skema) agar terbaca
 /// kamera. Payload memakai format aplikasi lama; firmware belum memindai QR,
 /// jadi catatan status jujur ditampilkan di bawah kode.
 class _QrShell extends StatelessWidget {
@@ -344,9 +421,144 @@ class _QrShell extends StatelessWidget {
   }
 }
 
-/// Langkah menunggu: Lens Ring fokus + hitung mundur 2 menit.
+/// Langkah menunggu alat: menunggu (fokus + hitung mundur), terhubung, atau
+/// belum tersambung — tiga keadaan dengan aksi yang jelas.
 class _WaitingStep extends StatelessWidget {
-  const _WaitingStep({required this.countdown, required this.onBack});
+  const _WaitingStep({
+    required this.countdown,
+    required this.connected,
+    required this.timedOut,
+    required this.onBack,
+    required this.onRetry,
+    required this.onFinish,
+  });
+
+  final int countdown;
+  final bool connected;
+  final bool timedOut;
+  final VoidCallback onBack;
+  final VoidCallback onRetry;
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget content;
+    if (connected) {
+      content = _ConnectedState(onFinish: onFinish);
+    } else if (timedOut) {
+      content = _TimedOutState(onBack: onBack, onRetry: onRetry);
+    } else {
+      content = _CountingState(countdown: countdown, onBack: onBack);
+    }
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: content,
+    );
+  }
+}
+
+class _ConnectedState extends StatelessWidget {
+  const _ConnectedState({required this.onFinish});
+
+  final VoidCallback onFinish;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final ok = StatusColors.of(context).ok.solid;
+
+    return Column(
+      key: const ValueKey('provisioning-connected'),
+      children: [
+        LensRing(
+          diameter: 120,
+          value: 1,
+          progressColor: ok,
+          semanticsLabel: l10n.provisioningSuccess,
+          center: Icon(Icons.check_rounded, size: 44, color: ok),
+        ),
+        const SizedBox(height: DesignTokens.spaceMd),
+        Text(
+          l10n.provisioningSuccess,
+          style: textTheme.titleMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: DesignTokens.spaceSm),
+        Text(
+          l10n.provisioningSuccessHint,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: DesignTokens.spaceMd),
+        FilledButton(onPressed: onFinish, child: Text(l10n.commonDone)),
+      ],
+    );
+  }
+}
+
+class _TimedOutState extends StatelessWidget {
+  const _TimedOutState({required this.onBack, required this.onRetry});
+
+  final VoidCallback onBack;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      key: const ValueKey('provisioning-timeout'),
+      children: [
+        LensRing(
+          diameter: 120,
+          semanticsLabel: l10n.provisioningTimeoutTitle,
+          unavailableIcon: Icons.wifi_off_rounded,
+        ),
+        const SizedBox(height: DesignTokens.spaceMd),
+        Text(
+          l10n.provisioningTimeoutTitle,
+          style: textTheme.titleMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: DesignTokens.spaceSm),
+        Text(
+          l10n.provisioningTimeoutBody,
+          style: textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: DesignTokens.spaceMd),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onBack,
+                child: Text(l10n.commonBack),
+              ),
+            ),
+            const SizedBox(width: DesignTokens.spaceMd),
+            Expanded(
+              child: FilledButton(
+                onPressed: onRetry,
+                child: Text(l10n.commonRetry),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CountingState extends StatelessWidget {
+  const _CountingState({required this.countdown, required this.onBack});
 
   final int countdown;
   final VoidCallback onBack;
@@ -357,6 +569,7 @@ class _WaitingStep extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Column(
+      key: const ValueKey('provisioning-counting'),
       children: [
         LensRing(
           diameter: 120,

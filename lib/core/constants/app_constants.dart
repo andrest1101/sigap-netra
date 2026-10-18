@@ -43,6 +43,12 @@ const int kRecentActivityLimit = 20;
 /// Jumlah pembacaan per halaman di Riwayat.
 const int kHistoryPageSize = 25;
 
+/// Jumlah kejadian per halaman di Log koneksi saat saringan severity aktif.
+///
+/// Halaman berfilter memakai query server (`getEventsPage`) dengan kursor;
+/// saringan "Semua" tetap realtime dan dibatasi 50 kejadian terbaru.
+const int kEventsPageSize = 25;
+
 /// Jumlah entri yang diminta saat menghitung agregat badge dan akurasi.
 const int kAggregationCountLimit = 1000;
 

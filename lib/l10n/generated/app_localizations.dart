@@ -214,6 +214,18 @@ abstract class AppLocalizations {
   /// **'Lihat detail'**
   String get commonSeeDetail;
 
+  /// No description provided for @commonLoadMore.
+  ///
+  /// In id, this message translates to:
+  /// **'Muat lagi'**
+  String get commonLoadMore;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In id, this message translates to:
+  /// **'Selesai'**
+  String get commonDone;
+
   /// No description provided for @stateLoading.
   ///
   /// In id, this message translates to:
@@ -1006,6 +1018,12 @@ abstract class AppLocalizations {
   /// **'Tambahkan perangkat untuk mulai memantau.'**
   String get devicesEmptyBody;
 
+  /// No description provided for @devicesMultipleNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan perangkat utama dari {count} perangkat.'**
+  String devicesMultipleNote(int count);
+
   /// No description provided for @deviceDetailTitle.
   ///
   /// In id, this message translates to:
@@ -1162,6 +1180,24 @@ abstract class AppLocalizations {
   /// **'Kata sandi tidak disimpan di aplikasi.'**
   String get provisioningPasswordNotStored;
 
+  /// No description provided for @provisioningSuccessHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Alat sudah mengirim detak dari jaringan ini. Layar ini bisa ditutup.'**
+  String get provisioningSuccessHint;
+
+  /// No description provided for @provisioningTimeoutTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum tersambung'**
+  String get provisioningTimeoutTitle;
+
+  /// No description provided for @provisioningTimeoutBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Alat belum mengirim detak dalam 2 menit. Periksa nama jaringan dan kata sandi, lalu coba lagi.'**
+  String get provisioningTimeoutBody;
+
   /// No description provided for @commandsTitle.
   ///
   /// In id, this message translates to:
@@ -1264,6 +1300,24 @@ abstract class AppLocalizations {
   /// **'Perintah gagal dikirim. Coba lagi.'**
   String get commandsSendFailed;
 
+  /// No description provided for @commandsWaitingForDevice.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu alat · {time}'**
+  String commandsWaitingForDevice(String time);
+
+  /// No description provided for @commandsVolumeValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Volume {level}'**
+  String commandsVolumeValue(int level);
+
+  /// No description provided for @commandsDetailSpeakText.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks: “{text}”'**
+  String commandsDetailSpeakText(String text);
+
   /// No description provided for @eventsTitle.
   ///
   /// In id, this message translates to:
@@ -1300,35 +1354,23 @@ abstract class AppLocalizations {
   /// **'Gangguan'**
   String get eventsSeverityError;
 
+  /// No description provided for @eventsLatestNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan {count} kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.'**
+  String eventsLatestNote(int count);
+
+  /// No description provided for @eventsAllLoaded.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua kejadian pada saringan ini sudah dimuat.'**
+  String get eventsAllLoaded;
+
   /// No description provided for @settingsTitle.
   ///
   /// In id, this message translates to:
   /// **'Pengaturan'**
   String get settingsTitle;
-
-  /// No description provided for @settingsAppearance.
-  ///
-  /// In id, this message translates to:
-  /// **'Tampilan'**
-  String get settingsAppearance;
-
-  /// No description provided for @settingsThemeSystem.
-  ///
-  /// In id, this message translates to:
-  /// **'Ikuti sistem'**
-  String get settingsThemeSystem;
-
-  /// No description provided for @settingsThemeLight.
-  ///
-  /// In id, this message translates to:
-  /// **'Terang'**
-  String get settingsThemeLight;
-
-  /// No description provided for @settingsThemeDark.
-  ///
-  /// In id, this message translates to:
-  /// **'Gelap'**
-  String get settingsThemeDark;
 
   /// No description provided for @settingsLanguage.
   ///
@@ -2054,11 +2096,29 @@ abstract class AppLocalizations {
   /// **'Kontrol'**
   String get deviceControlTitle;
 
-  /// No description provided for @deviceActivityTitle.
+  /// No description provided for @deviceControlOfflineNote.
   ///
   /// In id, this message translates to:
-  /// **'Aktivitas dan error'**
-  String get deviceActivityTitle;
+  /// **'Alat sedang tidak tersambung — perintah dijalankan otomatis begitu alat kembali.'**
+  String get deviceControlOfflineNote;
+
+  /// No description provided for @deviceEventsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kejadian terakhir'**
+  String get deviceEventsTitle;
+
+  /// No description provided for @deviceCommandsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah terakhir'**
+  String get deviceCommandsTitle;
+
+  /// No description provided for @deviceCommandsEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perintah yang dikirim dari aplikasi.'**
+  String get deviceCommandsEmpty;
 
   /// No description provided for @deviceLastSeenLabel.
   ///
@@ -2125,12 +2185,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Menunggu {seconds} dtk'**
   String provisioningCountdown(int seconds);
-
-  /// No description provided for @settingsDisplayTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Tampilan'**
-  String get settingsDisplayTitle;
 
   /// No description provided for @settingsPrivacyTitle.
   ///

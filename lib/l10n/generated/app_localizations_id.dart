@@ -69,6 +69,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonSeeDetail => 'Lihat detail';
 
   @override
+  String get commonLoadMore => 'Muat lagi';
+
+  @override
+  String get commonDone => 'Selesai';
+
+  @override
   String get stateLoading => 'Memuat data...';
 
   @override
@@ -488,6 +494,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get devicesEmptyBody => 'Tambahkan perangkat untuk mulai memantau.';
 
   @override
+  String devicesMultipleNote(int count) {
+    return 'Menampilkan perangkat utama dari $count perangkat.';
+  }
+
+  @override
   String get deviceDetailTitle => 'Detail perangkat';
 
   @override
@@ -571,6 +582,17 @@ class AppLocalizationsId extends AppLocalizations {
       'Kata sandi tidak disimpan di aplikasi.';
 
   @override
+  String get provisioningSuccessHint =>
+      'Alat sudah mengirim detak dari jaringan ini. Layar ini bisa ditutup.';
+
+  @override
+  String get provisioningTimeoutTitle => 'Belum tersambung';
+
+  @override
+  String get provisioningTimeoutBody =>
+      'Alat belum mengirim detak dalam 2 menit. Periksa nama jaringan dan kata sandi, lalu coba lagi.';
+
+  @override
   String get commandsTitle => 'Kontrol jarak jauh';
 
   @override
@@ -623,6 +645,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get commandsSendFailed => 'Perintah gagal dikirim. Coba lagi.';
 
   @override
+  String commandsWaitingForDevice(String time) {
+    return 'Menunggu alat · $time';
+  }
+
+  @override
+  String commandsVolumeValue(int level) {
+    return 'Volume $level';
+  }
+
+  @override
+  String commandsDetailSpeakText(String text) {
+    return 'Teks: “$text”';
+  }
+
+  @override
   String get eventsTitle => 'Koneksi dan sinkronisasi';
 
   @override
@@ -642,19 +679,16 @@ class AppLocalizationsId extends AppLocalizations {
   String get eventsSeverityError => 'Gangguan';
 
   @override
+  String eventsLatestNote(int count) {
+    return 'Menampilkan $count kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.';
+  }
+
+  @override
+  String get eventsAllLoaded =>
+      'Semua kejadian pada saringan ini sudah dimuat.';
+
+  @override
   String get settingsTitle => 'Pengaturan';
-
-  @override
-  String get settingsAppearance => 'Tampilan';
-
-  @override
-  String get settingsThemeSystem => 'Ikuti sistem';
-
-  @override
-  String get settingsThemeLight => 'Terang';
-
-  @override
-  String get settingsThemeDark => 'Gelap';
 
   @override
   String get settingsLanguage => 'Bahasa';
@@ -1079,7 +1113,18 @@ class AppLocalizationsId extends AppLocalizations {
   String get deviceControlTitle => 'Kontrol';
 
   @override
-  String get deviceActivityTitle => 'Aktivitas dan error';
+  String get deviceControlOfflineNote =>
+      'Alat sedang tidak tersambung — perintah dijalankan otomatis begitu alat kembali.';
+
+  @override
+  String get deviceEventsTitle => 'Kejadian terakhir';
+
+  @override
+  String get deviceCommandsTitle => 'Perintah terakhir';
+
+  @override
+  String get deviceCommandsEmpty =>
+      'Belum ada perintah yang dikirim dari aplikasi.';
 
   @override
   String get deviceLastSeenLabel => 'Terakhir terlihat';
@@ -1119,9 +1164,6 @@ class AppLocalizationsId extends AppLocalizations {
   String provisioningCountdown(int seconds) {
     return 'Menunggu $seconds dtk';
   }
-
-  @override
-  String get settingsDisplayTitle => 'Tampilan';
 
   @override
   String get settingsPrivacyTitle => 'Privasi dan data';
