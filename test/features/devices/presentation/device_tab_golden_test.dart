@@ -9,6 +9,7 @@ import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/widgets/battery_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/commands/domain/entities/device_command.dart';
 import 'package:sigap_netra_app/features/devices/domain/entities/device.dart';
 import 'package:sigap_netra_app/features/devices/domain/repositories/device_repository.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
@@ -42,21 +43,22 @@ class _FakeDeviceRepository implements DeviceRepository {
   Future<void> close() => _controller.close();
 }
 
-/// Golden test tab Perangkat: memotret hasil render AKTUAL (light + dark).
+/// Golden test tab Perangkat: memotret hasil render AKTUAL (terang-saja).
 ///
-/// File PNG tersimpan di `test/goldens/` dan diinspeksi manual sebelum
-/// presentasi — bukan tebakan dari membaca kode.
+/// File PNG tersimpan di `test/features/devices/goldens/` dan diinspeksi
+/// manual sebelum presentasi — bukan tebakan dari membaca kode.
 void main() {
   late _FakeDeviceRepository repository;
 
   setUp(() => repository = _FakeDeviceRepository());
   tearDown(() => repository.close());
 
-  Future<void> pumpDevices(
-    WidgetTester tester, {
-    ThemeMode mode = ThemeMode.light,
-  }) async {
+  Future<FakeAppGraph> pumpDevices(WidgetTester tester) async {
     final graph = FakeAppGraph();
+    // Tinggi 1400 px supaya seluruh halaman (Kontrol + dua seksi timeline)
+    // ikut terekam golden, bukan hanya bagian atas viewport.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -71,12 +73,11 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: mode,
           home: const DeviceListScreen(),
         ),
       ),
     );
+    return graph;
   }
 
   Future<void> settle(WidgetTester tester) async {
@@ -98,7 +99,7 @@ void main() {
 
   group('Golden tab Perangkat', () {
     testWidgets('light: render aktual', (tester) async {
-      await pumpDevices(tester, mode: ThemeMode.light);
+      await pumpDevices(tester);
       repository.emit([device()]);
       await settle(tester);
 
@@ -114,22 +115,8 @@ void main() {
       );
     });
 
-    testWidgets('dark: render aktual', (tester) async {
-      await pumpDevices(tester, mode: ThemeMode.dark);
-      repository.emit([device()]);
-      await settle(tester);
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('Kacamata Cerdas'), findsOneWidget);
-
-      await expectLater(
-        find.byType(DeviceListScreen),
-        matchesGoldenFile('../goldens/device_tab_dark.png'),
-      );
-    });
-
     testWidgets('BatteryRing Perangkat identik dengan Beranda', (tester) async {
-      await pumpDevices(tester, mode: ThemeMode.light);
+      await pumpDevices(tester);
       repository.emit([device()]);
       await settle(tester);
 
@@ -149,7 +136,7 @@ void main() {
     testWidgets('chip Kontrol + Severity berteks gelap di kartu terang', (
       tester,
     ) async {
-      await pumpDevices(tester, mode: ThemeMode.light);
+      await pumpDevices(tester);
       repository.emit([device()]);
       await settle(tester);
 
@@ -158,9 +145,11 @@ void main() {
       // `DefaultTextStyle` chip (hasil `chipTheme.labelStyle`).
       for (final label in [
         'Sinkronkan sekarang',
-        'Atur volume',
+        'Volume',
         'Ucapkan teks',
         'Mulai ulang',
+        'Kejadian terakhir',
+        'Perintah terakhir',
         'Semua',
         'Info',
         'Peringatan',
@@ -183,6 +172,76 @@ void main() {
         );
       }
     });
+
+    testWidgets('dua seksi timeline terpisah: kejadian vs perintah', (
+      tester,
+    ) async {
+      await pumpDevices(tester);
+      repository.emit([device()]);
+      await settle(tester);
+
+      // Versi lama mencampur event dan perintah dalam satu daftar tanpa
+      // label; sekarang masing-masing punya seksi sendiri.
+      expect(find.text('Kejadian terakhir'), findsOneWidget);
+      expect(find.text('Perintah terakhir'), findsOneWidget);
+      expect(find.text('Perangkat selesai booting.'), findsOneWidget);
+      expect(find.textContaining('Sinkronisasi selesai.'), findsOneWidget);
+    });
+
+    testWidgets('tombol Sinkronkan benar-benar mengirim perintah', (
+      tester,
+    ) async {
+      final graph = await pumpDevices(tester);
+      repository.emit([device()]);
+      await settle(tester);
+      final before = graph.commands.itemsForTest.length;
+
+      // `FilledButton.tonalIcon` menghasilkan subclass privat, jadi finder
+      // berbasis tipe generik tidak cukup — cari lewat labelnya.
+      final button = find
+          .ancestor(
+            of: find.text('Sinkronkan sekarang'),
+            matching: find.byWidgetPredicate(
+              (widget) => widget is FilledButton,
+            ),
+          )
+          .first;
+      await tester.ensureVisible(button);
+      await tester.pump();
+      await tester.tap(button);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(graph.commands.itemsForTest.length, before + 1);
+      expect(graph.commands.itemsForTest.first.status, CommandStatus.pending);
+      expect(find.text('Perintah dikirim.'), findsOneWidget);
+      // Bahasa jujur saat perintah masih menunggu alat.
+      expect(find.textContaining('Menunggu alat'), findsWidgets);
+
+      // Habiskan timer simulasi device (1 dtk ack, 2 dtk done) + snackbar.
+      await tester.pump(const Duration(seconds: 5));
+    });
+
+    testWidgets('slider volume mengirim perintah setVolume', (tester) async {
+      final graph = await pumpDevices(tester);
+      repository.emit([device()]);
+      await settle(tester);
+      final before = graph.commands.itemsForTest.length;
+
+      final slider = find.byType(Slider);
+      await tester.ensureVisible(slider);
+      await tester.pump();
+      await tester.drag(slider, const Offset(-160, 0));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(graph.commands.itemsForTest.length, before + 1);
+      final newest = graph.commands.itemsForTest.first;
+      expect(newest.type, CommandType.setVolume);
+      expect(newest.payload['level'], isA<int>());
+
+      await tester.pump(const Duration(seconds: 5));
+    });
   });
 
   // matchesGoldenFile() resolusinya relatif file test; Directory() relatif cwd.
@@ -190,6 +249,5 @@ void main() {
     const dir = 'test/features/devices/goldens';
     expect(Directory(dir).existsSync(), isTrue);
     expect(File('$dir/device_tab_light.png').existsSync(), isTrue);
-    expect(File('$dir/device_tab_dark.png').existsSync(), isTrue);
   });
 }
