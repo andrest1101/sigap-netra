@@ -214,6 +214,18 @@ abstract class AppLocalizations {
   /// **'Lihat detail'**
   String get commonSeeDetail;
 
+  /// No description provided for @commonLoadMore.
+  ///
+  /// In id, this message translates to:
+  /// **'Muat lagi'**
+  String get commonLoadMore;
+
+  /// No description provided for @commonDone.
+  ///
+  /// In id, this message translates to:
+  /// **'Selesai'**
+  String get commonDone;
+
   /// No description provided for @stateLoading.
   ///
   /// In id, this message translates to:
@@ -1006,6 +1018,12 @@ abstract class AppLocalizations {
   /// **'Tambahkan perangkat untuk mulai memantau.'**
   String get devicesEmptyBody;
 
+  /// No description provided for @devicesMultipleNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan perangkat utama dari {count} perangkat.'**
+  String devicesMultipleNote(int count);
+
   /// No description provided for @deviceDetailTitle.
   ///
   /// In id, this message translates to:
@@ -1162,6 +1180,24 @@ abstract class AppLocalizations {
   /// **'Kata sandi tidak disimpan di aplikasi.'**
   String get provisioningPasswordNotStored;
 
+  /// No description provided for @provisioningSuccessHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Alat sudah mengirim detak dari jaringan ini. Layar ini bisa ditutup.'**
+  String get provisioningSuccessHint;
+
+  /// No description provided for @provisioningTimeoutTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum tersambung'**
+  String get provisioningTimeoutTitle;
+
+  /// No description provided for @provisioningTimeoutBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Alat belum mengirim detak dalam 2 menit. Periksa nama jaringan dan kata sandi, lalu coba lagi.'**
+  String get provisioningTimeoutBody;
+
   /// No description provided for @commandsTitle.
   ///
   /// In id, this message translates to:
@@ -1264,6 +1300,24 @@ abstract class AppLocalizations {
   /// **'Perintah gagal dikirim. Coba lagi.'**
   String get commandsSendFailed;
 
+  /// No description provided for @commandsWaitingForDevice.
+  ///
+  /// In id, this message translates to:
+  /// **'Menunggu alat · {time}'**
+  String commandsWaitingForDevice(String time);
+
+  /// No description provided for @commandsVolumeValue.
+  ///
+  /// In id, this message translates to:
+  /// **'Volume {level}'**
+  String commandsVolumeValue(int level);
+
+  /// No description provided for @commandsDetailSpeakText.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks: “{text}”'**
+  String commandsDetailSpeakText(String text);
+
   /// No description provided for @eventsTitle.
   ///
   /// In id, this message translates to:
@@ -1300,47 +1354,23 @@ abstract class AppLocalizations {
   /// **'Gangguan'**
   String get eventsSeverityError;
 
+  /// No description provided for @eventsLatestNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Menampilkan {count} kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.'**
+  String eventsLatestNote(int count);
+
+  /// No description provided for @eventsAllLoaded.
+  ///
+  /// In id, this message translates to:
+  /// **'Semua kejadian pada saringan ini sudah dimuat.'**
+  String get eventsAllLoaded;
+
   /// No description provided for @settingsTitle.
   ///
   /// In id, this message translates to:
   /// **'Pengaturan'**
   String get settingsTitle;
-
-  /// No description provided for @settingsAppearance.
-  ///
-  /// In id, this message translates to:
-  /// **'Tampilan'**
-  String get settingsAppearance;
-
-  /// No description provided for @settingsThemeSystem.
-  ///
-  /// In id, this message translates to:
-  /// **'Ikuti sistem'**
-  String get settingsThemeSystem;
-
-  /// No description provided for @settingsThemeLight.
-  ///
-  /// In id, this message translates to:
-  /// **'Terang'**
-  String get settingsThemeLight;
-
-  /// No description provided for @settingsThemeDark.
-  ///
-  /// In id, this message translates to:
-  /// **'Gelap'**
-  String get settingsThemeDark;
-
-  /// No description provided for @settingsLanguage.
-  ///
-  /// In id, this message translates to:
-  /// **'Bahasa'**
-  String get settingsLanguage;
-
-  /// No description provided for @settingsPrivacy.
-  ///
-  /// In id, this message translates to:
-  /// **'Privasi'**
-  String get settingsPrivacy;
 
   /// No description provided for @settingsUploadThumbnails.
   ///
@@ -2024,11 +2054,47 @@ abstract class AppLocalizations {
   /// **'Bagikan ringkasan'**
   String get historyShareSummary;
 
-  /// No description provided for @historyExportComingSoon.
+  /// No description provided for @historyExportConsentAccept.
   ///
   /// In id, this message translates to:
-  /// **'Ekspor CSV segera hadir.'**
-  String get historyExportComingSoon;
+  /// **'Lanjutkan'**
+  String get historyExportConsentAccept;
+
+  /// No description provided for @historyExportConsentTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ekspor CSV memuat teks pribadi'**
+  String get historyExportConsentTitle;
+
+  /// No description provided for @historyExportConsentBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Berkas CSV memuat teks OCR apa adanya yang dapat berisi informasi pribadi. Berkas dibuat di perangkat Anda dan hanya Anda yang menentukan ke mana berkas dibagikan.'**
+  String get historyExportConsentBody;
+
+  /// No description provided for @historyExportPreparing.
+  ///
+  /// In id, this message translates to:
+  /// **'Menyiapkan berkas CSV…'**
+  String get historyExportPreparing;
+
+  /// No description provided for @historyExportEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada pembacaan pada filter ini untuk diekspor.'**
+  String get historyExportEmpty;
+
+  /// No description provided for @historyExportTruncated.
+  ///
+  /// In id, this message translates to:
+  /// **'Berkas memuat {count} pembacaan terbaru pada filter ini. Persempit filter untuk sisanya.'**
+  String historyExportTruncated(int count);
+
+  /// No description provided for @historyExportFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menyiapkan berkas CSV. Periksa koneksi lalu coba lagi.'**
+  String get historyExportFailed;
 
   /// No description provided for @deviceConnectTitle.
   ///
@@ -2054,11 +2120,29 @@ abstract class AppLocalizations {
   /// **'Kontrol'**
   String get deviceControlTitle;
 
-  /// No description provided for @deviceActivityTitle.
+  /// No description provided for @deviceControlOfflineNote.
   ///
   /// In id, this message translates to:
-  /// **'Aktivitas dan error'**
-  String get deviceActivityTitle;
+  /// **'Alat sedang tidak tersambung — perintah dijalankan otomatis begitu alat kembali.'**
+  String get deviceControlOfflineNote;
+
+  /// No description provided for @deviceEventsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Kejadian terakhir'**
+  String get deviceEventsTitle;
+
+  /// No description provided for @deviceCommandsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah terakhir'**
+  String get deviceCommandsTitle;
+
+  /// No description provided for @deviceCommandsEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perintah yang dikirim dari aplikasi.'**
+  String get deviceCommandsEmpty;
 
   /// No description provided for @deviceLastSeenLabel.
   ///
@@ -2126,12 +2210,6 @@ abstract class AppLocalizations {
   /// **'Menunggu {seconds} dtk'**
   String provisioningCountdown(int seconds);
 
-  /// No description provided for @settingsDisplayTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Tampilan'**
-  String get settingsDisplayTitle;
-
   /// No description provided for @settingsPrivacyTitle.
   ///
   /// In id, this message translates to:
@@ -2177,7 +2255,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRetentionBody.
   ///
   /// In id, this message translates to:
-  /// **'Pembacaan dan thumbnail disimpan maksimal 30 hari.'**
+  /// **'Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.'**
   String get settingsRetentionBody;
 
   /// No description provided for @settingsDeleteAllTitle.

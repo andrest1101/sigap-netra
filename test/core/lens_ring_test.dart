@@ -7,18 +7,10 @@ import 'package:sigap_netra_app/core/widgets/lens_ring.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 void main() {
-  Future<void> pumpRing(
-    WidgetTester tester,
-    LensRing ring, {
-    Brightness brightness = Brightness.light,
-  }) async {
+  Future<void> pumpRing(WidgetTester tester, LensRing ring) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: brightness == Brightness.dark
-            ? ThemeMode.dark
-            : ThemeMode.light,
         home: Scaffold(body: Center(child: ring)),
       ),
     );
@@ -72,22 +64,25 @@ void main() {
       expect(find.text('10'), findsOneWidget);
     });
 
-    testWidgets('warna adaptif mengikuti mode gelap', (tester) async {
-      await pumpRing(
-        tester,
-        LensRing.battery(
-          diameter: 72,
-          batteryPct: 82,
-          availableLabel: 'Baterai',
-          unavailableLabel: 'Baterai tidak tersedia',
+    testWidgets('palet status tetap ada di tema polos (tanpa AppTheme)', (
+      tester,
+    ) async {
+      // Regression: fallback `StatusColors.of` tidak boleh bergantung pada
+      // tema gelap yang sudah dihapus — tema tanpa ekstensi memakai palet
+      // terang.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              expect(
+                StatusColors.of(context).ok.solid,
+                StatusColors.light.ok.solid,
+              );
+              return const Scaffold(body: SizedBox.shrink());
+            },
+          ),
         ),
-        brightness: Brightness.dark,
       );
-
-      final context = tester.element(find.byType(LensRing));
-      expect(Theme.of(context).brightness, Brightness.dark);
-      expect(StatusColors.of(context).ok.solid, isNotNull);
-      expect(find.text('82'), findsOneWidget);
     });
   });
 

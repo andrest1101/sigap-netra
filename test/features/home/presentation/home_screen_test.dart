@@ -244,7 +244,9 @@ void main() {
       expect(text.style?.color, scheme.onPrimaryContainer);
     });
 
-    testWidgets('nama perangkat Hero terbaca di mode gelap', (tester) async {
+    testWidgets('nama perangkat Hero mengikuti warna tema (tema polos)', (
+      tester,
+    ) async {
       final now = DateTime(2026, 10, 8, 12);
       final graph = FakeAppGraph();
       await tester.pumpWidget(
@@ -261,8 +263,6 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             theme: ThemeData.light(useMaterial3: true),
-            darkTheme: ThemeData.dark(useMaterial3: true),
-            themeMode: ThemeMode.dark,
             home: const HomeScreen(),
           ),
         ),
@@ -284,7 +284,7 @@ void main() {
       expect(heroName, findsOneWidget);
       final context = tester.element(heroName);
       final scheme = Theme.of(context).colorScheme;
-      expect(Theme.of(context).brightness, Brightness.dark);
+      expect(Theme.of(context).brightness, Brightness.light);
       final text = tester.widget<Text>(heroName);
       expect(text.style?.color, scheme.onPrimaryContainer);
     });

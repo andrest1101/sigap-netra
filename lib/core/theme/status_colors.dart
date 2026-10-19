@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 /// Makna tetap: ok = Terhubung/Cocok, bad = Terputus/Tidak cocok/error,
 /// warn = Menunggu/Peringatan, neutral = Belum/tidak tersedia.
 ///
-/// Didefinisikan sebagai `ThemeExtension` supaya mengikuti tema light/dark
-/// secara otomatis. Jangan memakai warna mentah di widget; selalu baca lewat
-/// `StatusColors.of(context)`. Warna tidak boleh menjadi satu-satunya pembawa
-/// makna: selalu sertakan ikon atau label.
+/// Didefinisikan sebagai `ThemeExtension` agar selalu dibaca lewat satu pintu
+/// `StatusColors.of(context)` (aplikasi terang-saja, keputusan 2026-10-18).
+/// Jangan memakai warna mentah di widget. Warna tidak boleh menjadi
+/// satu-satunya pembawa makna: selalu sertakan ikon atau label.
 @immutable
 class StatusPalette {
   const StatusPalette({
@@ -62,7 +62,7 @@ class StatusColors extends ThemeExtension<StatusColors> {
   /// Belum, tidak diketahui.
   final StatusPalette neutral;
 
-  /// Palet status untuk tema terang.
+  /// Palet status aplikasi (terang-saja).
   static const StatusColors light = StatusColors(
     ok: StatusPalette(
       solid: Color(0xFF1E9E63),
@@ -86,37 +86,12 @@ class StatusColors extends ThemeExtension<StatusColors> {
     ),
   );
 
-  /// Palet status untuk tema gelap.
-  static const StatusColors dark = StatusColors(
-    ok: StatusPalette(
-      solid: Color(0xFF5FD39A),
-      container: Color(0xFF123626),
-      content: Color(0xFFA9E8C6),
-    ),
-    bad: StatusPalette(
-      solid: Color(0xFFFF8A92),
-      container: Color(0xFF3D151B),
-      content: Color(0xFFFFB3B9),
-    ),
-    warn: StatusPalette(
-      solid: Color(0xFFFFC857),
-      container: Color(0xFF3A2C0E),
-      content: Color(0xFFFFDD94),
-    ),
-    neutral: StatusPalette(
-      solid: Color(0xFF9EA3B5),
-      container: Color(0xFF23262F),
-      content: Color(0xFFC6CAD6),
-    ),
-  );
-
-  /// Mengambil palet dari tema aktif.
+  /// Mengambil palet status dari tema aktif.
   ///
-  /// Dipertahankan sebagai accessor kompatibel: pemanggil lama
-  /// `StatusColors.of(context)` tetap jalan tanpa perubahan.
+  /// Fallback ke [light] bila ekstensi belum terpasang (mis. widget test
+  /// dengan `ThemeData` polos).
   static StatusColors of(BuildContext context) {
-    return Theme.of(context).extension<StatusColors>() ??
-        (Theme.of(context).brightness == Brightness.dark ? dark : light);
+    return Theme.of(context).extension<StatusColors>() ?? light;
   }
 
   @override

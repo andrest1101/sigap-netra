@@ -17,10 +17,7 @@ void main() {
   setUp(() => dataSource = FakeAuthDataSource());
   tearDown(() => dataSource.dispose());
 
-  Future<void> pumpLogin(
-    WidgetTester tester, {
-    ThemeMode mode = ThemeMode.light,
-  }) async {
+  Future<void> pumpLogin(WidgetTester tester) async {
     // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
     await precacheLogoMark(tester);
     await tester.pumpWidget(
@@ -35,8 +32,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: mode,
           home: const LoginScreen(),
         ),
       ),
@@ -167,21 +162,11 @@ void main() {
     });
 
     testWidgets('light: render aktual', (tester) async {
-      await pumpLogin(tester, mode: ThemeMode.light);
+      await pumpLogin(tester);
       expect(tester.takeException(), isNull);
       await expectLater(
         find.byType(LoginScreen),
         matchesGoldenFile('../goldens/login_light.png'),
-      );
-    });
-
-    testWidgets('dark: render aktual', (tester) async {
-      await pumpLogin(tester, mode: ThemeMode.dark);
-      await tester.pump(const Duration(seconds: 16));
-      expect(tester.takeException(), isNull);
-      await expectLater(
-        find.byType(LoginScreen),
-        matchesGoldenFile('../goldens/login_dark.png'),
       );
     });
   });

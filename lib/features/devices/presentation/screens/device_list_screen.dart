@@ -18,7 +18,9 @@ import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../commands/domain/entities/device_command.dart';
+import '../../../commands/presentation/command_actions.dart';
 import '../../../commands/presentation/providers/commands_providers.dart';
+import '../../../commands/presentation/widgets/command_presentation.dart';
 import '../../../events/domain/entities/device_event.dart';
 import '../../../events/presentation/providers/events_providers.dart';
 import '../../domain/entities/device.dart';
@@ -75,6 +77,16 @@ class DeviceListScreen extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (list.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    DesignTokens.spacePage,
+                    DesignTokens.spaceSm,
+                    DesignTokens.spacePage,
+                    0,
+                  ),
+                  child: _MultiDeviceNote(count: list.length),
+                ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                   DesignTokens.spacePage,
@@ -87,7 +99,6 @@ class DeviceListScreen extends ConsumerWidget {
               _ConnectCard(device: device),
               _ControlCard(device: device),
               _ActivityTimeline(deviceId: device.deviceId),
-              const SizedBox(height: DesignTokens.spaceSection),
             ],
           );
         },
@@ -202,6 +213,50 @@ class _DeviceHead extends StatelessWidget {
   }
 }
 
+/// Catatan jujur saat akun punya lebih dari satu perangkat.
+///
+/// Tab ini sengaja menampilkan satu perangkat utama (seluruh aplikasi
+/// mengasumsikan satu kacamata aktif); catatan ini menjelaskan sisanya agar
+/// tidak terkesan perangkat lain hilang.
+class _MultiDeviceNote extends StatelessWidget {
+  const _MultiDeviceNote({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(DesignTokens.spaceMd),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: DesignTokens.spaceSm),
+          Expanded(
+            child: Text(
+              l10n.devicesMultipleNote(count),
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Kartu Hubungkan: tombol QR Wi-Fi + bantuan singkat.
 class _ConnectCard extends StatelessWidget {
   const _ConnectCard({required this.device});
@@ -254,15 +309,31 @@ class _ConnectCard extends StatelessWidget {
   }
 }
 
-/// Kartu Kontrol: pintasan ke perintah (volume, ucapkan, restart, sinkron).
-class _ControlCard extends StatelessWidget {
+/// Kartu Kontrol fungsional: volume, sinkron, ucapkan, mulai ulang.
+///
+/// Semua aksi benar-benar mengirim perintah lewat `command_actions.dart`
+/// (bukan sekadar pintasan ke layar lain). Perintah tetap boleh dikirim saat
+/// alat offline — device menjalankannya begitu tersambung kembali, dengan
+/// catatan jujur di bawah tombol selama alat tidak tersambung.
+class _ControlCard extends ConsumerStatefulWidget {
   const _ControlCard({required this.device});
 
   final Device device;
 
   @override
+  ConsumerState<_ControlCard> createState() => _ControlCardState();
+}
+
+class _ControlCardState extends ConsumerState<_ControlCard> {
+  int _volume = 70;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final deviceId = widget.device.deviceId;
+    final isOnline = widget.device.connectivity == DeviceConnectivity.online;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +341,7 @@ class _ControlCard extends StatelessWidget {
         SectionHeader(
           title: l10n.deviceControlTitle,
           action: TextButton(
-            onPressed: () => DeviceCommandsPath(device.deviceId).push(context),
+            onPressed: () => DeviceCommandsPath(deviceId).push(context),
             child: Text(l10n.commonSeeAll),
           ),
         ),
@@ -278,31 +349,113 @@ class _ControlCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacePage,
           ),
-          child: Wrap(
-            spacing: DesignTokens.spaceSm,
-            runSpacing: DesignTokens.spaceSm,
-            children: [
-              _ControlChip(
-                icon: Icons.sync_rounded,
-                label: l10n.commandsSyncNow,
-                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
-              ),
-              _ControlChip(
-                icon: Icons.volume_up_rounded,
-                label: l10n.commandsSetVolume,
-                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
-              ),
-              _ControlChip(
-                icon: Icons.record_voice_over_rounded,
-                label: l10n.commandsSpeakText,
-                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
-              ),
-              _ControlChip(
-                icon: Icons.restart_alt_rounded,
-                label: l10n.commandsRestart,
-                onTap: () => DeviceCommandsPath(device.deviceId).push(context),
-              ),
-            ],
+          child: Container(
+            padding: const EdgeInsets.all(DesignTokens.spaceLg),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.volume_up_rounded,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: DesignTokens.spaceSm),
+                    Expanded(
+                      child: Text(
+                        l10n.commandsVolumeLabel,
+                        style: textTheme.bodyMedium,
+                      ),
+                    ),
+                    Text(
+                      '$_volume',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: _volume.toDouble(),
+                  min: 0,
+                  max: 100,
+                  divisions: 20,
+                  label: '$_volume',
+                  onChanged: (value) => setState(() => _volume = value.round()),
+                  // Satu perintah per penyesuaian selesai — bukan per geseran.
+                  onChangeEnd: (value) => sendCommandAction(
+                    context,
+                    ref,
+                    deviceId: deviceId,
+                    type: CommandType.setVolume,
+                    payload: DeviceCommand.buildPayload(
+                      CommandType.setVolume,
+                      level: value.round(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: DesignTokens.spaceSm),
+                Wrap(
+                  spacing: DesignTokens.spaceSm,
+                  runSpacing: DesignTokens.spaceSm,
+                  children: [
+                    FilledButton.tonalIcon(
+                      onPressed: () => sendCommandAction(
+                        context,
+                        ref,
+                        deviceId: deviceId,
+                        type: CommandType.syncNow,
+                      ),
+                      icon: const Icon(Icons.sync_rounded, size: 18),
+                      label: Text(l10n.commandsSyncNow),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.record_voice_over_rounded,
+                        size: 18,
+                      ),
+                      label: Text(l10n.commandsSpeakText),
+                      onPressed: () =>
+                          sendSpeakTextAction(context, ref, deviceId: deviceId),
+                    ),
+                    ActionChip(
+                      avatar: const Icon(Icons.restart_alt_rounded, size: 18),
+                      label: Text(l10n.commandsRestart),
+                      onPressed: () =>
+                          sendRestartAction(context, ref, deviceId: deviceId),
+                    ),
+                  ],
+                ),
+                if (!isOnline) ...[
+                  const SizedBox(height: DesignTokens.spaceMd),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.cloud_off_rounded,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: DesignTokens.spaceSm),
+                      Expanded(
+                        child: Text(
+                          l10n.deviceControlOfflineNote,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ],
@@ -310,28 +463,11 @@ class _ControlCard extends StatelessWidget {
   }
 }
 
-class _ControlChip extends StatelessWidget {
-  const _ControlChip({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ActionChip(
-      avatar: Icon(icon, size: 18),
-      label: Text(label),
-      onPressed: onTap,
-    );
-  }
-}
-
-/// Timeline aktivitas & error: event + perintah terbaru, filter severity.
+/// Timeline dua seksi: "Kejadian terakhir" (event + saringan severity) dan
+/// "Perintah terakhir" (perintah yang dikirim dari aplikasi).
+///
+/// Dua seksi dipisah supaya "menunggu validasi" dan "perintah dikirim" tidak
+/// pernah tercampur dalam satu daftar tanpa label seperti versi sebelumnya.
 class _ActivityTimeline extends ConsumerStatefulWidget {
   const _ActivityTimeline({required this.deviceId});
 
@@ -347,31 +483,23 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final eventsAsync = ref.watch(eventsProvider(widget.deviceId));
     final events = eventsAsync.value ?? const <DeviceEvent>[];
     final filtered = _severity == null
         ? events
-        : events.where((e) => e.severity == _severity).toList();
-    final items = filtered.take(8).toList();
+        : events.where((e) => e.severity == _severity).toList(growable: false);
+    final items = filtered.take(8).toList(growable: false);
     final commandsAsync = ref.watch(commandsProvider(widget.deviceId));
     final commands = (commandsAsync.value ?? const <DeviceCommand>[])
         .take(3)
-        .toList();
-    final isLoading =
-        (eventsAsync.isLoading && !eventsAsync.hasValue) ||
-        (commandsAsync.isLoading && !commandsAsync.hasValue);
-    final hasError =
-        (eventsAsync.hasError && !eventsAsync.hasValue) ||
-        (commandsAsync.hasError && !commandsAsync.hasValue);
+        .toList(growable: false);
     final now = DateTime.now();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: l10n.deviceActivityTitle,
+          title: l10n.deviceEventsTitle,
           action: TextButton(
             onPressed: () => const ConnectionLogsPath().push(context),
             child: Text(l10n.commonSeeAll),
@@ -407,45 +535,120 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             ],
           ),
         ),
-        if (isLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
-            child: Skeleton.card(),
-          )
-        else if (hasError)
-          _TimelineError(
-            error: eventsAsync.error ?? commandsAsync.error,
-            onRetry: () {
-              ref.invalidate(eventsProvider(widget.deviceId));
-              ref.invalidate(commandsProvider(widget.deviceId));
-            },
-          )
-        else if (items.isEmpty && commands.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignTokens.spacePage,
-            ),
-            child: Text(
-              l10n.eventsEmptyBody,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          )
-        else
-          for (var i = 0; i < items.length; i++)
-            _EventRow(
-              event: items[i],
-              time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
-              isLast: i == items.length - 1 && commands.isEmpty,
-            ),
-        for (final command in commands)
-          _CommandRow(
-            command: command,
-            time: RelativeTime.format(command.createdAt, now, l10n: l10n),
-          ),
+        ..._eventRows(context, l10n, eventsAsync, items, events, now),
+        const SizedBox(height: DesignTokens.spaceLg),
+        SectionHeader(title: l10n.deviceCommandsTitle),
+        ..._commandRows(context, l10n, commandsAsync, commands, now),
+        const SizedBox(height: DesignTokens.spaceSection),
       ],
     );
+  }
+
+  List<Widget> _eventRows(
+    BuildContext context,
+    AppLocalizations l10n,
+    AsyncValue<List<DeviceEvent>> async,
+    List<DeviceEvent> items,
+    List<DeviceEvent> all,
+    DateTime now,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    if (async.isLoading && !async.hasValue) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+          child: Skeleton.card(),
+        ),
+      ];
+    }
+    if (async.hasError && !async.hasValue) {
+      return [
+        _TimelineError(
+          error: async.error,
+          onRetry: () => ref.invalidate(eventsProvider(widget.deviceId)),
+        ),
+      ];
+    }
+    if (items.isEmpty) {
+      // Bedakan "belum ada kejadian" dan "saringan tidak menemukan apa-apa".
+      final message = all.isEmpty
+          ? l10n.eventsEmptyBody
+          : l10n.historyFilterEmptyTitle;
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacePage,
+          ),
+          child: Text(
+            message,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      for (var i = 0; i < items.length; i++)
+        _EventRow(
+          event: items[i],
+          time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
+          isLast: i == items.length - 1,
+        ),
+    ];
+  }
+
+  List<Widget> _commandRows(
+    BuildContext context,
+    AppLocalizations l10n,
+    AsyncValue<List<DeviceCommand>> async,
+    List<DeviceCommand> commands,
+    DateTime now,
+  ) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    if (async.isLoading && !async.hasValue) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Skeleton.line(),
+              SizedBox(height: DesignTokens.spaceSm),
+              Skeleton.line(),
+            ],
+          ),
+        ),
+      ];
+    }
+    if (async.hasError && !async.hasValue) {
+      return [
+        _TimelineError(
+          error: async.error,
+          onRetry: () => ref.invalidate(commandsProvider(widget.deviceId)),
+        ),
+      ];
+    }
+    if (commands.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignTokens.spacePage,
+          ),
+          child: Text(
+            l10n.deviceCommandsEmpty,
+            style: textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ];
+    }
+    return [
+      for (final command in commands) _CommandRow(command: command, now: now),
+    ];
   }
 }
 
@@ -579,10 +782,10 @@ class _EventRow extends StatelessWidget {
 }
 
 class _CommandRow extends StatelessWidget {
-  const _CommandRow({required this.command, required this.time});
+  const _CommandRow({required this.command, required this.now});
 
   final DeviceCommand command;
-  final String time;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
@@ -598,54 +801,42 @@ class _CommandRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.terminal_rounded,
+            commandIcon(command.type),
             size: 16,
             color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: DesignTokens.spaceMd),
           Expanded(
-            child: Text(
-              '${_commandTitle(command, l10n)} · $time',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  commandTitle(command.type, l10n),
+                  style: textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  commandTimeLine(command, now, l10n),
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: DesignTokens.spaceSm),
           StatusChip(
-            label: _commandStatusLabel(command.status, l10n),
-            tone: switch (command.status) {
-              CommandStatus.pending => AppStatusTone.warn,
-              CommandStatus.failed => AppStatusTone.bad,
-              _ => AppStatusTone.ok,
-            },
+            label: commandStatusLabel(command.status, l10n),
+            tone: commandStatusTone(command.status),
             isDense: true,
           ),
         ],
       ),
     );
   }
-}
-
-String _commandTitle(DeviceCommand command, AppLocalizations l10n) {
-  return switch (command.type) {
-    CommandType.syncNow => l10n.commandsSyncNow,
-    CommandType.speakText => l10n.commandsSpeakText,
-    CommandType.setVolume => l10n.commandsSetVolume,
-    CommandType.restart => l10n.commandsRestart,
-    CommandType.reprovision => l10n.commandsReprovision,
-  };
-}
-
-String _commandStatusLabel(CommandStatus status, AppLocalizations l10n) {
-  return switch (status) {
-    CommandStatus.pending => l10n.commandsStatusPending,
-    CommandStatus.sent => l10n.commandsStatusSent,
-    CommandStatus.acked => l10n.commandsStatusAcked,
-    CommandStatus.done => l10n.commandsStatusDone,
-    CommandStatus.failed => l10n.commandsStatusFailed,
-  };
 }
 
 class _DevicesLoading extends StatelessWidget {

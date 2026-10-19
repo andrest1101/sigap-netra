@@ -70,10 +70,6 @@ abstract final class BrandColors {
   /// Lensa Amber — aksen, dipakai sebagai `tertiary`.
   static const Color accent = Color(0xFFF5A524);
 
-  /// Lensa Amber untuk tema gelap.
-  static const Color accentDark = Color(0xFFFFC15A);
-
-  /// Latar aplikasi.
-  static const Color backgroundLight = Color(0xFFF6F6FB);
-  static const Color backgroundDark = Color(0xFF0E0F1A);
+  /// Latar aplikasi (terang-saja, keputusan produk 2026-10-18).
+  static const Color background = Color(0xFFF6F6FB);
 }

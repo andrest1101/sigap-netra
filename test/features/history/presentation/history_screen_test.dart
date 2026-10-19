@@ -13,6 +13,9 @@ import 'package:sigap_netra_app/features/devices/presentation/providers/devices_
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/features/monitoring/data/datasources/fake_detection_data_source.dart';
 import 'package:sigap_netra_app/features/monitoring/domain/entities/detection.dart';
+import 'package:sigap_netra_app/features/sharing/domain/entities/share_report.dart';
+import 'package:sigap_netra_app/features/sharing/domain/repositories/share_repository.dart';
+import 'package:sigap_netra_app/features/sharing/presentation/providers/sharing_providers.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 import '../../../helpers/fake_app_graph.dart';
@@ -29,11 +32,31 @@ class _EmptyDeviceRepository implements DeviceRepository {
   Stream<Device?> watchDevice(String deviceId) => Stream<Device?>.value(null);
 }
 
+/// Rekaman pemanggilan berbagi: membuktikan consent dihormati, isi CSV, dan
+/// nama berkas tidak pernah diuji lewat plugin sungguhan.
+class _RecordingShareRepository implements ShareRepository {
+  final List<ShareReport> reports = <ShareReport>[];
+  final List<({String content, String fileName})> csvs =
+      <({String content, String fileName})>[];
+
+  @override
+  Future<void> shareReport(ShareReport report) async => reports.add(report);
+
+  @override
+  Future<void> shareCsv({
+    required String content,
+    required String fileName,
+  }) async {
+    csvs.add((content: content, fileName: fileName));
+  }
+}
+
 void main() {
   Future<void> pumpHistory(
     WidgetTester tester, {
     FakeAppGraph? graph,
     DeviceRepository? deviceRepository,
+    ShareRepository? shareRepository,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -44,6 +67,8 @@ void main() {
           deviceRepositoryProvider.overrideWithValue(
             deviceRepository ?? DemoDeviceRepository(),
           ),
+          if (shareRepository != null)
+            shareRepositoryProvider.overrideWithValue(shareRepository),
           ...(graph ?? FakeAppGraph()).overrides,
         ],
         child: MaterialApp(
@@ -51,7 +76,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
           home: const HistoryScreen(),
         ),
       ),
@@ -63,6 +87,22 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
     await tester.pump(const Duration(seconds: 16));
+  }
+
+  /// Buka menu ⋯ lalu ketuk "Ekspor CSV" sampai dialog consent tampil.
+  Future<void> openCsvConsent(WidgetTester tester) async {
+    await tester.tap(find.byIcon(Icons.more_vert_rounded));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ekspor CSV'));
+    await tester.pumpAndSettle();
+  }
+
+  /// Pump pendek khusus alur ekspor: cukup untuk chain async + animasi
+  /// snackbar, tanpa melewati durasi 4 detik autodismiss snackbar.
+  Future<void> pumpExport(WidgetTester tester) async {
+    for (var i = 0; i < 16; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
   }
 
   group('Riwayat R1', () {
@@ -215,6 +255,91 @@ void main() {
       expect(
         graph.detections.itemsForTest.any((d) => d.id == 'det-money-100k'),
         isFalse,
+      );
+    });
+  });
+
+  group('Riwayat ekspor CSV', () {
+    testWidgets('consent dulu: Batal tidak menulis berkas', (tester) async {
+      final share = _RecordingShareRepository();
+      await pumpHistory(tester, shareRepository: share);
+      await pumpFrames(tester);
+
+      await openCsvConsent(tester);
+      expect(find.text('Ekspor CSV memuat teks pribadi'), findsOneWidget);
+
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(share.csvs, isEmpty);
+    });
+
+    testWidgets('setuju → CSV berheader diterima dengan nama berkas benar', (
+      tester,
+    ) async {
+      final share = _RecordingShareRepository();
+      await pumpHistory(tester, shareRepository: share);
+      await pumpFrames(tester);
+
+      await openCsvConsent(tester);
+      await tester.tap(find.text('Lanjutkan'));
+      await pumpExport(tester);
+
+      expect(share.csvs, hasLength(1));
+      final call = share.csvs.single;
+      expect(
+        call.content.startsWith(
+          '\uFEFFwaktu;jenis;nilai;mata_uang;teks;keyakinan;jarak_cm;status'
+          '\r\n',
+        ),
+        isTrue,
+      );
+      // Sampel demo campuran: kedua jenis ikut tertulis, bukan hanya header.
+      expect(call.content.contains(';uang;'), isTrue);
+      expect(call.content.contains(';teks;'), isTrue);
+      expect(
+        RegExp(
+          r'^sigap-netra-riwayat-\d{8}-\d{6}\.csv$',
+        ).hasMatch(call.fileName),
+        isTrue,
+      );
+    });
+
+    testWidgets('filter kosong: pesan jujur, berkas tidak ditulis', (
+      tester,
+    ) async {
+      final graph = FakeAppGraph();
+      // Hanya satu item uang → ekspor pada filter teks tidak punya baris.
+      graph.detections.replaceAll([
+        Detection(
+          id: 'det-test-money',
+          deviceId: kDemoDeviceId,
+          deviceName: kDemoDeviceName,
+          type: DetectionType.money,
+          createdAt: DateTime.now(),
+          amount: 75000,
+          confidence: 0.9,
+          distanceCm: 25,
+        ),
+      ]);
+      final share = _RecordingShareRepository();
+      await pumpHistory(tester, graph: graph, shareRepository: share);
+      await pumpFrames(tester);
+
+      final segment = find.text('Teks').first;
+      await tester.ensureVisible(segment);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(segment);
+      await pumpFrames(tester);
+
+      await openCsvConsent(tester);
+      await tester.tap(find.text('Lanjutkan'));
+      await pumpExport(tester);
+
+      expect(share.csvs, isEmpty);
+      expect(
+        find.text('Tidak ada pembacaan pada filter ini untuk diekspor.'),
+        findsOneWidget,
       );
     });
   });

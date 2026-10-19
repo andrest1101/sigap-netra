@@ -10,7 +10,7 @@ import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 import '../../../helpers/fake_app_graph.dart';
 
-/// Golden segmen Statistik Riwayat (terang & gelap).
+/// Golden segmen Statistik Riwayat (terang-saja).
 ///
 /// Jendela 7 hari dipilih karena angkanya **selalu sama**: sampel demo
 /// dibangkitkan relatif ke hari ini, jadi total/akurasi tidak berubah
@@ -19,10 +19,7 @@ import '../../../helpers/fake_app_graph.dart';
 /// stabil. (Jendela 4 minggu memakai label tanggal "1 Okt"/"22 Sep" yang
 /// panjangnya berubah, jadi tidak dijadikan golden.)
 void main() {
-  Future<void> pumpStats(
-    WidgetTester tester, {
-    ThemeMode themeMode = ThemeMode.light,
-  }) async {
+  Future<void> pumpStats(WidgetTester tester) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
@@ -38,8 +35,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: themeMode,
           home: const HistoryScreen(),
         ),
       ),
@@ -71,20 +66,6 @@ void main() {
       await expectLater(
         find.byType(HistoryScreen),
         matchesGoldenFile('../goldens/history_stats_light.png'),
-      );
-    });
-
-    testWidgets('7 hari — warna status tetap terbaca (gelap)', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1180));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await pumpStats(tester, themeMode: ThemeMode.dark);
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('91%'), findsOneWidget);
-      await expectLater(
-        find.byType(HistoryScreen),
-        matchesGoldenFile('../goldens/history_stats_dark.png'),
       );
     });
   });

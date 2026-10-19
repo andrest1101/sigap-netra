@@ -10,6 +10,7 @@ abstract final class NumberFormatId {
   static final NumberFormat _integer = NumberFormat.decimalPattern('id');
   static final NumberFormat _twoDecimals = NumberFormat('#,##0.00', 'id');
   static final NumberFormat _percent = NumberFormat('#,##0', 'id');
+  static final NumberFormat _plain = NumberFormat('#0.###', 'id');
 
   /// Bilangan bulat dengan pemisah ribuan, misalnya `10.000`.
   static String integer(int value) => _integer.format(value);
@@ -33,4 +34,9 @@ abstract final class NumberFormatId {
 
   /// Persentase dengan tanda persen, misalnya `85%`.
   static String percentWithSign(num value) => '${percent(value)}%';
+
+  /// Angka polos untuk ekspor CSV: tanpa pemisah ribuan, desimal koma gaya
+  /// Indonesia (mis. `50000` atau `0,92`) agar terbaca sebagai angka oleh
+  /// Excel locale Indonesia.
+  static String plain(num value) => _plain.format(value);
 }

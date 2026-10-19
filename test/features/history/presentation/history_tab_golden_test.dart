@@ -29,8 +29,6 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
-          themeMode: ThemeMode.light,
           home: const HistoryScreen(),
         ),
       ),
@@ -124,34 +122,6 @@ void main() {
         find.byType(HistoryScreen),
         matchesGoldenFile('../goldens/history_tab_light.png'),
       );
-    });
-
-    testWidgets('render aktual dark tanpa error', (tester) async {
-      final graph = FakeAppGraph();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            currentUserProvider.overrideWithValue(
-              const AppUser(uid: 'user-1', email: 'user@example.com'),
-            ),
-            deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
-            ...graph.overrides,
-          ],
-          child: MaterialApp(
-            locale: const Locale('id'),
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: ThemeMode.dark,
-            home: const HistoryScreen(),
-          ),
-        ),
-      );
-      await pumpFrames(tester);
-
-      expect(tester.takeException(), isNull);
-      expect(find.text('Riwayat'), findsWidgets);
     });
   });
 }

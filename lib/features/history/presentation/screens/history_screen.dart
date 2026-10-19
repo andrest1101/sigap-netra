@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
@@ -26,6 +27,8 @@ import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../../sharing/domain/entities/share_report.dart';
 import '../../../sharing/presentation/providers/sharing_providers.dart';
+import '../../domain/entities/detection_filter.dart';
+import '../../domain/usecases/build_detections_csv.dart';
 import '../providers/history_providers.dart';
 import '../widgets/history_stats_view.dart';
 
@@ -186,7 +189,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       case 'reset':
         await _resetAllValidations(l10n);
       case 'csv':
-        _snack(l10n.historyExportComingSoon);
+        await _exportCsv(l10n);
       case 'share':
         await _shareSummary(l10n);
     }
@@ -268,11 +271,64 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     }
   }
 
+  /// Ekspor CSV: consent dulu, satu query maksimal [kDetectionCsvMaxRows]
+  /// baris sesuai filter aktif, tulis berkas sementara, lalu buka share sheet.
+  ///
+  /// Tidak ada apa pun yang diunggah ke cloud: berkas dibuat di perangkat
+  /// pengguna dan hanya pengguna yang menentukan tujuannya. Bila masih ada
+  /// baris di luar batas, pengguna diberi tahu hasilnya terpotong.
+  Future<void> _exportCsv(AppLocalizations l10n) async {
+    final consented = await ConsentSheet.show(
+      context,
+      title: l10n.historyExportConsentTitle,
+      message: l10n.historyExportConsentBody,
+      acceptLabel: l10n.historyExportConsentAccept,
+    );
+    if (!consented || !mounted) return;
+    final deviceId = ref.read(primaryDeviceIdProvider);
+    if (deviceId == null) return;
+    _snack(l10n.historyExportPreparing);
+    try {
+      final page = await ref
+          .read(getDetectionsPageProvider)
+          .call(
+            filter: DetectionFilter(
+              deviceId: deviceId,
+              type: _type,
+              status: _status,
+            ),
+            limit: kDetectionCsvMaxRows,
+          );
+      if (!mounted) return;
+      if (page.items.isEmpty) {
+        _snack(l10n.historyExportEmpty);
+        return;
+      }
+      await ref
+          .read(shareCsvProvider)
+          .call(
+            content: buildDetectionsCsv(page.items),
+            fileName:
+                'sigap-netra-riwayat-'
+                '${_csvFileNameFormat.format(DateTime.now())}.csv',
+          );
+      // Diberitahukan setelah share sheet ditutup: selama sheet terbuka
+      // snackbar tidak terlihat, jadi jangan menumpuk pesan di belakangnya.
+      if (page.nextCursor != null) {
+        _snack(l10n.historyExportTruncated(kDetectionCsvMaxRows));
+      }
+    } catch (_) {
+      if (mounted) _snack(l10n.historyExportFailed);
+    }
+  }
+
   void _snack(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    // Satu pesan pada satu waktu: pesan lama disembunyikan supaya pesan baru
+    // (mis. hasil ekspor) tidak mengantre di belakangnya.
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _openStatusSheet() async {
@@ -322,6 +378,9 @@ const Object _kAllStatusFilter = Object();
 
 /// Jam baris riwayat ("14.32") — 24 jam gaya Indonesia, tanpa AM/PM.
 final DateFormat _rowTimeFormat = DateFormat('HH.mm');
+
+/// Cap waktu nama berkas ekspor CSV ("20261018-143005"), waktu lokal.
+final DateFormat _csvFileNameFormat = DateFormat('yyyyMMdd-HHmmss');
 
 String _statusLabel(ValidationStatus status, AppLocalizations l10n) {
   return switch (status) {

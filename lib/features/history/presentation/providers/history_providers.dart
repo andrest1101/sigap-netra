@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/retry_policy.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../domain/entities/detection_filter.dart';
@@ -54,9 +55,6 @@ class HistoryPageKey extends Equatable {
   @override
   List<Object?> get props => [deviceId, type, status];
 }
-
-/// Ukuran awal satu halaman riwayat.
-const int kHistoryPageSize = 25;
 
 /// Batas baris daftar riwayat; naik 25 setiap "Muat lagi".
 ///

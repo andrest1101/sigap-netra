@@ -3,5 +3,15 @@
     "rules": "firebase/firestore.rules",
     "indexes": "firebase/firestore.indexes.json"
   },
-  "comment": "Belum ada project Firebase terhubung (firebase_options.dart belum ada). File ini menyiapkan deploy rules + indexes setelah `flutterfire configure` dijalankan."
+  "emulators": {
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  },
+  "comment": "Belum ada project Firebase terhubung (firebase_options.dart belum ada). File ini menyiapkan deploy rules + indexes setelah `flutterfire configure` dijalankan. Blok `emulators` dipakai `firebase emulators:exec` untuk uji rules di `firebase/tests/`."
 }

@@ -1,0 +1,13 @@
+{
+  "name": "sigap-netra-rules-tests",
+  "private": true,
+  "type": "module",
+  "description": "Uji Security Rules Firestore SIGAP-NETRA di emulator (project demo-sigap-netra). Jalankan dari akar repo: firebase emulators:exec --only firestore --project demo-sigap-netra \"node --test firebase/tests/rules.test.mjs\"",
+  "scripts": {
+    "test": "node --test rules.test.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.0.0"
+  }
+}

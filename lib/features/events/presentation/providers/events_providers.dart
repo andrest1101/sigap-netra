@@ -19,6 +19,12 @@ final watchEventsProvider = Provider<WatchEvents>(
   (ref) => WatchEvents(ref.watch(eventRepositoryProvider)),
 );
 
+/// Akses halaman event berfilter (server-side, memakai indeks
+/// `severity + createdAt`). Dipakai Log koneksi saat saringan severity aktif.
+final getEventsPageProvider = Provider<GetEventsPage>(
+  (ref) => GetEventsPage(ref.watch(eventRepositoryProvider)),
+);
+
 /// Event terbaru satu perangkat, terbaru dulu.
 ///
 /// `deviceId` null berarti semua perangkat pengguna (dipakai layar log

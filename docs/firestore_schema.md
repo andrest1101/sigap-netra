@@ -6,12 +6,12 @@ Dokumen ini adalah **satu-satunya definisi** koleksi, field, dan tipe data Cloud
 
 | Item | Nilai |
 | --- | --- |
-| Versi skema | v0.1 (draft awal) |
-| Tanggal | 2026-10-08 |
+| Versi skema | v0.2 (draft; diselaraskan dengan rules v0.2) |
+| Tanggal | 2026-10-18 |
 | Plan Firebase | Spark (gratis), tanpa Cloud Functions, tanpa TTL policy, tanpa FCM dari server |
-| Sumber kebenaran lain | `AGENTS.md` (kontrak ringkas), `PRD.md` (masih DRAFT kosong), `docs/device_protocol.md` (belum ada), `docs/ui_spec.md` (belum ada) |
+| Sumber kebenaran lain | `AGENTS.md` (kontrak ringkas), `PRD.md` (v1.1 — draft siap eksekusi), `docs/device_protocol.md`, `docs/ui_spec.md` |
 
-**Keterbatasan sumber.** `PRD.md` saat ini hanya berisi catatan bahwa isinya belum ditulis. Referensi ke "PRD.md bagian 9 (anggaran kuota)" dan "PRD.md bagian 14 (aplikasi Kotlin lama / firmware MaixCAM)" **belum dapat diverifikasi** karena dokumen tersebut belum ada. Aplikasi Kotlin lama dan firmware MaixCAM juga belum tersedia di repo ini. Karena itu dokumen ini:
+**Keterbatasan sumber.** `PRD.md` v1.1 sudah tersedia; referensi ke "PRD.md bagian 9 (anggaran kuota)" kini terverifikasi (lihat bagian 9 di sana). Bagian 14 (Fase 0 — discovery aplikasi Kotlin lama / firmware MaixCAM) masih menunggu bahan; aplikasi Kotlin lama dan firmware MaixCAM belum tersedia di repo ini. Karena itu dokumen ini:
 
 - hanya menyatakan apa yang sudah diputuskan di `AGENTS.md`;
 - menandai sisanya sebagai `[PERLU KONFIRMASI]` beserta alasannya;
@@ -99,7 +99,7 @@ Satu dokumen per hasil bacaan (uang atau teks). Dokumen dibuat oleh device saat 
 | Field | Tipe | Sumber | Wajib | Deskripsi |
 | --- | --- | --- | --- | --- |
 | `type` | string enum `money` atau `text` | Device | Ya | Jenis bacaan. Enum berasal dari `AGENTS.md` bagian 6 (fitur `monitoring` dan `history`). |
-| `label` | string atau null | Device | `money`: ya; `text`: opsional | money: nominal yang dikenali model. text: ringkasan pendek hasil bacaan bila ada. [PERLU KONFIRMASI] daftar kelas dan nominal yang dipakai device, karena berasal dari aplikasi Kotlin lama yang belum tersedia. |
+| `label` | string atau null | Device | Tidak | Ringkasan singkat bila device punya: `money`: nominal yang dikenali model; `text`: ringkasan pendek hasil bacaan. **Opsional sejak 2026-10-18** (sebelumnya `money`: ya) — `amount` + `currency` adalah nilai otoritatif untuk uang, dan device yang ada sekarang (`device/sigap_cloud.py`) tidak mengirim `label`. [PERLU KONFIRMASI] daftar kelas dan nominal yang dipakai device, karena berasal dari aplikasi Kotlin lama yang belum tersedia. |
 | `amount` | number (int) atau null | Device | `money`: ya; `text`: null | Nilai uang dalam satuan mata uang. [PERLU KONFIRMASI] satuan dan daftar nilai yang dipakai device. |
 | `currency` | string | Device | Ya | Kode mata uang, misalnya `IDR`. [PERLU KONFIRMASI] apakah device boleh mengirim kode mata uang lain. |
 | `confidence` | double (0.0 sampai 1.0) | Device | Ya | Keyakinan model. Ambang keyakinan yang dipakai untuk memutuskan "cukup untuk diucapkan" ada di sisi device dan belum dikonfirmasi; angka ambangnya bukan bagian skema ini. |
@@ -237,7 +237,7 @@ Rekomendasi: **tulis `lastSeen` tidak lebih cepat dari 60 detik** (tetap di bawa
 
 ### 7.3 Aturan query yang mengikat
 
-1. Setiap query di UI wajib punya `limit()`. Default: Beranda dan recent activity 10, Validasi 20, Riwayat 20 per halaman, Event 50, Command 20.
+1. Setiap query di UI wajib punya `limit()`. Nilai yang berlaku di kode (diselaraskan 2026-10-18): Beranda memakai satu listener `latestDetections(limit: 100)` untuk kartu "Hari ini" (hitungan jenis hari ini) sekaligus 5 baris "Aktivitas terbaru" — 100 adalah harga hitungan "Hari ini" di klien; Validasi 20; Riwayat 25 per halaman (naik 25 tiap "Muat lagi"); Log koneksi 50 realtime untuk "Semua" dan 25 per halaman saat saringan severity; Command 20.
 2. Riwayat memakai paginasi `startAfterDocument()`; app tidak pernah mengambil seluruh riwayat.
 3. Badge dan persentase akurasi memakai `count()`, bukan download dokumen. Contoh: filter `validationStatus == 'match'` lalu `count()`.
 4. Thumbnail hanya diambil per kartu yang terlihat, lewat lookup dokumen tunggal; query daftar tidak pernah download gambar.
@@ -256,9 +256,11 @@ Rekomendasi: **tulis `lastSeen` tidak lebih cepat dari 60 detik** (tetap di bawa
 
 [PERLU KONFIRMASI] kebijakan retensi per perangkat (jumlah hari atau jumlah maksimum dokumen). Tanpa ini, kuota 1 GiB akan habis pada device yang aktif lama.
 
+Catatan UI (2026-10-18): layar Pengaturan **tidak lagi** mengklaim "disimpan maksimal 30 hari" karena belum ada mekanisme yang menegakkannya (TTL tidak tersedia di Spark). Teks yang tampil: data dapat dihapus kapan saja dari Riwayat, penghapusan otomatis 30 hari belum aktif. Jangan kembalikan klaim retensi otomatis ke UI sebelum kebijakan di atas diputuskan dan mekanismenya dibangun.
+
 ## 8. Indeks yang dibutuhkan
 
-Firestore menyediakan indeks single-field otomatis, sehingga indeks composite hanya perlu untuk: **(a)** kombinasi filter setara dengan `orderBy` pada field lain, dan **(b)** kombinasi filter setara dengan rentang/ketidaksamaan pada field lain (mis. `type == 'money'` + rentang `createdAt` di panel Statistik). Tabel di bawah adalah daftar **final** yang harus dicerminkan persis oleh `firebase/firestore.indexes.json`. Bila perubahan skema membuat tabel ini berubah, kedua file harus diubah dalam satu changeset yang sama.
+Firestore menyediakan indeks single-field otomatis, sehingga indeks composite hanya perlu untuk: **(a)** kombinasi filter setara dengan `orderBy` pada field lain, dan **(b)** kombinasi filter setara dengan rentang/ketidaksamaan pada field lain (mis. `type == 'money'` + rentang `createdAt` di panel Statistik). Tabel di bawah adalah daftar **final pemakaian** yang harus dicerminkan oleh `firebase/firestore.indexes.json` — beberapa baris memakai indeks fisik yang sama, jadi file JSON memuatnya sebagai **5 definisi unik** (lihat catatan setelah tabel). Bila perubahan skema membuat tabel ini berubah, kedua file harus diubah dalam satu changeset yang sama.
 
 | # | Collection path | Filter | `orderBy` | Composite | Pemakai |
 | --- | --- | --- | --- | --- | --- |
@@ -271,6 +273,8 @@ Firestore menyediakan indeks single-field otomatis, sehingga indeks composite ha
 | 7 | `devices/{deviceId}/events` | `severity == 'warning'` atau `'error'` | `createdAt DESC` | ya | filter severity di layar Koneksi dan sinkronisasi |
 | 8 | `devices/{deviceId}/commands` | `status == 'pending'` | `createdAt ASC` | ya | device mengambil antrean; app memantau status |
 
+Tabel di atas adalah peta **pemakaian per query**. Secara fisik, beberapa baris memakai indeks composite yang **sama** sehingga hanya berdiri sekali di `firebase/firestore.indexes.json`: baris #1–#3 = satu indeks (`validationStatus` ASC + `createdAt` DESC), dan baris #4–#5 = satu indeks (`type` ASC + `createdAt` DESC). Karena itu file JSON memuat **5 definisi unik**, bukan 8 — duplikat identik tidak boleh ditulis karena deploy akan mencoba membuat indeks yang sama dua kali.
+
 Yang **tidak** butuh composite (single-field otomatis):
 
 - `devices` dengan filter `members.<uid> != null`, atau `memberUids array-contains` bila model array dipilih, untuk daftar perangkat milik pengguna.
@@ -280,7 +284,7 @@ Yang **tidak** butuh composite (single-field otomatis):
 - `events` dengan `orderBy createdAt DESC` saja, untuk daftar event terbaru.
 - `count()` **tanpa** rentang `createdAt` (badge Validasi, akurasi Beranda): hanya satu filter setara, cukup indeks single-field otomatis.
 
-Panel Statistik Riwayat (agregat `count()` per batang) memakai filter setara **plus** rentang `createdAt`, jadi butuh composite — dan itu **indeks #2-#5 yang sudah ada**. Supaya tidak ada indeks baru, jalur agregat di `firestore_history_data_source.dart` memakai `orderBy createdAt DESC` yang sama dengan daftar, bukan query tanpa urutan yang arahnya belum tentu dicocokkan Firestore. Tidak ada indeks tambahan untuk grafik; biaya bacanya dijaga aturan §7.3 poin 8.
+Panel Statistik Riwayat (agregat `count()` per batang) memakai filter setara **plus** rentang `createdAt`, jadi butuh composite — dan itu **indeks baris #2–#5** di tabel atas (secara fisik dua definisi: `validationStatus` + `createdAt` dan `type` + `createdAt`). Supaya tidak ada indeks baru, jalur agregat di `firestore_history_data_source.dart` memakai `orderBy createdAt DESC` yang sama dengan daftar, bukan query tanpa urutan yang arahnya belum tentu dicocokkan Firestore. Tidak ada indeks tambahan untuk grafik; biaya bacanya dijaga aturan §7.3 poin 8.
 
 Belum ada collection group query. Bila nanti ditambahkan `collectionGroup('detections')`, misalnya untuk statistik lintas perangkat, indeks tambahan harus dibuat dan biaya baca dievaluasi ulang.
 
@@ -329,7 +333,12 @@ Kasus uji emulator yang wajib ada (dari `AGENTS.md` bagian 11, ditambah turunan 
 - `media` ditolak saat `settings.uploadThumbnails` bernilai `false`;
 - `ocrText` lebih dari 500 karakter ditolak;
 - transisi status `commands` yang mundur ditolak;
-- `payload` yang memuat nama field kredensial ditolak.
+- `payload` yang memuat nama field kredensial ditolak;
+- device bisa `create` dokumen device-nya sendiri (self-bootstrap) saat dokumen belum ada — dan ditolak bila `authUid` bukan UID-nya atau ada key di luar allow-list.
+
+Catatan penting (2026-10-18): aturan `create` device **tidak boleh** memakai helper `isDevice()` (yang memanggil `get()` dokumen sendiri) — saat `create` dokumen belum ada, `get()` mengembalikan null, pembacaan `.data` gagal, dan aturan selalu ditolak. Bootstrap mandiri yang benar: `isSignedIn() && request.resource.data.authUid == request.auth.uid` + allow-list key + validasi `settings`. Aturan `update` tetap memakai `isDevice()` karena dokumen sudah ada.
+
+Temuan kedua dari emulator (2026-10-18): aturan `create` deteksi yang lama gagal evaluasi saat `ocrText` dikirim **null eksplisit** (`.size()` pada null), padahal skema bagian 4.2 mengizinkan null. Aturan sekarang: `!('ocrText' in data) || data.ocrText == null || (data.ocrText is string && data.ocrText.size() <= 500)`; tambahan pemeriksaan `is string` sekaligus menutup celah tipe non-string (mis. map yang punya `.size()`).
 
 ## 10. Checklist security dan privacy
 
@@ -355,7 +364,7 @@ Dikelompokkan per dampak. Setiap `[PERLU KONFIRMASI]` di dokumen ini berasal dar
 
 **A. Identitas dan pairing (DIPUTUSKAN 2026-10-13, kecuali poin 3)**
 
-1. Bagaimana device terautentikasi dan dikenali oleh rules? **DIPUTUSKAN: akun Firebase Auth (Email/Password) khusus per alat + field `authUid` di dokumen `devices/{deviceId}`.** Rules: `isDevice(deviceId) = request.auth != null && get(devices/{deviceId}).data.authUid == request.auth.uid`. Satu device tidak bisa menulis dokumen device lain karena UID-nya terikat satu dokumen. Custom claim tidak dipakai (butuh Admin SDK, tidak ada di Spark). Bootstrap: akun alat dibuat di console Auth, dokumen device dibuat via console (bypass rules) atau `create` oleh device sendiri dengan `authUid == request.auth.uid`.
+1. Bagaimana device terautentikasi dan dikenali oleh rules? **DIPUTUSKAN: akun Firebase Auth (Email/Password) khusus per alat + field `authUid` di dokumen `devices/{deviceId}`.** Rules: `isDevice(deviceId) = request.auth != null && get(devices/{deviceId}).data.authUid == request.auth.uid`. Satu device tidak bisa menulis dokumen device lain karena UID-nya terikat satu dokumen. Custom claim tidak dipakai (butuh Admin SDK, tidak ada di Spark). Bootstrap: akun alat dibuat di console Auth, dokumen device dibuat via console (bypass rules) atau `create` oleh device sendiri dengan `authUid == request.auth.uid`. Aturan `create` device diperbaiki 2026-10-18: sebelumnya memakai `isDevice()` yang memanggil `get()` dokumen yang belum ada sehingga `create` selalu ditolak; sekarang memakai pemeriksaan mandiri `isSignedIn() && request.resource.data.authUid == request.auth.uid` + allow-list key + validasi `settings`.
 2. Bagaimana proses pairing pertama, dan siapa yang menulis `members` pertama kali (bagian 6)? Apakah `owner` boleh mengubah `members` sebagai satu-satunya pengecualian aturan hak tulis app?
 3. Konfirmasi `deviceId`: siapa yang menetapkan, formatnya apa, dan apakah boleh berubah.
 
@@ -393,4 +402,4 @@ Dikelompokkan per dampak. Setiap `[PERLU KONFIRMASI]` di dokumen ini berasal dar
 21. Default `settings.uploadText` (bagian 5), yang menentukan apakah kompatibilitas dengan device lama terjaga.
 22. Pergantian nama `name` perangkat dari app: perlu atau tidak, karena berdampak ke aturan hak tulis.
 23. Apakah `schemaVersion` diperlukan untuk mendeteksi firmware lama.
-24. Isi `PRD.md` yang sebenarnya (prioritas P0/P1/P2 dan anggaran kuota yang dirujuk `AGENTS.md`) supaya dokumen ini bisa diverifikasi silang.
+24. ~~Isi `PRD.md` yang sebenarnya (prioritas P0/P1/P2 dan anggaran kuota yang dirujuk `AGENTS.md`) supaya dokumen ini bisa diverifikasi silang.~~ **SELESAI 2026-10-18**: `PRD.md` v1.1 tersedia (prioritas P0/P1/P2 + §9 anggaran kuota); dokumen ini sudah diverifikasi silang terhadapnya.
