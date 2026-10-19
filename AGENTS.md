@@ -71,7 +71,7 @@ sigap_netra_app/
 │   │   ├── router/            # app_router.dart (go_router + bottom-nav shell + auth redirect)
 │   │   ├── theme/             # app_theme.dart, status_colors.dart, design_tokens.dart
 │   │   ├── utils/             # relative_time.dart, number_format_id.dart
-│   │   └── widgets/           # gradient_header, status_pill, skeleton, loading/error/empty views, offline_banner
+│   │   └── widgets/           # back_app_bar, large_title_scaffold, lens_ring, logo_mark, status_chip, bento_tile, confirm_sheet, loading/error/empty views, offline_banner
 │   └── features/
 │       ├── home/              # presentation-only: composes devices + history + validation summary
 │       └── <feature>/
@@ -93,9 +93,9 @@ Features (each has the full `domain/data/presentation` skeleton unless noted):
 | `history`      | `DetectionFilter`, `DetectionPage`, `HistoryInsights`; `GetDetectionsPage`, `DeleteDetection`, `ResetValidation`, `ResetAllValidations`, `GetHistoryInsights`, `BuildDetectionsCsv` | Pagination with `startAfterDocument`; delete also removes `media`; CSV export capped at 500 newest |
 | `events`       | `DeviceEvent`, `EventSeverity`; `WatchEvents`, `GetEventsPage`                                                                                | Under Settings → Koneksi dan sinkronisasi                                    |
 | `commands`     | `DeviceCommand`, `CommandType`, `CommandStatus`; `WatchCommands`, `WatchCommand`, `SendCommand`                                               | `sync_now` (Beranda), remote control (P1)                                    |
-| `provisioning` | `WifiCredentials`; `buildWifiQrPayload` (pure), `ValidateWifiCredentials`                                                                     | Payload format from the legacy app; password never persisted                 |
+| `provisioning` | `WifiCredentials`; `buildWifiQrPayload` (pure)                                                                                                | Payload format from the legacy app; password never persisted                 |
 | `sharing`      | `ShareReport`; `buildShareReport`/`buildShareText` (pure), `ShareReportUseCase`                                                               | `share_plus` wrapper in data layer (P1)                                      |
-| `settings`     | `AppPreferences`, `DataSource`; `WatchPreferences`, `UpdatePreferences`                                                                       | Developer mode (Firebase/Simulation), upload-thumbnails consent; no theme selector — light-only since 2026-10-18 |
+| `settings`     | `DataSource` (Firebase/Simulasi)                                                                                                              | Local prefs via `sharedPreferencesProvider` (no domain/data slice); developer mode + upload-thumbnails consent; no theme selector — light-only since 2026-10-18 |
 
 Developer mode: provide `fake_*_data_source.dart` implementations in each `data/datasources/` and switch via a Riverpod override — the app must be fully usable with simulated data (no hardware, no Firebase).
 

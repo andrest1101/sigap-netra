@@ -1,6 +1,6 @@
 # Spesifikasi UI — SIGAP-NETRA App (v3: identitas visual "Lensa")
 
-Dokumen ini adalah **sumber kebenaran sisi antarmuka (UI)**. Versi lama (tema teal) diarsipkan di `docs/ui_spec_legacy_teal.md` dan tidak berlaku lagi.
+Dokumen ini adalah **sumber kebenaran sisi antarmuka (UI)**. Versi lama (tema teal) sudah dihapus; riwayat git tetap menyimpannya bila perlu dirujuk.
 
 **Tujuan:** semua **fungsi dan fitur sama** dengan aplikasi Kotlin lama, tetapi tampilan, warna, tata letak, dan widget dirancang ulang agar jelas aplikasi milik tim SIGAP-NETRA — bukan salinan aplikasi lama.
 
