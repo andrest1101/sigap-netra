@@ -36,12 +36,16 @@ const int kMaxSharedTextLength = 500;
 /// detik. Domba Dart tidak tahu tentang perubahan `DateTime.now()` sendiri.
 const int kConnectivityTickSeconds = 15;
 
-/// Pagu bawah jumlah pembacaan yang diambil untuk feed aktivitas terbaru di
-/// Beranda. Selalu batasi query agar kuota baca Spark tetap aman.
-const int kRecentActivityLimit = 20;
-
-/// Jumlah pembacaan per halaman di Riwayat.
+/// Jumlah pembacaan per halaman di Riwayat (dan langkah "Muat lagi").
 const int kHistoryPageSize = 25;
+
+/// Batas keras jumlah baris satu ekspor CSV Riwayat.
+///
+/// Ekspor mengambil paling banyak 500 pembacaan terbaru **sesuai filter
+/// aktif** dalam satu query — bukan seluruh riwayat — agar kuota baca Spark
+/// tetap aman (skema §7.3). Bila masih ada sisa, pengguna diberi tahu bahwa
+/// hasilnya terpotong.
+const int kDetectionCsvMaxRows = 500;
 
 /// Jumlah kejadian per halaman di Log koneksi saat saringan severity aktif.
 ///
