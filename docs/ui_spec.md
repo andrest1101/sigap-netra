@@ -124,7 +124,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 ### 5.3 Riwayat
 
-- **App bar:** "Riwayat", subjudul jujur jumlah yang dimuat ("N pembacaan tersimpan"; "N+ pembacaan dimuat" bila masih ada halaman berikut), menu ⋯ (Reset status validasi…, Ekspor CSV, Bagikan ringkasan).
+- **App bar:** "Riwayat", subjudul jujur jumlah yang dimuat ("N pembacaan tersimpan"; "N+ pembacaan dimuat" bila masih ada halaman berikut), menu ⋯ (Reset status validasi…, Ekspor CSV, Bagikan ringkasan). **Ekspor CSV** membuka dialog persetujuan (teks OCR dapat memuat data pribadi) sebelum menulis berkas; isinya maksimal **500 pembacaan terbaru sesuai filter aktif** (kategori + status) sebagai CSV titik-koma + BOM UTF-8 (langsung rapi di Excel Indonesia); berkas dibuat di perangkat pengguna lalu dibuka lewat share sheet, dan bila filter memuat lebih banyak baris pengguna diberi tahu bahwa hasilnya terpotong.
 - **Segmen:** **Daftar | Statistik**.
 - **Daftar:** filter chip kategori (Semua · Uang · Menu/Teks) + chip Saring yang membuka sheet filter status (Semua · Belum · Cocok · Tidak cocok; tutup sheet tanpa memilih mempertahankan filter aktif — tidak me-reset diam-diam). **Dikelompokkan per hari** ("Hari ini", "Kemarin", tanggal) dengan nomor urut global. Header hari memuat ringkasan jujur di kanan: `{N} pembacaan · {uang} uang · {teks} teks` untuk grup yang sudah lengkap, dan `{N}+ pembacaan` **tanpa** rincian jenis untuk grup terakhir yang masih terpotong halaman berikut — jangan mengklaim angka yang belum diambil. Baris dua baris: thumbnail 56/radius 14 (`ThumbnailTile`: foto bila ada, ikon informatif bila tanpa gambar, skeleton saat memuat; tanpa unduh di query daftar — lazy per kartu via `media/{id}`) + titik status menempel (pola Aktivitas Beranda), label SemiBold, lalu baris meta `Wrap` rapat `No. N · HH.mm` + `MetricChip` keyakinan (dense) + `MetricChip` jarak (dense) + `StatusChip` dense, plus chevron di kanan. Chip status ikut di dalam `Wrap` (bukan dipaku di kanan) supaya di layar 360 dp isinya turun ke run berikutnya, bukan terpotong. Halaman berikutnya lewat tombol **Muat lagi** (`FilledButton.tonalIcon`); bila semua halaman sudah dimuat, muncul teks "Inilah seluruh riwayat.". **Geser untuk menghapus**: latar `bad.container`, konfirmasi SEBELUM hapus via `ConfirmSheet` (tanpa Undo — Firestore tak bisa undelete dan app dilarang membuat ulang deteksi, skema §1). Ketuk → detail (foto besar Hero bila ada thumbnail, panel informatif bila tanpa thumbnail, label, kartu OCR + Salin, MetricChip, "Divalidasi oleh UID · waktu", tombol Cocok `ok.solid` / Tidak cocok `outlined bad.solid` sama seperti Validasi §5.2, Bagikan + Hapus di app bar).
 - **Empty state (3 kasus, jujur — pola Validasi §5.2):** ① belum ada perangkat → "Belum ada perangkat terhubung" + "Buka Perangkat"; ② riwayat benar-benar kosong → "Belum ada pembacaan"; ③ filter aktif kosong → "Tidak ada hasil untuk filter ini" + "Tampilkan semua" (reset kategori + status sekaligus).
@@ -160,7 +160,7 @@ Stepper 3 langkah:
 ### 5.6 Pengaturan (`/settings`, via avatar)
 
 - **Tampilan:** tidak ada pemilih tema — aplikasi terang-saja (keputusan produk 2026-10-18).
-- **Privasi & data:** status unggah gambar (ubah/cabut), retensi 30 hari, hapus semua data perangkat (P1).
+- **Privasi & data:** status unggah gambar (ubah/cabut), catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4), hapus semua data perangkat (P1).
 - **Lanjutan:** **Mode pengembang** → sumber data (Firebase / Simulasi), tampilkan IP/ID/versi. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
 - **Akun:** email, keluar. **Tentang:** versi aplikasi.
 
@@ -199,7 +199,7 @@ Loading (skeleton) · kosong · error + coba lagi · data dari cache ("data mung
 | ----------------------------------------- | -------------------------------------------------------- |
 | Notifikasi realtime                       | P2 — lokal saat aplikasi aktif; push butuh Blaze         |
 | Grafik riwayat                            | ✅ P1 selesai — batang dari `count()` (digambar sendiri, tanpa `fl_chart`; §5.3) |
-| Export CSV/PDF                            | CSV P1; PDF P2                                           |
+| Export CSV/PDF                            | ✅ CSV P1 selesai — 500 terbaru sesuai filter aktif, CSV titik-koma + BOM, consent sebelum menulis berkas (§5.3); PDF P2 |
 | Multi-perangkat                           | P2 (pemilih perangkat di Hero)                           |
 | Mode offline                              | Cache Firestore + banner                                 |
 | TTS di aplikasi                           | P2 (`flutter_tts`, tombol "Dengarkan")                   |

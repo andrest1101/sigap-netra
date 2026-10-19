@@ -11,10 +11,10 @@ sebelum owner mengonfirmasi poin di bagian 11.
 Dokumen terkait:
 
 - `AGENTS.md` - prinsip produk, aturan git, batasan.
-- `PRD.md` - masih DRAFT/KOSONG. Anggaran kuota resmi belum ada di sana.
+- `PRD.md` - v1.1 (draft siap eksekusi); anggaran kuota ada di bagian 9.
 - `docs/firestore_schema.md` - definisi tunggal collection, field, dan tipe.
-- `firebase/firestore.rules` - otorisasi.
-- `device/AGENTS.md` - aturan tambahan untuk kode di `device/`.
+- `firebase/firestore.rules` - otorisasi (draft v0.2; uji emulator di `firebase/tests/`).
+- `device/AGENTS.md` - belum ada; aturan `device/` mengikuti `AGENTS.md` utama.
 
 Semua fakta API di bawah diverifikasi terhadap discovery document resmi
 Firestore v1 (`https://firestore.googleapis.com/$discovery/rest?version=v1`).
@@ -83,7 +83,7 @@ dengan `updateTime` sebagai kebenaran cadangan.**
 - Naik kelas ke Opsi A bila drift terbukti jadi masalah di lapangan —
   keputusan tercatat di sini saat itu terjadi.
 
-Ada dua kandidat implementasi yang **harus dipilih owner**.
+Dua kandidat yang dipertimbangkan saat keputusan diambil (konteks, bukan pilihan terbuka):
 
 **Opsi A - `lastSeen` sebagai server timestamp.**
 Perangkat menulis `lastSeen` memakai nilai waktu server.
@@ -100,8 +100,9 @@ Perbedaan penting:
 - Opsi B murahan dan satu request, tetapi jam perangkat bisa menyimpang jauh
   sehingga status online bisa salah (false online maupun false offline).
 
-**Rekomendasi teknis, belum diputuskan: pakai Opsi A, dan sekaligus bersandarkan
-perhitungan status online pada `Document.updateTime`.**
+**Rekomendasi teknis saat itu (tidak dipakai di Fase 1; dicatat sebagai kandidat
+naik kelas): pakai Opsi A, dan sekaligus bersandarkan perhitungan status online
+pada `Document.updateTime`.**
 
 Alasannya:
 
@@ -121,11 +122,8 @@ Konsekuensi dari andalkan `updateTime`:
   Rules sebaiknya melarang app menulis dokumen device agar sinyal ini tetap
   bersih. [PERLU KONFIRMASI]
 
-Pertanyaan untuk owner:
-
-- Opsi A atau Opsi B?
-- Jika Opsi A: apakah satu `commit` tambahan per heartbeat setiap 30 detik
-  diterima di sisi kuota dan latency?
+Pertanyaan yang tersisa hanya bila naik kelas ke Opsi A: apakah satu `commit`
+tambahan per heartbeat setiap 30 detik diterima di sisi kuota dan latency?
 
 ### 2.3 Bentuk heartbeat
 
@@ -394,7 +392,7 @@ skema, meski terlihat berguna untuk troubleshooting.
 | Field | Tipe | Penulis | Keterangan dari sisi device |
 | --- | --- | --- | --- |
 | `type` | string enum `money` atau `text` | Device | Wajib. |
-| `label` | string atau null | Device | `money`: nominal yang dikenali model. `text`: ringkasan singkat bila ada. [PERLU KONFIRMASI] daftar kelas dan nominal. |
+| `label` | string atau null | Device | Opsional sejak 2026-10-18 (sebelumnya `money`: wajib): nominal/ringkasan singkat bila device punya. Untuk uang, `amount` + `currency` yang otoritatif; device sekarang tidak mengirimnya. [PERLU KONFIRMASI] daftar kelas dan nominal. |
 | `amount` | integer atau null | Device | `money`: ya. `text`: null. [PERLU KONFIRMASI] satuan dan daftar nilai. |
 | `currency` | string | Device | Kode mata uang, misalnya `IDR`. [PERLU KONFIRMASI] |
 | `confidence` | double 0.0 sampai 1.0 | Device | Ambang untuk "cukup untuk diucapkan" ada di sisi device dan belum dikonfirmasi. |
@@ -899,18 +897,18 @@ jawaban ini ditulis.
 | 7 | QR payload | Format FINAL QR Wi-Fi dari aplikasi Kotlin lama atau firmware | Feature `provisioning` | BELUM |
 | 8 | QR payload | Field tambahan seperti signature, otp, atau expiresAt? | Keamanan provisioning | BELUM |
 | 9 | Batas payload | Batas panjang SSID, password, QR, encoding, kapitalisasi | UI QR dan parser | BELUM |
-| 10 | Heartbeat | Opsi A server transform atau Opsi B jam perangkat? | Biaya dan kebenaran status online | BELUM |
+| 10 | Heartbeat | Opsi A server transform atau Opsi B jam perangkat? | Biaya dan kebenaran status online | DIPUTUSKAN 2026-10-13 (Opsi B sementara, kebenaran cadangan `Document.updateTime` — §2.2) |
 | 11 | Kuota | Heartbeat 30 detik (AGENTS.md) atau 60 detik (rekomendasi skema 7.2)? | Skala jumlah perangkat | BELUM |
 | 12 | Kuota | Berapa perangkat aktif simultan yang harus didukung? | Biaya write utama | BELUM |
-| 13 | Kuota | PRD bagian 9 belum ada, anggaran resmi perlu ditulis | Semua angka kuota | BELUM |
+| 13 | Kuota | PRD bagian 9 belum ada, anggaran resmi perlu ditulis | Semua angka kuota | TERTULIS di PRD v1.1 bagian 9 (anggaran baca/tulis + storage) |
 | 14 | Polling perintah | Interval polling `commands` yang disepakati | Read quota | BELUM |
 | 15 | Throttle | Nilai `confidence_min`, `min_interval`, `buffer_max_size`, `buffer_max_age` | Write quota dan UX cloud | BELUM |
 | 16 | Events | Daftar final tipe `events` (skema sudah memberi kandidat) | Write quota dan UI | BELUM |
 | 17 | Events | Panjang maksimum `message`, dan apakah perlu multibahasa | Write quota | BELUM |
 | 18 | Commands | Apakah `sent` dan `acked` dua tahap nyata di firmware | Alur remote control | BELUM |
-| 19 | Commands | Batas panjang `speak_text` dan skala volume audio yang didukung | Alur remote control | BELUM |
-| 20 | Rules | Aturan rules apa yang menegakkan `size <= 60000`, `mime`, dan panjang `bytes` | Keamanan data | BELUM |
-| 21 | Otorisasi | Bagaimana rules mengenali identitas device dan mengikatnya ke `deviceId` yang benar | Otorisasi lintas perangkat | BELUM |
+| 19 | Commands | Batas panjang `speak_text` dan skala volume audio yang didukung | Alur remote control | SISI APP SUDAH: teks 1–200 karakter, volume 0–100 (draft rules); skala audio firmware [PERLU KONFIRMASI] |
+| 20 | Rules | Aturan rules apa yang menegakkan `size <= 60000`, `mime`, dan panjang `bytes` | Keamanan data | DITULIS di `firebase/firestore.rules`; diuji emulator di `firebase/tests/` |
+| 21 | Otorisasi | Bagaimana rules mengenali identitas device dan mengikatnya ke `deviceId` yang benar | Otorisasi lintas perangkat | DIPUTUSKAN 2026-10-13 (skema `authUid`, §3); aturan `create` device diperbaiki 2026-10-18 |
 | 22 | Otorisasi | Siapa menulis `members`, dan apakah owner boleh mengubahnya? | Keanggotaan perangkat | BELUM |
 | 23 | Otorisasi | Batas anggota per perangkat, dan model map versus array | Beban baca dan aturan | BELUM |
 | 24 | Retention | Apakah device boleh menghapus `detections` dan `media` miliknya sendiri? | Stored data 1 GiB | BELUM |

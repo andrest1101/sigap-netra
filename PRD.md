@@ -79,7 +79,7 @@ Rilis ini membangun ulang aplikasi dengan **Flutter** dan menambah kemampuan lin
 
 ## 7. Model Data (ringkas — sumber: `docs/firestore_schema.md`)
 
-`devices/{id}` · `devices/{id}/detections/{id}` (kategori `money|text|object`, `value`, confidence, jarak, `processingMs`, `seq`, `validationStatus`) · `devices/{id}/media/{detectionId}` (thumbnail) · `events` · `commands`. Retensi 30 hari (TTL).
+`devices/{id}` · `devices/{id}/detections/{id}` (kategori `money|text`, `amount`/`label`, `confidence`, `distanceCm`, `ocrText`, `validationStatus`) · `devices/{id}/media/{detectionId}` (thumbnail) · `events` · `commands`. Retensi 30 hari (target; TTL tidak tersedia di Spark, jadi penghapusan otomatis belum aktif — lihat `docs/firestore_schema.md` bagian 7.4).
 
 ## 8. Fitur & Acceptance Criteria
 
@@ -105,7 +105,7 @@ Detail UI per layar ada di `docs/ui_spec.md`.
 | F9  | **Kontrol jarak jauh**              | `sync_now`, `ping`, volume, ambang confidence, aktif/nonaktif deteksi, restart; status `pending→acked→done/failed`; `expired` bila 60 dtk tak di-ack              |
 | F10 | **Share hasil**                     | Ringkasan (teks + kartu gambar tanpa gambar asli bila consent belum diberikan) → share sheet; dialog persetujuan + peringatan teks OCR; tanpa ID perangkat/lokasi |
 | F11 | **Statistik & grafik**              | ✅ Riwayat → Statistik: rentang 7 hari / 4 minggu, ring akurasi (cocok ÷ (cocok + tidak cocok); pending tidak dihitung), KPI total · per hari · menunggu, grafik batang bertumpuk uang/teks + komposisi jenis & status. Semua angka dari `count()` agregat; grafik digambar sendiri karena `fl_chart 1.1.0` tidak kompilasi dengan SDK Flutter 3.32.8 (`docs/ui_spec.md` §5.3) |
-| F12 | **Ekspor CSV**                      | Riwayat sesuai filter tanggal                                                                                                                                     |
+| F12 | **Ekspor CSV** ✅                   | Riwayat sesuai filter aktif (kategori + status); maksimal **500 baris terbaru** per ekspor; CSV titik-koma + BOM (langsung rapi di Excel Indonesia); consent data pribadi sebelum menulis berkas; bila lebih dari 500 baris, pengguna diberi tahu hasilnya terpotong (`docs/ui_spec.md` §5.3) |
 | F13 | **Mode pengembang**                 | Sumber data Firebase/Simulasi (provider override), tampilkan IP/ID/versi                                                                                          |
 
 ### P2 — Nanti
@@ -147,7 +147,7 @@ Aturan turunan: tidak menulis per frame; semua query pakai `limit`; badge/ringka
 
 **Keamanan:** Rules deny-by-default; alat hanya menulis key yang diizinkan; pendamping hanya mengubah status validasi; kredensial alat tidak di-commit; HTTPS.
 
-**Privasi & etika:** tanpa video/suara/lokasi; gambar opt-in; retensi 30 hari; consent sebelum share; ⚠️ tanyakan ke dosen pembimbing apakah uji dengan penyandang tunanetra perlu lembar persetujuan.
+**Privasi & etika:** tanpa video/suara/lokasi; gambar opt-in; retensi 30 hari (target — mekanisme penghapusan otomatis belum dibangun, lihat `docs/firestore_schema.md` bagian 7.4); consent sebelum share; ⚠️ tanyakan ke dosen pembimbing apakah uji dengan penyandang tunanetra perlu lembar persetujuan.
 
 **Performa:** alat → layar ≤ 5 dtk (P95, WiFi normal); telemetri tidak menurunkan FPS/latensi baca secara terukur.
 
