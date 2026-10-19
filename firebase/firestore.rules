@@ -3,7 +3,9 @@ rules_version = '2';
 // Security Rules SIGAP-NETRA App — deny-by-default.
 // Sumber kebenaran: `docs/firestore_schema.md` bagian 9 (inventaris rules).
 //
-// Status: DRAFT v0.2. Belum diuji emulator (menunggu Firebase project).
+// Status: v0.3 (2026-10-18) — `create` device diperbaiki memakai self-bootstrap
+// (tanpa `get()` pada dokumen yang belum ada) dan seluruh aturan diuji di
+// emulator lewat `firebase/tests/rules.test.mjs`.
 // Bila skema berubah, file ini, `firestore.indexes.json`, model Dart beserta
 // test, dan `docs/device_protocol.md` wajib diubah dalam satu changeset.
 //
@@ -119,7 +121,11 @@ service cloud.firestore {
 
       // Tulis telemetri hanya device pemilik dokumen (authUid terikat).
       // `create` dan `update` dipisah karena `resource` tidak ada saat create.
-      allow create: if isDevice(deviceId)
+      // `create` TIDAK boleh memakai `isDevice()`: saat create dokumen belum
+      // ada, `get()` mengembalikan null sehingga aturan selalu ditolak.
+      // Bootstrap mandiri: UID pembuat harus sama dengan `authUid` yang ia
+      // tulis sendiri; sesudahnya `update` memakai `isDevice()` seperti biasa.
+      allow create: if isSignedIn()
         && request.resource.data.authUid == request.auth.uid
         && request.resource.data.keys().hasOnly([
           'deviceId', 'authUid', 'name', 'model', 'firmwareVersion', 'wifiSsid',
@@ -155,8 +161,13 @@ service cloud.firestore {
           && request.resource.data.validationStatus == 'pending'
           && !('validatedBy' in request.resource.data)
           && !('validatedAt' in request.resource.data)
+          // `ocrText` null eksplisit (field ada, nilai null) sah per skema
+          // bagian 4.2; tanpa cabang null, `.size()` pada null menjadi
+          // evaluation error dan aturan ikut menolak balasan yang sah.
           && (!('ocrText' in request.resource.data)
-            || request.resource.data.ocrText.size() <= 500)
+            || request.resource.data.ocrText == null
+            || (request.resource.data.ocrText is string
+              && request.resource.data.ocrText.size() <= 500))
           && request.resource.data.confidence is number
           && request.resource.data.confidence >= 0
           && request.resource.data.confidence <= 1
