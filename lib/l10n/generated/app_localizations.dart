@@ -1372,18 +1372,6 @@ abstract class AppLocalizations {
   /// **'Pengaturan'**
   String get settingsTitle;
 
-  /// No description provided for @settingsLanguage.
-  ///
-  /// In id, this message translates to:
-  /// **'Bahasa'**
-  String get settingsLanguage;
-
-  /// No description provided for @settingsPrivacy.
-  ///
-  /// In id, this message translates to:
-  /// **'Privasi'**
-  String get settingsPrivacy;
-
   /// No description provided for @settingsUploadThumbnails.
   ///
   /// In id, this message translates to:
@@ -2066,11 +2054,47 @@ abstract class AppLocalizations {
   /// **'Bagikan ringkasan'**
   String get historyShareSummary;
 
-  /// No description provided for @historyExportComingSoon.
+  /// No description provided for @historyExportConsentAccept.
   ///
   /// In id, this message translates to:
-  /// **'Ekspor CSV segera hadir.'**
-  String get historyExportComingSoon;
+  /// **'Lanjutkan'**
+  String get historyExportConsentAccept;
+
+  /// No description provided for @historyExportConsentTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Ekspor CSV memuat teks pribadi'**
+  String get historyExportConsentTitle;
+
+  /// No description provided for @historyExportConsentBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Berkas CSV memuat teks OCR apa adanya yang dapat berisi informasi pribadi. Berkas dibuat di perangkat Anda dan hanya Anda yang menentukan ke mana berkas dibagikan.'**
+  String get historyExportConsentBody;
+
+  /// No description provided for @historyExportPreparing.
+  ///
+  /// In id, this message translates to:
+  /// **'Menyiapkan berkas CSV…'**
+  String get historyExportPreparing;
+
+  /// No description provided for @historyExportEmpty.
+  ///
+  /// In id, this message translates to:
+  /// **'Tidak ada pembacaan pada filter ini untuk diekspor.'**
+  String get historyExportEmpty;
+
+  /// No description provided for @historyExportTruncated.
+  ///
+  /// In id, this message translates to:
+  /// **'Berkas memuat {count} pembacaan terbaru pada filter ini. Persempit filter untuk sisanya.'**
+  String historyExportTruncated(int count);
+
+  /// No description provided for @historyExportFailed.
+  ///
+  /// In id, this message translates to:
+  /// **'Gagal menyiapkan berkas CSV. Periksa koneksi lalu coba lagi.'**
+  String get historyExportFailed;
 
   /// No description provided for @deviceConnectTitle.
   ///
@@ -2231,7 +2255,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsRetentionBody.
   ///
   /// In id, this message translates to:
-  /// **'Pembacaan dan thumbnail disimpan maksimal 30 hari.'**
+  /// **'Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.'**
   String get settingsRetentionBody;
 
   /// No description provided for @settingsDeleteAllTitle.

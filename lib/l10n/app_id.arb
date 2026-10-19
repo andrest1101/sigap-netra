@@ -274,8 +274,6 @@
   },
 
   "settingsTitle": "Pengaturan",
-  "settingsLanguage": "Bahasa",
-  "settingsPrivacy": "Privasi",
   "settingsUploadThumbnails": "Kirim thumbnail pembacaan",
   "settingsUploadThumbnailsBody": "Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.",
   "settingsDeviceUploadsReadOnly": "Nilai ini hanya informasi perangkat.",
@@ -447,7 +445,18 @@
   "historyResetMenu": "Reset status validasi...",
   "historyExportCsv": "Ekspor CSV",
   "historyShareSummary": "Bagikan ringkasan",
-  "historyExportComingSoon": "Ekspor CSV segera hadir.",
+  "historyExportConsentAccept": "Lanjutkan",
+  "historyExportConsentTitle": "Ekspor CSV memuat teks pribadi",
+  "historyExportConsentBody": "Berkas CSV memuat teks OCR apa adanya yang dapat berisi informasi pribadi. Berkas dibuat di perangkat Anda dan hanya Anda yang menentukan ke mana berkas dibagikan.",
+  "historyExportPreparing": "Menyiapkan berkas CSV…",
+  "historyExportEmpty": "Tidak ada pembacaan pada filter ini untuk diekspor.",
+  "historyExportTruncated": "Berkas memuat {count} pembacaan terbaru pada filter ini. Persempit filter untuk sisanya.",
+  "@historyExportTruncated": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "historyExportFailed": "Gagal menyiapkan berkas CSV. Periksa koneksi lalu coba lagi.",
   "@historyStatsChartSemantics": {
     "placeholders": {
       "total": { "type": "int" },
@@ -553,7 +562,7 @@
   "settingsSourceTitle": "Sumber data",
   "settingsShowTechnicalIds": "Tampilkan ID teknis",
   "settingsRetentionTitle": "Retensi data",
-  "settingsRetentionBody": "Pembacaan dan thumbnail disimpan maksimal 30 hari.",
+  "settingsRetentionBody": "Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.",
   "settingsDeleteAllTitle": "Hapus semua data perangkat",
   "settingsDeleteAllBody": "Segera hadir.",
   "settingsOpenTitle": "Buka pengaturan",

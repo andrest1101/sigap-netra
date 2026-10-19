@@ -691,12 +691,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsTitle => 'Pengaturan';
 
   @override
-  String get settingsLanguage => 'Bahasa';
-
-  @override
-  String get settingsPrivacy => 'Privasi';
-
-  @override
   String get settingsUploadThumbnails => 'Kirim thumbnail pembacaan';
 
   @override
@@ -1097,7 +1091,30 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyShareSummary => 'Bagikan ringkasan';
 
   @override
-  String get historyExportComingSoon => 'Ekspor CSV segera hadir.';
+  String get historyExportConsentAccept => 'Lanjutkan';
+
+  @override
+  String get historyExportConsentTitle => 'Ekspor CSV memuat teks pribadi';
+
+  @override
+  String get historyExportConsentBody =>
+      'Berkas CSV memuat teks OCR apa adanya yang dapat berisi informasi pribadi. Berkas dibuat di perangkat Anda dan hanya Anda yang menentukan ke mana berkas dibagikan.';
+
+  @override
+  String get historyExportPreparing => 'Menyiapkan berkas CSV…';
+
+  @override
+  String get historyExportEmpty =>
+      'Tidak ada pembacaan pada filter ini untuk diekspor.';
+
+  @override
+  String historyExportTruncated(int count) {
+    return 'Berkas memuat $count pembacaan terbaru pada filter ini. Persempit filter untuk sisanya.';
+  }
+
+  @override
+  String get historyExportFailed =>
+      'Gagal menyiapkan berkas CSV. Periksa koneksi lalu coba lagi.';
 
   @override
   String get deviceConnectTitle => 'Hubungkan';
@@ -1188,7 +1205,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsRetentionBody =>
-      'Pembacaan dan thumbnail disimpan maksimal 30 hari.';
+      'Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.';
 
   @override
   String get settingsDeleteAllTitle => 'Hapus semua data perangkat';
