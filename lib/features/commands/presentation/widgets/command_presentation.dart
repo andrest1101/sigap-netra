@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/status_colors.dart';
 import '../../../../core/utils/relative_time.dart';
-import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/device_command.dart';
 

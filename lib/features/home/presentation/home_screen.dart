@@ -17,7 +17,6 @@ import '../../../../core/widgets/logo_mark.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
-import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../devices/domain/entities/device.dart';
 import '../../devices/presentation/providers/devices_providers.dart';
