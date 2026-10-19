@@ -12,4 +12,9 @@ class ShareRepositoryImpl implements ShareRepository {
   Future<void> shareReport(ShareReport report) {
     return _dataSource.shareReport(report);
   }
+
+  @override
+  Future<void> shareCsv({required String content, required String fileName}) {
+    return _dataSource.shareCsv(content: content, fileName: fileName);
+  }
 }
