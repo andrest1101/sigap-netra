@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 
+/// Semantik status yang dipakai seluruh aplikasi.
+///
+/// Nada mengikuti `ui_spec.md` v3: ok = Terhubung/Cocok, bad =
+/// Terputus/Tidak cocok/error, warn = Menunggu/peringatan,
+/// neutral = Belum/tidak diketahui. `info` memakai `tertiary` skema
+/// (Lensa Amber) untuk informasi netral seperti perintah terkirim.
+enum AppStatusTone { ok, bad, warn, neutral, info }
+
 /// Warna status dengan makna yang sudah pasti di seluruh aplikasi.
 ///
 /// Shades mengikuti `ui_spec.md` v3 (identitas visual baru SIGAP-NETRA).

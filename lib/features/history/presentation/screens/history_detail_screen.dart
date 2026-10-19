@@ -15,7 +15,6 @@ import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
-import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';

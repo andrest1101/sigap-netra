@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/status_colors.dart';
-import '../../../../core/widgets/status_pill.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/device.dart';
 

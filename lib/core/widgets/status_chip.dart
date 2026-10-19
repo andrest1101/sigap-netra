@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
 import '../theme/status_colors.dart';
-import 'status_pill.dart';
 
 /// Titik status kecil: indikator warna + ikon untuk hero dan baris ringkas.
 ///
