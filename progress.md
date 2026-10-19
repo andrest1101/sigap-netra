@@ -1,5 +1,17 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-19 R1 — Bersih-bersih kode mati & file sampah (audit repositori penuh)
+
+Audit read-only penuh atas permintaan user (file tak perlu + hal lain), lalu eksekusi batch yang disetujui user: **R1 saja**. Semua yang dibuang terverifikasi **nol referensi** di `lib/` + `test/` (di luar generated) dan **nol test** yang menyentuhnya. R2 (63 kunci l10n mati), R3 (dependensi tak terpakai), dan R4 (helper rute log koneksi) ditunda atas keputusan user.
+
+- **File sampah dibersihkan.** `$null` di root (130 B — hasil salah redirect `> $null` di PowerShell, ter-commit tak sengaja di `4736e98`) dihapus lewat `git rm`; `firestore-debug.log` (163 KB sisa uji emulator) + `sigap_netra_app.iml` dihapus dari disk (keduanya sudah di-ignore, murni lokal).
+- **Kode mati dihapus (9 file).** `DeviceCard` (`device_card.dart`); `ValidateWifiCredentials` (layar QR memvalidasi per-field dengan `kMinWifiPasswordLength`, komentar use case itu juga sudah basi); rantai preferensi settings yang tak tersambung (`AppPreferences`, `PreferencesRepository`, `WatchPreferences`/`UpdatePreferences`, `PreferencesRepositoryImpl`, `PreferencesDataSource`, `SharedPreferencesDataSource`) — `settings_providers.dart` memang menyimpan langsung via `sharedPreferencesProvider` (`developer_mode`, `upload_thumbnails_privacy`).
+- **`StatusPill` dirapikan.** Enum `AppStatusTone` pindah ke `core/theme/status_colors.dart` (rumah semantik status); widget `StatusPill` yang mati + file `core/widgets/status_pill.dart` dihapus; 10 importer disesuaikan (6 hapus impor karena `status_colors` sudah diimpor, 4 pindah jalur impor).
+- **Arsip spec teal dihapus.** `docs/ui_spec_legacy_teal.md` (58 KB, ditandai tidak berlaku) — riwayat git tetap menyimpannya; kalimat rujukan di awal `docs/ui_spec.md` diperbarui. Entri historis `progress.md` lama sengaja tidak diubah (jurnal).
+- **Dokumen disinkronkan.** `AGENTS.md`: tabel fitur — `provisioning` tanpa `ValidateWifiCredentials`; `settings` = `DataSource` + catatan "preferensi lokal via `sharedPreferencesProvider` (tanpa layer domain/data)"; komentar pohon `core/widgets/` kini memuat daftar yang nyata.
+- **Verifikasi.** `dart format` bersih (0 dari 184 file berubah); `flutter analyze` No issues; `flutter test` **253 lulus** — tetap sama karena semua yang dibuang memang tak diuji.
+- Temuan audit lain yang dicatat & sengaja ditunda: 63 kunci l10n mati (~17%), `cupertino_icons`/`mocktail`/`firebase_auth_mocks` tak terpakai, `OfflineBanner` menunggu sinyal `isFromCache` Firestore nyata, rute mentah `/pengaturan/koneksi/:deviceId` di detail Perangkat (belum helper), aset `google_g_logo.png` 190 KB untuk tampilan 20dp, `applicationId` masih `com.example.*`.
+
 ## 2026-10-18 P1 — Rumah tangga dokumen, audit Pengaturan, ekspor CSV, dan aturan device diperbaiki + diuji emulator
 
 Sesi lanjutan setelah Batch A/B (keduanya sudah di-commit user). Fokus: menyelaraskan dokumen dengan kenyataan kode, menutup kopi basi (retensi, nama use case, indeks ganda), mewujudkan menu "Ekspor CSV" yang tadinya snackbar kosong, dan membuktikan `firebase/firestore.rules` benar-benar jalan di emulator — bukan hanya "ditulis".
