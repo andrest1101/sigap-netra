@@ -133,7 +133,7 @@ void main() {
       expect(find.text('82'), findsOneWidget);
     });
 
-    testWidgets('chip Kontrol + Severity berteks gelap di kartu terang', (
+    testWidgets('chip Kontrol + status berteks gelap di kartu terang', (
       tester,
     ) async {
       await pumpDevices(tester);
@@ -150,7 +150,6 @@ void main() {
         'Mulai ulang',
         'Kejadian terakhir',
         'Perintah terakhir',
-        'Semua',
         'Info',
         'Peringatan',
         'Gangguan',
@@ -186,6 +185,20 @@ void main() {
       expect(find.text('Perintah terakhir'), findsOneWidget);
       expect(find.text('Perangkat selesai booting.'), findsOneWidget);
       expect(find.textContaining('Sinkronisasi selesai.'), findsOneWidget);
+
+      // Saringan severity tidak lagi menumpang di kartu ringkasan: filter
+      // menyeluruh ada di Log koneksi. Chip status per baris tetap tampil.
+      expect(find.byType(FilterChip), findsNothing);
+      expect(find.byType(ChoiceChip), findsNothing);
+      expect(find.text('Lihat semua'), findsNWidgets(2));
+
+      // Kode mentah (wlan_disconnected, command_failed) diganti kategori
+      // manusiawi di kartu; kode asli tetap tersedia di Log koneksi.
+      expect(find.textContaining('· Jaringan'), findsOneWidget);
+      expect(find.textContaining('· Perintah'), findsOneWidget);
+      expect(find.textContaining('· Sistem'), findsOneWidget);
+      expect(find.textContaining('wlan_disconnected'), findsNothing);
+      expect(find.textContaining('command_failed'), findsNothing);
     });
 
     testWidgets('tombol Sinkronkan benar-benar mengirim perintah', (

@@ -9,7 +9,11 @@ import '../theme/design_tokens.dart';
 /// Tiga state eksplisit: [ThumbnailTile.image] (bytes JPEG siap tampil),
 /// [ThumbnailTile.unavailable] (panel informatif, bukan area kosong), dan
 /// [ThumbnailTile.loading] (skeleton kotak). Kondisi "gambar tidak tersedia"
-/// selalu berupa teks sesuai identitas v3.
+/// memakai ikon netral + label semantik sesuai identitas v3.
+///
+/// [icon] pada state unavailable dapat diisi ikon kategori (uang/teks) agar
+/// ketiadaan foto terbaca sebagai keadaan normal, bukan ikon "gambar rusak"
+/// yang menyesatkan.
 class ThumbnailTile extends StatelessWidget {
   const ThumbnailTile.image({
     required Uint8List this.imageBytes,
@@ -17,12 +21,14 @@ class ThumbnailTile extends StatelessWidget {
     super.key,
     this.size = DesignTokens.thumbnailSize,
     this.heroTag,
-  }) : _mode = _ThumbnailMode.image;
+  }) : icon = Icons.image_not_supported_outlined,
+       _mode = _ThumbnailMode.image;
 
   const ThumbnailTile.unavailable({
     required this.semanticsLabel,
     super.key,
     this.size = DesignTokens.thumbnailSize,
+    this.icon = Icons.image_not_supported_outlined,
   }) : imageBytes = null,
        heroTag = null,
        _mode = _ThumbnailMode.unavailable;
@@ -33,12 +39,14 @@ class ThumbnailTile extends StatelessWidget {
   }) : imageBytes = null,
        semanticsLabel = null,
        heroTag = null,
+       icon = Icons.image_not_supported_outlined,
        _mode = _ThumbnailMode.loading;
 
   final Uint8List? imageBytes;
   final String? semanticsLabel;
   final Object? heroTag;
   final double size;
+  final IconData icon;
   final _ThumbnailMode _mode;
 
   @override
@@ -65,11 +73,7 @@ class ThumbnailTile extends StatelessWidget {
             color: colorScheme.surfaceContainerHigh,
             borderRadius: radius,
           ),
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            size: 24,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
         );
       case _ThumbnailMode.image:
         final image = ClipRRect(

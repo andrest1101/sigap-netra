@@ -41,12 +41,12 @@ void main() {
       final media = graph();
       final first = await media.getThumbnail(
         deviceId: kDemoDeviceId,
-        thumbnailId: 'det-text-menu',
+        thumbnailId: 'det-money-100k',
       );
-      media.evict('det-text-menu');
+      media.evict('det-money-100k');
       final second = await media.getThumbnail(
         deviceId: kDemoDeviceId,
-        thumbnailId: 'det-text-menu',
+        thumbnailId: 'det-money-100k',
       );
 
       expect(first, isNotNull);
@@ -54,33 +54,18 @@ void main() {
       expect(identical(first, second), isFalse);
     });
 
-    test('item lain dengan thumbnailId memakai prosedural PNG 96x72', () async {
-      final thumbnail = await graph().getThumbnail(
-        deviceId: kDemoDeviceId,
-        thumbnailId: 'det-text-menu',
-      );
-
-      expect(thumbnail, isNotNull);
-      final bytes = thumbnail!.imageBytes;
-      expect(bytes, isNotEmpty);
-      expect(bytes.length, lessThanOrEqualTo(kMaxThumbnailBytes));
-      // Header PNG + dimensi IHDR 96x72.
-      expect(bytes.sublist(0, 8), [
-        0x89,
-        0x50,
-        0x4E,
-        0x47,
-        0x0D,
-        0x0A,
-        0x1A,
-        0x0A,
-      ]);
-      expect(bytes.sublist(16, 24), [0, 0, 0, 96, 0, 0, 0, 72]);
-    });
-
-    test('unknown / device salah / id kosong menjadi null', () async {
+    test('ID tanpa aset / device salah / id kosong menjadi null', () async {
       final media = graph();
 
+      // `det-text-menu` sengaja tidak punya foto demo: jangan mengarang
+      // gambar prosedural yang terlihat seperti gambar rusak.
+      expect(
+        await media.getThumbnail(
+          deviceId: kDemoDeviceId,
+          thumbnailId: 'det-text-menu',
+        ),
+        isNull,
+      );
       expect(
         await media.getThumbnail(
           deviceId: kDemoDeviceId,
@@ -102,11 +87,11 @@ void main() {
       final media = graph();
       final first = await media.getThumbnail(
         deviceId: kDemoDeviceId,
-        thumbnailId: 'det-text-menu',
+        thumbnailId: 'det-money-50k',
       );
       final second = await media.getThumbnail(
         deviceId: kDemoDeviceId,
-        thumbnailId: 'det-text-menu',
+        thumbnailId: 'det-money-50k',
       );
 
       expect(identical(first, second), isTrue);

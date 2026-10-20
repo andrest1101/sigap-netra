@@ -679,6 +679,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get eventsSeverityError => 'Gangguan';
 
   @override
+  String get eventsCategoryNetwork => 'Jaringan';
+
+  @override
+  String get eventsCategoryCommand => 'Perintah';
+
+  @override
+  String get eventsCategorySystem => 'Sistem';
+
+  @override
+  String get eventsCategoryReading => 'Pembacaan';
+
+  @override
+  String get eventsCategoryGeneral => 'Kejadian';
+
+  @override
   String eventsLatestNote(int count) {
     return 'Menampilkan $count kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.';
   }
@@ -885,6 +900,18 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get validationNoImageAction => 'Buka pengaturan privasi';
+
+  @override
+  String get photoViewerZoom => 'Perbesar foto';
+
+  @override
+  String get photoViewerClose => 'Tutup foto';
+
+  @override
+  String get photoViewerReset => 'Kembalikan ukuran';
+
+  @override
+  String get photoViewerHint => 'Cubit atau ketuk dua kali untuk memperbesar';
 
   @override
   String get validationAllDoneTitle => 'Semua pembacaan sudah diperiksa';

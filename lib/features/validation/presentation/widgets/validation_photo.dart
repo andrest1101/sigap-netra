@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/photo_viewer.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../media/presentation/providers/media_providers.dart';
 
@@ -156,7 +157,10 @@ class _NoPhotoPanel extends StatelessWidget {
   }
 }
 
-/// Gambar foto + lencana "ketuk untuk detail" + Hero ke layar detail.
+/// Gambar foto + tombol zoom + Hero ke layar detail.
+///
+/// Ketuk foto untuk membuka detail (alur validasi tetap sama); tombol zoom di
+/// sudut membuka penampil layar penuh tanpa harus meninggalkan antrean.
 class _PhotoImage extends StatelessWidget {
   const _PhotoImage({
     required this.bytes,
@@ -173,19 +177,20 @@ class _PhotoImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Hero(
-      tag: heroTag,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onOpenDetail,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Image.memory(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Hero(
+          tag: heroTag,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onOpenDetail,
+              child: Image.memory(
                 bytes,
                 fit: BoxFit.cover,
                 gaplessPlayback: true,
+                semanticLabel: semanticsLabel,
                 errorBuilder: (context, _, _) => Container(
                   color: colorScheme.surfaceContainerHigh,
                   child: Icon(
@@ -194,30 +199,22 @@ class _PhotoImage extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                right: DesignTokens.spaceSm,
-                bottom: DesignTokens.spaceSm,
-                child: ExcludeSemantics(
-                  child: Container(
-                    padding: const EdgeInsets.all(DesignTokens.spaceXs),
-                    decoration: BoxDecoration(
-                      color: colorScheme.scrim.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(
-                        DesignTokens.radiusBadge,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.open_in_full_rounded,
-                      size: 16,
-                      color: colorScheme.surface,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        Positioned(
+          right: DesignTokens.spaceSm,
+          bottom: DesignTokens.spaceSm,
+          child: PhotoZoomButton(
+            onPressed: () => PhotoViewerScreen.open(
+              context,
+              imageBytes: bytes,
+              heroTag: heroTag,
+              semanticsLabel: semanticsLabel,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

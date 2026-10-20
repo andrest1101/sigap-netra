@@ -140,7 +140,9 @@ List<Detection> _sample() {
       ocrText: 'AYAM GORENG — Rp15.000',
       confidence: 0.9,
       distanceCm: 25,
-      thumbnailId: 'det-text-menu',
+      // Sengaja TANPA thumbnail: demo foto hanya tersedia untuk dua pecahan
+      // uang. Item teks memakai panel "tanpa gambar" yang jujur, bukan gambar
+      // prosedural yang mudah terbaca sebagai gambar rusak.
       validationStatus: ValidationStatus.match,
       validatedBy: kDemoUserId,
       validatedAt: now.subtract(const Duration(minutes: 1, seconds: 30)),

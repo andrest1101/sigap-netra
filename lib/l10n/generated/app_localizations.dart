@@ -1354,6 +1354,36 @@ abstract class AppLocalizations {
   /// **'Gangguan'**
   String get eventsSeverityError;
 
+  /// No description provided for @eventsCategoryNetwork.
+  ///
+  /// In id, this message translates to:
+  /// **'Jaringan'**
+  String get eventsCategoryNetwork;
+
+  /// No description provided for @eventsCategoryCommand.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah'**
+  String get eventsCategoryCommand;
+
+  /// No description provided for @eventsCategorySystem.
+  ///
+  /// In id, this message translates to:
+  /// **'Sistem'**
+  String get eventsCategorySystem;
+
+  /// No description provided for @eventsCategoryReading.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan'**
+  String get eventsCategoryReading;
+
+  /// No description provided for @eventsCategoryGeneral.
+  ///
+  /// In id, this message translates to:
+  /// **'Kejadian'**
+  String get eventsCategoryGeneral;
+
   /// No description provided for @eventsLatestNote.
   ///
   /// In id, this message translates to:
@@ -1719,6 +1749,30 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Buka pengaturan privasi'**
   String get validationNoImageAction;
+
+  /// No description provided for @photoViewerZoom.
+  ///
+  /// In id, this message translates to:
+  /// **'Perbesar foto'**
+  String get photoViewerZoom;
+
+  /// No description provided for @photoViewerClose.
+  ///
+  /// In id, this message translates to:
+  /// **'Tutup foto'**
+  String get photoViewerClose;
+
+  /// No description provided for @photoViewerReset.
+  ///
+  /// In id, this message translates to:
+  /// **'Kembalikan ukuran'**
+  String get photoViewerReset;
+
+  /// No description provided for @photoViewerHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Cubit atau ketuk dua kali untuk memperbesar'**
+  String get photoViewerHint;
 
   /// No description provided for @validationAllDoneTitle.
   ///

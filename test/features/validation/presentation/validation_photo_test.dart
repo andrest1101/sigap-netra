@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/widgets/photo_viewer.dart';
 import 'package:sigap_netra_app/features/validation/presentation/widgets/validation_photo.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
@@ -101,6 +102,32 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Gambar tidak diunggah'), findsOneWidget);
       expect(find.byType(Image), findsNothing);
+    });
+
+    testWidgets('tombol zoom membuka penampil foto layar penuh', (
+      tester,
+    ) async {
+      final graph = FakeAppGraph();
+      await pumpPhoto(tester, graph: graph, thumbnailId: 'det-money-100k');
+      await pumpFrames(tester);
+      final element = tester.element(find.byType(ValidationPhoto));
+      await tester.runAsync(() async {
+        final thumbnail = await graph.media.getThumbnail(
+          deviceId: kDemoDeviceId,
+          thumbnailId: 'det-money-100k',
+        );
+        await precacheImage(MemoryImage(thumbnail!.imageBytes), element);
+      });
+      await tester.pump();
+
+      await tester.tap(find.byTooltip('Perbesar foto'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerScreen), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Tutup foto'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerScreen), findsNothing);
     });
   });
 }
