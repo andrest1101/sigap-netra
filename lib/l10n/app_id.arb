@@ -265,6 +265,11 @@
   "eventsSeverityInfo": "Info",
   "eventsSeverityWarning": "Peringatan",
   "eventsSeverityError": "Gangguan",
+  "eventsCategoryNetwork": "Jaringan",
+  "eventsCategoryCommand": "Perintah",
+  "eventsCategorySystem": "Sistem",
+  "eventsCategoryReading": "Pembacaan",
+  "eventsCategoryGeneral": "Kejadian",
   "eventsLatestNote": "Menampilkan {count} kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.",
   "eventsAllLoaded": "Semua kejadian pada saringan ini sudah dimuat.",
   "@eventsLatestNote": {

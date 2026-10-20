@@ -1354,6 +1354,36 @@ abstract class AppLocalizations {
   /// **'Gangguan'**
   String get eventsSeverityError;
 
+  /// No description provided for @eventsCategoryNetwork.
+  ///
+  /// In id, this message translates to:
+  /// **'Jaringan'**
+  String get eventsCategoryNetwork;
+
+  /// No description provided for @eventsCategoryCommand.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah'**
+  String get eventsCategoryCommand;
+
+  /// No description provided for @eventsCategorySystem.
+  ///
+  /// In id, this message translates to:
+  /// **'Sistem'**
+  String get eventsCategorySystem;
+
+  /// No description provided for @eventsCategoryReading.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan'**
+  String get eventsCategoryReading;
+
+  /// No description provided for @eventsCategoryGeneral.
+  ///
+  /// In id, this message translates to:
+  /// **'Kejadian'**
+  String get eventsCategoryGeneral;
+
   /// No description provided for @eventsLatestNote.
   ///
   /// In id, this message translates to:

@@ -679,6 +679,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get eventsSeverityError => 'Gangguan';
 
   @override
+  String get eventsCategoryNetwork => 'Jaringan';
+
+  @override
+  String get eventsCategoryCommand => 'Perintah';
+
+  @override
+  String get eventsCategorySystem => 'Sistem';
+
+  @override
+  String get eventsCategoryReading => 'Pembacaan';
+
+  @override
+  String get eventsCategoryGeneral => 'Kejadian';
+
+  @override
   String eventsLatestNote(int count) {
     return 'Menampilkan $count kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh.';
   }

@@ -11,7 +11,6 @@ import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
-import '../../../../core/widgets/filter_chip_row.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
@@ -23,6 +22,7 @@ import '../../../commands/presentation/providers/commands_providers.dart';
 import '../../../commands/presentation/widgets/command_presentation.dart';
 import '../../../events/domain/entities/device_event.dart';
 import '../../../events/presentation/providers/events_providers.dart';
+import '../../../events/presentation/widgets/event_presentation.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_providers.dart';
 import '../widgets/device_connectivity_display.dart';
@@ -338,13 +338,7 @@ class _ControlCardState extends ConsumerState<_ControlCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(
-          title: l10n.deviceControlTitle,
-          action: TextButton(
-            onPressed: () => DeviceCommandsPath(deviceId).push(context),
-            child: Text(l10n.commonSeeAll),
-          ),
-        ),
+        SectionHeader(title: l10n.deviceControlTitle),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacePage,
@@ -463,40 +457,70 @@ class _ControlCardState extends ConsumerState<_ControlCard> {
   }
 }
 
-/// Timeline dua seksi: "Kejadian terakhir" (event + saringan severity) dan
-/// "Perintah terakhir" (perintah yang dikirim dari aplikasi).
+/// Dua kartu ringkasan aktivitas: "Kejadian terakhir" dan "Perintah terakhir".
 ///
-/// Dua seksi dipisah supaya "menunggu validasi" dan "perintah dikirim" tidak
-/// pernah tercampur dalam satu daftar tanpa label seperti versi sebelumnya.
-class _ActivityTimeline extends ConsumerStatefulWidget {
+/// Masing-masing punya container sendiri agar baris tidak lagi mengambang di
+/// antara kartu Kontrol dan tepi layar. Saringan severity sengaja tidak
+/// ditampilkan di sini: kartu hanya memuat beberapa kejadian terbaru,
+/// sedangkan saringan menyeluruh (query server + paginasi) ada di Log koneksi.
+class _ActivityTimeline extends StatelessWidget {
   const _ActivityTimeline({required this.deviceId});
 
   final String deviceId;
 
   @override
-  ConsumerState<_ActivityTimeline> createState() => _ActivityTimelineState();
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _EventsSection(deviceId: deviceId),
+        _CommandsSection(deviceId: deviceId),
+        const SizedBox(height: DesignTokens.spaceSection),
+      ],
+    );
+  }
 }
 
-class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
-  EventSeverity? _severity;
+class _EventsSection extends ConsumerWidget {
+  const _EventsSection({required this.deviceId});
+
+  final String deviceId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final eventsAsync = ref.watch(eventsProvider(widget.deviceId));
-    final events = eventsAsync.value ?? const <DeviceEvent>[];
-    final filtered = _severity == null
-        ? events
-        : events.where((e) => e.severity == _severity).toList(growable: false);
-    final items = filtered.take(8).toList(growable: false);
-    final commandsAsync = ref.watch(commandsProvider(widget.deviceId));
-    final commands = (commandsAsync.value ?? const <DeviceCommand>[])
-        .take(3)
+    final async = ref.watch(eventsProvider(deviceId));
+    final items = (async.value ?? const <DeviceEvent>[])
+        .take(4)
         .toList(growable: false);
     final now = DateTime.now();
 
+    final Widget content;
+    if (async.isLoading && !async.hasValue) {
+      content = const _ActivityCardSkeleton(lines: 2);
+    } else if (async.hasError && !async.hasValue) {
+      content = _ActivityError(
+        error: async.error,
+        onRetry: () => ref.invalidate(eventsProvider(deviceId)),
+      );
+    } else if (items.isEmpty) {
+      content = _ActivityEmpty(message: l10n.eventsEmptyBody);
+    } else {
+      content = Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            _EventRow(
+              event: items[i],
+              time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
+            ),
+            if (i < items.length - 1) const _ActivityDivider(),
+          ],
+        ],
+      );
+    }
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
           title: l10n.deviceEventsTitle,
@@ -505,156 +529,146 @@ class _ActivityTimelineState extends ConsumerState<_ActivityTimeline> {
             child: Text(l10n.commonSeeAll),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            DesignTokens.spacePage,
-            0,
-            DesignTokens.spacePage,
-            DesignTokens.spaceSm,
-          ),
-          child: FilterChipRow<EventSeverity>(
-            selected: _severity,
-            onChanged: (value) => setState(() => _severity = value),
-            options: [
-              (label: l10n.historyFilterAll, icon: null, value: null),
-              (
-                label: l10n.eventsSeverityInfo,
-                icon: Icons.info_outline_rounded,
-                value: EventSeverity.info,
-              ),
-              (
-                label: l10n.eventsSeverityWarning,
-                icon: Icons.warning_amber_rounded,
-                value: EventSeverity.warning,
-              ),
-              (
-                label: l10n.eventsSeverityError,
-                icon: Icons.error_outline_rounded,
-                value: EventSeverity.error,
-              ),
-            ],
-          ),
-        ),
-        ..._eventRows(context, l10n, eventsAsync, items, events, now),
-        const SizedBox(height: DesignTokens.spaceLg),
-        SectionHeader(title: l10n.deviceCommandsTitle),
-        ..._commandRows(context, l10n, commandsAsync, commands, now),
-        const SizedBox(height: DesignTokens.spaceSection),
+        _ActivityCard(child: content),
       ],
     );
   }
+}
 
-  List<Widget> _eventRows(
-    BuildContext context,
-    AppLocalizations l10n,
-    AsyncValue<List<DeviceEvent>> async,
-    List<DeviceEvent> items,
-    List<DeviceEvent> all,
-    DateTime now,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    if (async.isLoading && !async.hasValue) {
-      return const [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
-          child: Skeleton.card(),
-        ),
-      ];
-    }
-    if (async.hasError && !async.hasValue) {
-      return [
-        _TimelineError(
-          error: async.error,
-          onRetry: () => ref.invalidate(eventsProvider(widget.deviceId)),
-        ),
-      ];
-    }
-    if (items.isEmpty) {
-      // Bedakan "belum ada kejadian" dan "saringan tidak menemukan apa-apa".
-      final message = all.isEmpty
-          ? l10n.eventsEmptyBody
-          : l10n.historyFilterEmptyTitle;
-      return [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignTokens.spacePage,
-          ),
-          child: Text(
-            message,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ];
-    }
-    return [
-      for (var i = 0; i < items.length; i++)
-        _EventRow(
-          event: items[i],
-          time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
-          isLast: i == items.length - 1,
-        ),
-    ];
-  }
+class _CommandsSection extends ConsumerWidget {
+  const _CommandsSection({required this.deviceId});
 
-  List<Widget> _commandRows(
-    BuildContext context,
-    AppLocalizations l10n,
-    AsyncValue<List<DeviceCommand>> async,
-    List<DeviceCommand> commands,
-    DateTime now,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+  final String deviceId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final async = ref.watch(commandsProvider(deviceId));
+    final items = (async.value ?? const <DeviceCommand>[])
+        .take(3)
+        .toList(growable: false);
+    final now = DateTime.now();
+
+    final Widget content;
     if (async.isLoading && !async.hasValue) {
-      return const [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Skeleton.line(),
-              SizedBox(height: DesignTokens.spaceSm),
-              Skeleton.line(),
-            ],
+      content = const _ActivityCardSkeleton(lines: 2);
+    } else if (async.hasError && !async.hasValue) {
+      content = _ActivityError(
+        error: async.error,
+        onRetry: () => ref.invalidate(commandsProvider(deviceId)),
+      );
+    } else if (items.isEmpty) {
+      content = _ActivityEmpty(message: l10n.deviceCommandsEmpty);
+    } else {
+      content = Column(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            _CommandRow(command: items[i], now: now),
+            if (i < items.length - 1) const _ActivityDivider(),
+          ],
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(
+          title: l10n.deviceCommandsTitle,
+          action: TextButton(
+            onPressed: () => DeviceCommandsPath(deviceId).push(context),
+            child: Text(l10n.commonSeeAll),
           ),
         ),
-      ];
-    }
-    if (async.hasError && !async.hasValue) {
-      return [
-        _TimelineError(
-          error: async.error,
-          onRetry: () => ref.invalidate(commandsProvider(widget.deviceId)),
-        ),
-      ];
-    }
-    if (commands.isEmpty) {
-      return [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignTokens.spacePage,
-          ),
-          child: Text(
-            l10n.deviceCommandsEmpty,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ];
-    }
-    return [
-      for (final command in commands) _CommandRow(command: command, now: now),
-    ];
+        _ActivityCard(child: content),
+      ],
+    );
   }
 }
 
-/// Baris error ringkas timeline: pesan + aksi coba lagi.
-class _TimelineError extends StatelessWidget {
-  const _TimelineError({required this.error, required this.onRetry});
+/// Kartu tonal yang membungkus daftar ringkasan aktivitas.
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+      child: Material(
+        color: colorScheme.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: child,
+      ),
+    );
+  }
+}
+
+class _ActivityDivider extends StatelessWidget {
+  const _ActivityDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      indent: DesignTokens.spaceLg,
+      endIndent: DesignTokens.spaceLg,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+}
+
+class _ActivityCardSkeleton extends StatelessWidget {
+  const _ActivityCardSkeleton({required this.lines});
+
+  final int lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(DesignTokens.spaceLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < lines; i++) ...[
+            const Skeleton.line(),
+            if (i < lines - 1) const SizedBox(height: DesignTokens.spaceMd),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ActivityEmpty extends StatelessWidget {
+  const _ActivityEmpty({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(DesignTokens.spaceLg),
+      child: Text(
+        message,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+/// Baris error ringkas di dalam kartu: pesan + aksi coba lagi.
+class _ActivityError extends StatelessWidget {
+  const _ActivityError({required this.error, required this.onRetry});
 
   final Object? error;
   final VoidCallback onRetry;
@@ -668,7 +682,7 @@ class _TimelineError extends StatelessWidget {
         ? failureMessage(err, l10n)
         : l10n.stateErrorBody;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+      padding: const EdgeInsets.all(DesignTokens.spaceLg),
       child: Row(
         children: [
           Icon(Icons.error_outline_rounded, size: 20, color: colorScheme.error),
@@ -689,15 +703,10 @@ class _TimelineError extends StatelessWidget {
 }
 
 class _EventRow extends StatelessWidget {
-  const _EventRow({
-    required this.event,
-    required this.time,
-    required this.isLast,
-  });
+  const _EventRow({required this.event, required this.time});
 
   final DeviceEvent event;
   final String time;
-  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
@@ -712,68 +721,50 @@ class _EventRow extends StatelessWidget {
       ),
       EventSeverity.error => (Icons.error_outline_rounded, AppStatusTone.bad),
     };
+    final palette = _tonePalette(context, tone);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spacePage),
+      padding: const EdgeInsets.symmetric(
+        horizontal: DesignTokens.spaceLg,
+        vertical: DesignTokens.spaceMd,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(DesignTokens.spaceSm),
-                decoration: ShapeDecoration(
-                  color: colorScheme.surfaceContainerHigh,
-                  shape: const CircleBorder(),
-                ),
-                child: Icon(icon, size: 16, color: colorScheme.onSurface),
-              ),
-              if (!isLast)
-                Container(
-                  width: 1,
-                  height: DesignTokens.spacePage,
-                  color: colorScheme.outlineVariant,
-                ),
-            ],
-          ),
+          _ActivityIcon(icon: icon, palette: palette),
           const SizedBox(width: DesignTokens.spaceMd),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: DesignTokens.spaceMd),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          event.message,
-                          style: textTheme.bodyMedium,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: DesignTokens.spaceSm),
-                      StatusChip(
-                        label: switch (event.severity) {
-                          EventSeverity.info => l10n.eventsSeverityInfo,
-                          EventSeverity.warning => l10n.eventsSeverityWarning,
-                          EventSeverity.error => l10n.eventsSeverityError,
-                        },
-                        tone: tone,
-                        isDense: true,
-                      ),
-                    ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.message,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  Text(
-                    '$time · ${event.type}',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$time · ${eventCategoryLabel(event.type, l10n)}',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
+          ),
+          const SizedBox(width: DesignTokens.spaceSm),
+          StatusChip(
+            label: switch (event.severity) {
+              EventSeverity.info => l10n.eventsSeverityInfo,
+              EventSeverity.warning => l10n.eventsSeverityWarning,
+              EventSeverity.error => l10n.eventsSeverityError,
+            },
+            tone: tone,
+            isDense: true,
           ),
         ],
       ),
@@ -792,19 +783,17 @@ class _CommandRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final tone = commandStatusTone(command.status);
+    final palette = _tonePalette(context, tone);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: DesignTokens.spacePage,
-        vertical: DesignTokens.spaceXs,
+        horizontal: DesignTokens.spaceLg,
+        vertical: DesignTokens.spaceMd,
       ),
       child: Row(
         children: [
-          Icon(
-            commandIcon(command.type),
-            size: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          _ActivityIcon(icon: commandIcon(command.type), palette: palette),
           const SizedBox(width: DesignTokens.spaceMd),
           Expanded(
             child: Column(
@@ -812,10 +801,13 @@ class _CommandRow extends StatelessWidget {
               children: [
                 Text(
                   commandTitle(command.type, l10n),
-                  style: textTheme.bodyMedium,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
                 Text(
                   commandTimeLine(command, now, l10n),
                   style: textTheme.labelMedium?.copyWith(
@@ -830,13 +822,53 @@ class _CommandRow extends StatelessWidget {
           const SizedBox(width: DesignTokens.spaceSm),
           StatusChip(
             label: commandStatusLabel(command.status, l10n),
-            tone: commandStatusTone(command.status),
+            tone: tone,
             isDense: true,
           ),
         ],
       ),
     );
   }
+}
+
+/// Ikon leading 40 dp dengan latar tonal sesuai tingkat kepentingan.
+class _ActivityIcon extends StatelessWidget {
+  const _ActivityIcon({required this.icon, required this.palette});
+
+  final IconData icon;
+  final StatusPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: palette.container,
+        shape: const CircleBorder(),
+      ),
+      child: Icon(icon, size: 20, color: palette.content),
+    );
+  }
+}
+
+/// Palet status untuk leading icon. `info` memakai pasangan tertiary karena
+/// `StatusColors` hanya menyimpan nada status tetap (ok/bad/warn/neutral).
+StatusPalette _tonePalette(BuildContext context, AppStatusTone tone) {
+  final palette = StatusColors.of(context);
+  final colorScheme = Theme.of(context).colorScheme;
+  return switch (tone) {
+    AppStatusTone.ok => palette.ok,
+    AppStatusTone.bad => palette.bad,
+    AppStatusTone.warn => palette.warn,
+    AppStatusTone.neutral => palette.neutral,
+    AppStatusTone.info => StatusPalette(
+      solid: colorScheme.tertiary,
+      container: colorScheme.tertiaryContainer,
+      content: colorScheme.onTertiaryContainer,
+    ),
+  };
 }
 
 class _DevicesLoading extends StatelessWidget {

@@ -26,7 +26,7 @@ import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 import '../helpers/fake_app_graph.dart';
 
 /// Repository tiruan: satu perangkat online agar tab Perangkat terisi penuh
-/// (kepala + kontrol + timeline + filter severity).
+/// (kepala + kontrol + timeline).
 class _FakeDeviceRepository implements DeviceRepository {
   _FakeDeviceRepository();
 
@@ -54,8 +54,8 @@ class _FakeDeviceRepository implements DeviceRepository {
 /// Regression P0: layar anak wajib bisa kembali + filter tidak dempet.
 ///
 /// Setiap layar anak dibuka dari tab Perangkat memakai BackAppBar dengan
-/// fallback aman; ketiga Wrap filter memiliki runSpacing agar baris tidak
-/// menempel saat wrap dua baris.
+/// fallback aman. Saringan severity hanya ada di Log koneksi (server-side);
+/// Wrap filter di sana wajib punya runSpacing agar baris tidak menempel.
 void main() {
   late _FakeDeviceRepository repository;
   late SharedPreferences preferences;
@@ -120,25 +120,19 @@ void main() {
     }
   });
 
-  group('Filter severity tidak dempet', () {
-    testWidgets('tab Perangkat: Wrap filter punya runSpacing', (tester) async {
+  group('Saringan severity', () {
+    testWidgets('tab Perangkat tidak menampung saringan severity', (
+      tester,
+    ) async {
       await pumpScreen(tester, const DeviceListScreen());
       expect(tester.takeException(), isNull);
 
-      final wraps = tester
-          .widgetList<Wrap>(find.byType(Wrap))
-          .where(
-            (w) => w.children.any((c) => c is ChoiceChip && c.avatar is Icon),
-          )
-          .toList();
-      expect(wraps, isNotEmpty);
-      for (final wrap in wraps) {
-        expect(
-          wrap.runSpacing,
-          isNotNull,
-          reason: 'Wrap filter severity wajib punya runSpacing',
-        );
-      }
+      // Saringan yang hanya menyaring 50 event yang sudah dimuat pernah
+      // menumpang di kartu ringkasan. Sekarang saringan menyeluruh ada di
+      // Log koneksi; tab Perangkat hanya menampilkan kartu Kejadian terbaru.
+      expect(find.byType(ChoiceChip), findsNothing);
+      expect(find.byType(FilterChip), findsNothing);
+      expect(find.text('Kejadian terakhir'), findsOneWidget);
     });
 
     testWidgets('log koneksi: Wrap filter punya runSpacing', (tester) async {
