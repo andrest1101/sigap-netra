@@ -6,6 +6,7 @@ import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/router/app_router.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/theme/status_colors.dart';
+import 'package:sigap_netra_app/core/widgets/photo_viewer.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
@@ -96,6 +97,23 @@ void main() {
         find.text('Batalkan validasi', skipOffstage: false),
         findsOneWidget,
       );
+    });
+
+    testWidgets('ketuk foto membuka penampil zoom layar penuh', (tester) async {
+      await pumpDetail(tester);
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Image), findsOneWidget);
+      await tester.tap(find.byType(Image));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PhotoViewerScreen), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Tutup foto'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PhotoViewerScreen), findsNothing);
     });
 
     testWidgets('item pending menampilkan pasangan ok/bad', (tester) async {
