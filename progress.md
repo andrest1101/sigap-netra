@@ -1,5 +1,17 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-20 U3 — Zoom foto layar penuh (Validasi + detail Riwayat)
+
+Foto hasil bacaan kini bisa diperiksa lebih dekat tanpa paket pihak ketiga. Penampil baru memakai `InteractiveViewer` bawaan Flutter, jadi tidak ada unduhan tambahan dan bytes tetap berasal dari `thumbnailProvider` yang sudah ada.
+
+- **`PhotoViewerScreen`** (`lib/core/widgets/photo_viewer.dart`): latar `scrim`, foto `BoxFit.contain` dengan Hero dari foto asal, pinch/geser (`minScale` 1, `maxScale` 5), ketuk dua kali beranimasi ke 2,5× di titik ketukan, tombol reset saat diperbesar, tombol tutup 48 dp, dan `SystemUiOverlayStyle.light` selama layar gelap. Petunjuk "Cubit atau ketuk dua kali untuk memperbesar" memudar saat zoom agar tidak menutupi foto.
+- **`PhotoZoomButton`**: area sentuh 48 dp dengan visual lingkaran 36 dp di sudut foto, dipakai di kartu Validasi dan detail Riwayat. Di Validasi, ketuk foto tetap membuka detail (alur lama); tombol zoom membuka penampil langsung tanpa meninggalkan antrean. Di detail, ketuk foto besar atau tombol zoom sama-sama membuka penampil.
+- **Semantik foto Validasi**: parameter `semanticsLabel` yang sebelumnya tidak terpakai kini dipasang pada `Image.memory`; label detail memakai `detection.displayLabel`, bukan teks generik.
+- **l10n**: 4 kunci baru (`photoViewerZoom`, `photoViewerClose`, `photoViewerReset`, `photoViewerHint`).
+- **Test**: +6 — 4 `photo_viewer_test` (render, double-tap + reset, golden ponsel 390×844, tutup kembali), 1 `validation_photo_test` (tombol zoom membuka penampil), 1 `history_detail_test` (ketuk foto membuka penampil). Total **260 lulus**.
+- **Verifikasi**: `dart format .` bersih; `flutter analyze` No issues; `flutter test` 260 lulus. Golden `photo_viewer_light.png` diperiksa manual; golden Validasi tidak berubah karena tombol berada di bawah viewport 800×600.
+- **Catatan**: tanpa paket baru, tanpa perubahan schema/rules/device. Lanjut U2 motion.
+
 ## 2026-10-20 P1 — Rapikan tab Perangkat + hentikan data demo menyesatkan
 
 Poles UI/UX lanjutan sebelum hardware (setelah U1). Dua keluhan nyata pengguna: thumbnail demo "AYAM GORENG" tampak seperti gambar rusak, dan kartu Kejadian/Perintah di tab Perangkat terasa sesak serta tidak berstruktur. Sekaligus menutup saringan severity yang menyesatkan (hanya menyaring 50 event yang sudah dimuat).
