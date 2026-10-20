@@ -346,7 +346,9 @@ class _DetailImage extends ConsumerWidget {
         child: Row(
           children: [
             Icon(
-              Icons.image_not_supported_outlined,
+              detection.type == DetectionType.money
+                  ? Icons.payments_rounded
+                  : Icons.document_scanner_rounded,
               color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: DesignTokens.spaceMd),

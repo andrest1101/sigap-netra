@@ -880,15 +880,20 @@ class _RowThumb extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final isMoney = detection.type == DetectionType.money;
+    final placeholderIcon = isMoney
+        ? Icons.payments_rounded
+        : Icons.document_scanner_rounded;
     final semantics =
         '${detection.displayLabel}, ${RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n)}';
     final id = detection.thumbnailId;
 
     Widget thumb;
     if (id == null || id.isEmpty) {
-      thumb = ThumbnailTile.unavailable(semanticsLabel: semantics);
+      thumb = ThumbnailTile.unavailable(
+        semanticsLabel: semantics,
+        icon: placeholderIcon,
+      );
     } else {
       final async = ref.watch(
         thumbnailProvider(
@@ -897,11 +902,17 @@ class _RowThumb extends ConsumerWidget {
       );
       thumb = async.when(
         loading: () => const ThumbnailTile.loading(),
-        error: (_, _) => ThumbnailTile.unavailable(semanticsLabel: semantics),
+        error: (_, _) => ThumbnailTile.unavailable(
+          semanticsLabel: semantics,
+          icon: placeholderIcon,
+        ),
         data: (thumbnail) {
           final bytes = thumbnail?.imageBytes;
           if (bytes == null || bytes.isEmpty) {
-            return ThumbnailTile.unavailable(semanticsLabel: semantics);
+            return ThumbnailTile.unavailable(
+              semanticsLabel: semantics,
+              icon: placeholderIcon,
+            );
           }
           return ThumbnailTile.image(
             imageBytes: bytes,
@@ -920,23 +931,6 @@ class _RowThumb extends ConsumerWidget {
           bottom: 2,
           child: ExcludeSemantics(child: StatusDot(tone: tone, size: 12)),
         ),
-        // Ikon kategori kecil di sudut kiri atas bila tanpa foto — tanpa
-        // menimpa makna "tanpa gambar" (ikon menggantikan area, bukan
-        // menuduh gambar rusak).
-        if (id == null || id.isEmpty)
-          Positioned(
-            left: 2,
-            top: 2,
-            child: ExcludeSemantics(
-              child: Icon(
-                isMoney
-                    ? Icons.payments_rounded
-                    : Icons.document_scanner_rounded,
-                size: 14,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
       ],
     );
   }
