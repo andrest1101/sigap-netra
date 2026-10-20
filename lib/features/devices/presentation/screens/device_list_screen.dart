@@ -23,6 +23,7 @@ import '../../../commands/presentation/widgets/command_presentation.dart';
 import '../../../events/domain/entities/device_event.dart';
 import '../../../events/presentation/providers/events_providers.dart';
 import '../../../events/presentation/widgets/event_presentation.dart';
+import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_providers.dart';
 import '../widgets/device_connectivity_display.dart';
@@ -49,6 +50,7 @@ class DeviceListScreen extends ConsumerWidget {
         orElse: () => null,
       ),
       actions: [
+        const SimulationBadge(),
         IconButton(
           onPressed: () => ref.invalidate(myDevicesProvider),
           icon: const Icon(Icons.refresh_rounded),

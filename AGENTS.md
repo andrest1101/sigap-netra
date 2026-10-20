@@ -97,7 +97,7 @@ Features (each has the full `domain/data/presentation` skeleton unless noted):
 | `commands`     | `DeviceCommand`, `CommandType`, `CommandStatus`; `WatchCommands`, `WatchCommand`, `SendCommand`                                               | `sync_now` (Beranda), remote control (P1)                                    |
 | `provisioning` | `WifiCredentials`; `buildWifiQrPayload` (pure)                                                                                                | Payload format from the legacy app; password never persisted                 |
 | `sharing`      | `ShareReport`; `buildShareReport`/`buildShareText` (pure), `ShareReportUseCase`                                                               | `share_plus` wrapper in data layer (P1)                                      |
-| `settings`     | `DataSource` (Firebase/Simulasi)                                                                                                              | Local prefs via `sharedPreferencesProvider` (no domain/data slice); developer mode + upload-thumbnails consent; no theme selector — light-only since 2026-10-18 |
+| `settings`     | `DataSource`, `DataSourceSelection`/`SimulationReason`                                                                                        | Local prefs via `sharedPreferencesProvider` (no domain/data slice); developer mode + upload-thumbnails consent; sumber data aktif di-override di `main.dart`; no theme selector — light-only since 2026-10-18 |
 
 Developer mode: provide `fake_*_data_source.dart` implementations in each `data/datasources/` and switch via a Riverpod override — the app must be fully usable with simulated data (no hardware, no Firebase).
 

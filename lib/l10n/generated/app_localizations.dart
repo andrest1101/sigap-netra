@@ -2294,11 +2294,71 @@ abstract class AppLocalizations {
   /// **'Sumber data'**
   String get settingsSourceTitle;
 
+  /// No description provided for @settingsSourceLive.
+  ///
+  /// In id, this message translates to:
+  /// **'Firebase — data tersinkron ke cloud.'**
+  String get settingsSourceLive;
+
+  /// No description provided for @settingsSourceSimulationDeveloperMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Simulasi — mode pengembang aktif.'**
+  String get settingsSourceSimulationDeveloperMode;
+
+  /// No description provided for @settingsSourceSimulationFirebaseUnavailable.
+  ///
+  /// In id, this message translates to:
+  /// **'Simulasi — Firebase belum tersedia pada build ini.'**
+  String get settingsSourceSimulationFirebaseUnavailable;
+
   /// No description provided for @settingsShowTechnicalIds.
   ///
   /// In id, this message translates to:
   /// **'Tampilkan ID teknis'**
   String get settingsShowTechnicalIds;
+
+  /// No description provided for @simulationBadgeLabel.
+  ///
+  /// In id, this message translates to:
+  /// **'SIMULASI'**
+  String get simulationBadgeLabel;
+
+  /// No description provided for @simulationBadgeSemantics.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode simulasi: data demo, bukan perangkat nyata.'**
+  String get simulationBadgeSemantics;
+
+  /// No description provided for @simulationNoticeTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode simulasi aktif'**
+  String get simulationNoticeTitle;
+
+  /// No description provided for @simulationNoticeBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Data di aplikasi ini adalah demo. Tidak ada koneksi ke perangkat atau cloud.'**
+  String get simulationNoticeBody;
+
+  /// No description provided for @simulationLoginHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Masuk dengan email apa pun; akun ini hanya tersimpan di perangkat.'**
+  String get simulationLoginHint;
+
+  /// No description provided for @simulationReasonDeveloperMode.
+  ///
+  /// In id, this message translates to:
+  /// **'Mode pengembang dinyalakan di Pengaturan.'**
+  String get simulationReasonDeveloperMode;
+
+  /// No description provided for @simulationReasonFirebaseUnavailable.
+  ///
+  /// In id, this message translates to:
+  /// **'Firebase belum tersedia pada build ini.'**
+  String get simulationReasonFirebaseUnavailable;
 
   /// No description provided for @settingsRetentionTitle.
   ///

@@ -24,6 +24,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
+import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../../../sharing/domain/entities/share_report.dart';
 import '../../../sharing/presentation/providers/sharing_providers.dart';
 import '../../domain/entities/detection_filter.dart';
@@ -83,6 +84,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       title: l10n.historyTitle,
       subtitle: subtitle,
       actions: [
+        const SimulationBadge(),
         const SettingsGearButton(),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),

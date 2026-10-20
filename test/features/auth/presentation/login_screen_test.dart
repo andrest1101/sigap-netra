@@ -6,6 +6,8 @@ import 'package:sigap_netra_app/features/auth/data/datasources/fake_auth_data_so
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:sigap_netra_app/features/auth/presentation/widgets/sign_up_sheet.dart';
+import 'package:sigap_netra_app/features/settings/domain/entities/data_source.dart';
+import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 import '../../../helpers/precache_logo.dart';
@@ -17,7 +19,10 @@ void main() {
   setUp(() => dataSource = FakeAuthDataSource());
   tearDown(() => dataSource.dispose());
 
-  Future<void> pumpLogin(WidgetTester tester) async {
+  Future<void> pumpLogin(
+    WidgetTester tester, {
+    DataSourceSelection selection = const DataSourceSelection.firebase(),
+  }) async {
     // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
     await precacheLogoMark(tester);
     await tester.pumpWidget(
@@ -26,6 +31,7 @@ void main() {
           authRepositoryProvider.overrideWithValue(
             FakeAuthRepositoryImpl(dataSource),
           ),
+          dataSourceSelectionProvider.overrideWithValue(selection),
         ],
         child: MaterialApp(
           locale: const Locale('id'),
@@ -75,7 +81,32 @@ void main() {
       });
       expect(logo, findsOneWidget);
       expect(find.byIcon(Icons.g_mobiledata), findsNothing);
+      // Data live: tidak ada blok mode simulasi.
+      expect(find.text('Mode simulasi aktif'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('mode simulasi dijelaskan sebelum pengguna masuk', (
+      tester,
+    ) async {
+      await pumpLogin(
+        tester,
+        selection: const DataSourceSelection.simulation(
+          SimulationReason.developerMode,
+        ),
+      );
+
+      expect(find.text('Mode simulasi aktif'), findsOneWidget);
+      expect(
+        find.text(
+          'Masuk dengan email apa pun; akun ini hanya tersimpan di perangkat.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Mode pengembang dinyalakan di Pengaturan.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('email salah format menampilkan error validasi', (

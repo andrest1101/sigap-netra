@@ -1225,7 +1225,44 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsSourceTitle => 'Sumber data';
 
   @override
+  String get settingsSourceLive => 'Firebase — data tersinkron ke cloud.';
+
+  @override
+  String get settingsSourceSimulationDeveloperMode =>
+      'Simulasi — mode pengembang aktif.';
+
+  @override
+  String get settingsSourceSimulationFirebaseUnavailable =>
+      'Simulasi — Firebase belum tersedia pada build ini.';
+
+  @override
   String get settingsShowTechnicalIds => 'Tampilkan ID teknis';
+
+  @override
+  String get simulationBadgeLabel => 'SIMULASI';
+
+  @override
+  String get simulationBadgeSemantics =>
+      'Mode simulasi: data demo, bukan perangkat nyata.';
+
+  @override
+  String get simulationNoticeTitle => 'Mode simulasi aktif';
+
+  @override
+  String get simulationNoticeBody =>
+      'Data di aplikasi ini adalah demo. Tidak ada koneksi ke perangkat atau cloud.';
+
+  @override
+  String get simulationLoginHint =>
+      'Masuk dengan email apa pun; akun ini hanya tersimpan di perangkat.';
+
+  @override
+  String get simulationReasonDeveloperMode =>
+      'Mode pengembang dinyalakan di Pengaturan.';
+
+  @override
+  String get simulationReasonFirebaseUnavailable =>
+      'Firebase belum tersedia pada build ini.';
 
   @override
   String get settingsRetentionTitle => 'Retensi data';

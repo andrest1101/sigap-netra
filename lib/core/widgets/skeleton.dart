@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
+import '../utils/motion_policy.dart';
 
 /// Placeholder abu untuk konten yang sedang dimuat.
 ///
@@ -44,7 +45,28 @@ class _SkeletonState extends State<Skeleton>
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: DesignTokens.animationSlow,
-  )..repeat(reverse: true);
+  );
+  bool? _reduceMotion;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.value = 0.5;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = MotionPolicy.reduceAnimations(context);
+    if (reduceMotion == _reduceMotion) return;
+    _reduceMotion = reduceMotion;
+    if (reduceMotion) {
+      _controller.stop();
+      _controller.value = 0.5;
+    } else {
+      _controller.repeat(reverse: true);
+    }
+  }
 
   @override
   void dispose() {
@@ -55,6 +77,23 @@ class _SkeletonState extends State<Skeleton>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    if (_reduceMotion == true) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: Color.lerp(
+            colorScheme.surfaceContainerHighest,
+            colorScheme.surfaceContainerLow,
+            0.5,
+          ),
+          borderRadius:
+              widget.borderRadius ??
+              const BorderRadius.all(Radius.circular(DesignTokens.radiusBadge)),
+        ),
+      );
+    }
 
     return AnimatedBuilder(
       animation: _controller,

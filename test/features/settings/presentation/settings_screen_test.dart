@@ -5,12 +5,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/settings/domain/entities/data_source.dart';
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
 void main() {
-  Future<SharedPreferences> pumpSettings(WidgetTester tester) async {
+  Future<SharedPreferences> pumpSettings(
+    WidgetTester tester, {
+    DataSourceSelection selection = const DataSourceSelection.firebase(),
+  }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
 
@@ -18,6 +22,7 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(preferences),
+          dataSourceSelectionProvider.overrideWithValue(selection),
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
@@ -108,6 +113,34 @@ void main() {
 
       expect(switchTileOf(tester, 'Mode pengembang').value, isTrue);
       expect(preferences.getBool('developer_mode'), isTrue);
+    });
+
+    testWidgets('sumber data menampilkan kenyataan, bukan niat toggle', (
+      tester,
+    ) async {
+      await pumpSettings(
+        tester,
+        selection: const DataSourceSelection.simulation(
+          SimulationReason.firebaseUnavailable,
+        ),
+      );
+
+      // Toggle memang mati (pengguna tidak memilih simulasi) …
+      expect(switchTileOf(tester, 'Mode pengembang').value, isFalse);
+      // … tetapi aplikasi tetap harus jujur bahwa datanya simulasi.
+      expect(
+        find.text('Simulasi — Firebase belum tersedia pada build ini.'),
+        findsOneWidget,
+      );
+      expect(find.text('Firebase — data tersinkron ke cloud.'), findsNothing);
+    });
+
+    testWidgets('data live menyebut Firebase sebagai sumber aktif', (
+      tester,
+    ) async {
+      await pumpSettings(tester);
+
+      expect(find.text('Firebase — data tersinkron ke cloud.'), findsOneWidget);
     });
 
     testWidgets('versi tampil sinkron dengan konstanta bersama', (

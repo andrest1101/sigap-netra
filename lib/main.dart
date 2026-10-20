@@ -70,7 +70,8 @@ Future<void> main() async {
   }
 
   final preferences = await SharedPreferences.getInstance();
-  final dataSource = resolveDataSource(preferences, firebaseReady);
+  final selection = resolveDataSource(preferences, firebaseReady);
+  final dataSource = selection.dataSource;
   // Satu cache nama perangkat untuk seluruh graf: dipakai repository
   // Firestore saat menyusun nama tampilan (dokumen deteksi tidak menyimpan
   // nama perangkat), dan di-refresh `app.dart` setiap daftar perangkat
@@ -82,6 +83,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(preferences),
+        dataSourceSelectionProvider.overrideWithValue(selection),
         authRepositoryProvider.overrideWithValue(
           buildAuthRepository(dataSource),
         ),
@@ -103,18 +105,30 @@ Future<void> main() async {
 
 /// Menentukan sumber data dari preferensi tersimpan dan kesiapan Firebase.
 ///
-/// Aturan: Firebase dipakai hanya bila pengguna mematikan mode simulasi
-/// (toggle Pengaturan) DAN inisialisasi Firebase berhasil. Selain itu selalu
-/// simulasi — aplikasi tidak pernah macet di splash karena config hilang.
-DataSource resolveDataSource(
+/// Aturan: Firebase dipakai bila pengguna **tidak** menyalakan mode pengembang
+/// dan inisialisasi Firebase berhasil. Selain itu simulasi — aplikasi tidak
+/// pernah macet di splash karena config hilang.
+///
+/// Default `developer_mode` adalah `false`, sejalan dengan toggle di
+/// Pengaturan. Sebelumnya `main` memakai `true` sementara controller memakai
+/// `false`, sehingga instalasi baru menampilkan data demo sambil Pengaturan
+/// menulis "Firebase". Sekarang keduanya sepakat; bila Firebase memang belum
+/// siap, hasilnya tetap simulasi, tetapi dengan alasan yang jujur.
+DataSourceSelection resolveDataSource(
   SharedPreferences preferences,
   bool firebaseReady,
 ) {
-  final developerMode = preferences.getBool('developer_mode') ?? true;
+  final developerMode = preferences.getBool('developer_mode') ?? false;
 
-  if (developerMode) return DataSource.simulation;
-  if (!firebaseReady) return DataSource.simulation;
-  return DataSource.firebase;
+  if (developerMode) {
+    return const DataSourceSelection.simulation(SimulationReason.developerMode);
+  }
+  if (!firebaseReady) {
+    return const DataSourceSelection.simulation(
+      SimulationReason.firebaseUnavailable,
+    );
+  }
+  return const DataSourceSelection.firebase();
 }
 
 /// Memilih implementasi autentikasi sesuai sumber data.
