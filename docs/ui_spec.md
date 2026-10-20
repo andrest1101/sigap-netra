@@ -168,6 +168,8 @@ Stepper 3 langkah:
 
 Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan Google, bahasa ramah, error jelas.
 
+**Cangkang native:** splash OS berlatar `#F6F6FB` + cakram logo (senada splash dalam-app, transisi tanpa kedip); ikon launcher adaptive (Android) & penuh (iOS/legacy) dari mark; label perangkat **SIGAP-NETRA**; status bar ikon gelap + latar transparan dipasang di akar `lib/app.dart`. Aset di `assets/branding/` (dihasilkan `tool/generate_branding_icons.ps1`), konfigurasi tool di `pubspec.yaml`.
+
 ## 6. Inventaris Widget Bersama (`lib/core/widgets/`)
 
 `LargeTitleScaffold` · `LensRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `DeviceHeroCard` · `SectionHeader` · `ThumbnailTile` · `DayGroupedList` · `SwipeStack` · `UndoSnackbar` (helper) · `ConfirmSheet` · `ConsentSheet` · `EmptyState` · `ErrorState` · `SkeletonBox` · `OfflineBanner`.
