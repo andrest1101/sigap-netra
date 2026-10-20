@@ -208,10 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               kGoogleLogoAsset,
                               width: 20,
                               height: 20,
-                              // Dekode kecil: sumber 3840px tidak perlu
-                              // dimuat penuh untuk ikon 20dp.
-                              cacheWidth: 80,
-                              cacheHeight: 80,
+                              // Aset sudah kecil (96 px); tanpa batas dekode.
                               semanticLabel: l10n.loginSignInWithGoogle,
                             ),
                       label: Text(
