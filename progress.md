@@ -1,5 +1,18 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-20 P1 — Rapikan tab Perangkat + hentikan data demo menyesatkan
+
+Poles UI/UX lanjutan sebelum hardware (setelah U1). Dua keluhan nyata pengguna: thumbnail demo "AYAM GORENG" tampak seperti gambar rusak, dan kartu Kejadian/Perintah di tab Perangkat terasa sesak serta tidak berstruktur. Sekaligus menutup saringan severity yang menyesatkan (hanya menyaring 50 event yang sudah dimuat).
+
+- **Demo thumbnail jujur.** `det-text-menu` tidak lagi membawa `thumbnailId`; generator PNG prosedural (`buildDemoThumbnailBytes` + encoder zlib/CRC) dihapus. `FakeMediaDataSource` hanya menyajikan dua foto uang asli (`demo_money_100k.jpg`, `demo_money_50k.jpg`); ID tanpa aset mengembalikan `null`, bukan gambar karangan. Test media diperbarui (evict/cache memakai ID uang; item teks tanpa aset diuji `null`).
+- **Placeholder tanpa gambar = ikon kategori.** `ThumbnailTile.unavailable` menerima `icon`; baris Riwayat memakai ikon uang/teks, bukan `image_not_supported_outlined`. Ikon kategori kecil di sudut thumbnail dihapus (dulu duplikat). Panel tanpa gambar di detail Riwayat juga memakai ikon kategori. `broken_image_outlined` tetap dipakai hanya saat decode gambar benar-benar gagal.
+- **Tab Perangkat: dua kartu terpisah.** `Kejadian terakhir` (maks 4 event) dan `Perintah terakhir` (maks 3 perintah) kini masing-masing berupa kartu tonal `surfaceContainerLow` + hairline, dengan anatomi baris konsisten: leading ikon 40 dp berlatar tonal, judul SemiBold, meta `waktu · kategori`, chip status, divider inset 16, padding 12/16. Loading/error/empty ditangani di dalam kartu.
+- **Aksi "Lihat semua" jelas.** Header Kejadian → Log koneksi; header Perintah → layar Kontrol jarak jauh. Aksi "Lihat semua" di kartu Kontrol dihapus karena membuka daftar perintah, bukan kontrol.
+- **Saringan severity pindah tempat.** Filter severity dihapus dari tab Perangkat (dulu hanya menyaring 50 event yang sudah dimuat); satu-satunya saringan menyeluruh tetap di Log koneksi (query server + paginasi). Test navigasi mengunci perilaku baru ini.
+- **Kode event manusiawi.** Helper murni `eventCategoryLabel` memetakan prefiks (`wlan`/`wifi` → Jaringan, `command` → Perintah, `boot`/`config`/`storage`/`auth` → Sistem, `camera`/`lidar`/`sensor` → Pembacaan, fallback → Kejadian) + 5 kunci l10n. Kode mentah hanya tampil di Log koneksi. 2 unit test baru.
+- **Verifikasi.** `dart format .` bersih (186 file, 0 berubah); `flutter analyze` No issues; `flutter test` **254 lulus** (dari 253; −1 test generator media, +2 test kategori). Golden `device_tab_light.png` & `history_tab_light.png` diregenerasi dan diperiksa manual (kartu terpisah, ikon kategori, tanpa gambar bergaris).
+- **Catatan.** Tanpa paket baru, tanpa perubahan schema/rules/device. Urutan poles lanjut: U3 zoom foto → U2 motion → U4 strip simulasi → U5 audit per layar → U6 a11y.
+
 ## 2026-10-19 U1 — Cangkang native & brand: ikon launcher, splash OS, label perangkat, status bar
 
 Batch pertama poles UI/UX sebelum menyentuh hardware (urutan rencana: U1 cangkang native → U3 zoom foto → U2 motion → U4 strip simulasi → U5 audit per layar → U6 a11y). Tujuan: aplikasi berhenti tampil sebagai "Flutter default" sejak ikon, splash, dan labelnya — bukan sekadar layar dalam.
