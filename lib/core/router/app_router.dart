@@ -19,6 +19,8 @@ import '../../features/validation/presentation/providers/validation_providers.da
 import '../../features/validation/presentation/screens/validation_screen.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_tokens.dart';
+import '../utils/motion_policy.dart';
+import '../widgets/fade_through_branch_container.dart';
 import '../widgets/lens_ring.dart';
 import '../widgets/logo_mark.dart';
 
@@ -248,6 +250,10 @@ class AppBottomNavShell extends ConsumerWidget {
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
+        animationDuration: MotionPolicy.duration(
+          context,
+          DesignTokens.animationMedium,
+        ),
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) => navigationShell.goBranch(
           index,
@@ -304,9 +310,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             AppBottomNavShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: (context, navigationShell, children) =>
+            FadeThroughBranchContainer(
+              currentIndex: navigationShell.currentIndex,
+              children: children,
+            ),
         branches: [
           StatefulShellBranch(
             routes: [

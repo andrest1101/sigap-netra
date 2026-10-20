@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_tokens.dart';
+import '../utils/motion_policy.dart';
 
 /// Penampil foto layar penuh dengan zoom/pan bawaan Flutter.
 ///
@@ -28,10 +29,17 @@ class PhotoViewerScreen extends StatefulWidget {
     required Object heroTag,
     required String semanticsLabel,
   }) async {
+    final transitionDuration = MotionPolicy.duration(
+      context,
+      DesignTokens.animationMedium,
+    );
     await Navigator.of(context).push<void>(
       PageRouteBuilder<void>(
-        transitionDuration: DesignTokens.animationMedium,
-        reverseTransitionDuration: DesignTokens.animationFast,
+        transitionDuration: transitionDuration,
+        reverseTransitionDuration: MotionPolicy.duration(
+          context,
+          DesignTokens.animationFast,
+        ),
         pageBuilder: (context, animation, secondaryAnimation) =>
             PhotoViewerScreen(
               imageBytes: imageBytes,
@@ -76,6 +84,15 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
     _transformation.addListener(_handleTransform);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _animationController.duration = MotionPolicy.duration(
+      context,
+      DesignTokens.animationMedium,
+    );
+  }
+
   void _tickAnimation() {
     final animation = _matrixAnimation;
     if (animation != null) _transformation.value = animation.value;
@@ -88,6 +105,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   }
 
   void _animateTo(Matrix4 target) {
+    if (MotionPolicy.reduceAnimations(context)) {
+      _animationController.stop();
+      _transformation.value = target;
+      return;
+    }
     _animationController.stop();
     _matrixAnimation = Matrix4Tween(begin: _transformation.value, end: target)
         .animate(
@@ -133,6 +155,10 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final motionDuration = MotionPolicy.duration(
+      context,
+      DesignTokens.animationFast,
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Latar penampil gelap: ikon status bar harus terang.
@@ -206,11 +232,11 @@ class _PhotoViewerScreenState extends State<PhotoViewerScreen>
                   child: Center(
                     child: AnimatedSlide(
                       offset: _isZoomed ? const Offset(0, 0.25) : Offset.zero,
-                      duration: DesignTokens.animationFast,
-                      curve: DesignTokens.motionCurve,
+                      duration: motionDuration,
+                      curve: MotionPolicy.curve(context),
                       child: AnimatedOpacity(
                         opacity: _isZoomed ? 0 : 1,
-                        duration: DesignTokens.animationFast,
+                        duration: motionDuration,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: DesignTokens.spaceMd,

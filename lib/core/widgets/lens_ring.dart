@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
 import '../theme/status_colors.dart';
+import '../utils/motion_policy.dart';
 
 /// Pengukur melingkar khas SIGAP-NETRA — cincin lensa kamera.
 ///
@@ -148,6 +149,7 @@ class _LensRingState extends State<LensRing>
   // `createTicker` melempar "deactivated widget's ancestor is unsafe".
   // Ini bug laten yang juga bisa crash di produksi.
   late final AnimationController _controller;
+  bool? _reduceMotion;
 
   @override
   void initState() {
@@ -156,18 +158,27 @@ class _LensRingState extends State<LensRing>
       vsync: this,
       duration: const Duration(milliseconds: 1600),
     );
-    if (widget.mode == LensRingMode.focusing) {
-      _controller.repeat(reverse: true);
-    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MotionPolicy.reduceAnimations(context);
+    _syncAnimation();
   }
 
   @override
   void didUpdateWidget(LensRing oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.mode == LensRingMode.focusing && !_controller.isAnimating) {
+    _syncAnimation();
+  }
+
+  void _syncAnimation() {
+    final shouldAnimate =
+        widget.mode == LensRingMode.focusing && _reduceMotion != true;
+    if (shouldAnimate && !_controller.isAnimating) {
       _controller.repeat(reverse: true);
-    } else if (widget.mode != LensRingMode.focusing &&
-        _controller.isAnimating) {
+    } else if (!shouldAnimate && _controller.isAnimating) {
       _controller.stop();
     }
   }
@@ -196,7 +207,7 @@ class _LensRingState extends State<LensRing>
           };
     final progress =
         widget.progressColor ?? adaptiveColor ?? colorScheme.primary;
-    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final reduceMotion = _reduceMotion ?? false;
     final isUnavailable =
         widget.value == null && widget.mode == LensRingMode.value;
 
