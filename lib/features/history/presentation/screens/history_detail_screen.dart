@@ -13,6 +13,7 @@ import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
+import '../../../../core/widgets/photo_viewer.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -407,28 +408,54 @@ class _DetailImage extends ConsumerWidget {
       data: (thumbnail) {
         final bytes = thumbnail?.imageBytes;
         if (bytes == null || bytes.isEmpty) return panel();
-        return Hero(
-          tag: 'detection-${detection.id}',
-          child: AspectRatio(
-            aspectRatio: 4 / 3,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
-              child: Container(
-                color: colorScheme.surfaceContainerHigh,
-                child: Image.memory(
-                  bytes,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  semanticLabel: l10n.historyRecognitionResult,
-                  errorBuilder: (context, _, _) => Icon(
-                    Icons.broken_image_outlined,
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant,
-                    semanticLabel: l10n.historyRecognitionResult,
+        final heroTag = 'detection-${detection.id}';
+        return AspectRatio(
+          aspectRatio: 4 / 3,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+                child: Hero(
+                  tag: heroTag,
+                  child: Material(
+                    color: colorScheme.surfaceContainerHigh,
+                    child: InkWell(
+                      onTap: () => PhotoViewerScreen.open(
+                        context,
+                        imageBytes: bytes,
+                        heroTag: heroTag,
+                        semanticsLabel: detection.displayLabel,
+                      ),
+                      child: Image.memory(
+                        bytes,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        semanticLabel: detection.displayLabel,
+                        errorBuilder: (context, _, _) => Icon(
+                          Icons.broken_image_outlined,
+                          size: 48,
+                          color: colorScheme.onSurfaceVariant,
+                          semanticLabel: detection.displayLabel,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              Positioned(
+                right: DesignTokens.spaceSm,
+                bottom: DesignTokens.spaceSm,
+                child: PhotoZoomButton(
+                  onPressed: () => PhotoViewerScreen.open(
+                    context,
+                    imageBytes: bytes,
+                    heroTag: heroTag,
+                    semanticsLabel: detection.displayLabel,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

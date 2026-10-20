@@ -902,6 +902,18 @@ class AppLocalizationsId extends AppLocalizations {
   String get validationNoImageAction => 'Buka pengaturan privasi';
 
   @override
+  String get photoViewerZoom => 'Perbesar foto';
+
+  @override
+  String get photoViewerClose => 'Tutup foto';
+
+  @override
+  String get photoViewerReset => 'Kembalikan ukuran';
+
+  @override
+  String get photoViewerHint => 'Cubit atau ketuk dua kali untuk memperbesar';
+
+  @override
   String get validationAllDoneTitle => 'Semua pembacaan sudah diperiksa';
 
   @override

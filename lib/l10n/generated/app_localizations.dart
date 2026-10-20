@@ -1750,6 +1750,30 @@ abstract class AppLocalizations {
   /// **'Buka pengaturan privasi'**
   String get validationNoImageAction;
 
+  /// No description provided for @photoViewerZoom.
+  ///
+  /// In id, this message translates to:
+  /// **'Perbesar foto'**
+  String get photoViewerZoom;
+
+  /// No description provided for @photoViewerClose.
+  ///
+  /// In id, this message translates to:
+  /// **'Tutup foto'**
+  String get photoViewerClose;
+
+  /// No description provided for @photoViewerReset.
+  ///
+  /// In id, this message translates to:
+  /// **'Kembalikan ukuran'**
+  String get photoViewerReset;
+
+  /// No description provided for @photoViewerHint.
+  ///
+  /// In id, this message translates to:
+  /// **'Cubit atau ketuk dua kali untuk memperbesar'**
+  String get photoViewerHint;
+
   /// No description provided for @validationAllDoneTitle.
   ///
   /// In id, this message translates to:
