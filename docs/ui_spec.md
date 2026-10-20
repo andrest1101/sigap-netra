@@ -60,7 +60,22 @@ Satu keluarga: **Plus Jakarta Sans** (di-_bundle_ sebagai asset di `assets/fonts
 
 ### Gerak
 
-Durasi 200–300 ms, `Curves.easeOutCubic`. Perpindahan tab: _fade-through_. Thumbnail → detail: `Hero`. Haptic ringan saat Cocok/Tidak cocok; haptic sedang saat konfirmasi reset. Hormati "kurangi animasi" sistem.
+Durasi 200–300 ms, `Curves.easeOutCubic`. Perpindahan tab: _fade-through_ 250 ms; hanya cabang asal dan tujuan tampil saat transisi, sementara navigator tab lain tetap tersimpan. Navigasi utama tetap langsung bila sistem meminta kurangi animasi. Skeleton berdenyut dan Lens Ring fokus juga menjadi statis; zoom dan petunjuk foto tetap berfungsi tanpa tween ketika gerak dikurangi. Thumbnail → detail: `Hero`. Haptic ringan saat Cocok/Tidak cocok; haptic sedang saat konfirmasi reset. Hormati "kurangi animasi" sistem.
+
+### Mode data (kejujuran simulasi)
+
+Data simulasi **tidak boleh** bisa tertukar dengan perangkat nyata. Sumber kebenaran bukan toggle di Pengaturan, melainkan hasil resolusi sekali di `main.dart` (`resolveDataSource`) yang dibagikan lewat `dataSourceSelectionProvider`:
+
+| Kondisi                              | Sumber aktif | Alasan yang ditampilkan            |
+| ------------------------------------ | ------------ | ---------------------------------- |
+| Mode pengembang mati, Firebase siap  | Firebase     | —                                  |
+| Mode pengembang mati, Firebase gagal | Simulasi     | "Firebase belum tersedia…"         |
+| Mode pengembang aktif                | Simulasi     | "Mode pengembang dinyalakan…"      |
+
+- **Pil `SIMULASI`** (bentuk stadium, tone `warn`, ikon `science_rounded`, huruf kecil tebal ber-tracking) tampil di deret aksi app bar **keempat tab**, sebelum gear Pengaturan. Saat data live pil berukuran nol sehingga app bar dan golden test tidak bergeser. Satu label semantik utuh: "Mode simulasi: data demo, bukan perangkat nyata."
+- **Layar masuk** menampilkan blok keterangan yang sama sebelum form: data demo, tidak ada koneksi cloud, akun apa pun hanya tersimpan di perangkat, plus alasan aktifnya.
+- **Pengaturan → Lanjutan → Sumber data** membaca hasil resolusi nyata (bukan niat toggle) dan menyebut alasannya. Ini yang membuat build tanpa Firebase tidak lagi menulis "Firebase" saat data yang tampil sebenarnya simulasi.
+- Penanda **tidak** mengubah query, skema, atau izin: ia hanya menyatakan kenyataan. Jangan menambahkan tombol tutup permanen pada penanda ini.
 
 ## 3. Arsitektur Informasi
 
@@ -165,12 +180,12 @@ Stepper 3 langkah:
 
 - **Tampilan:** tidak ada pemilih tema — aplikasi terang-saja (keputusan produk 2026-10-18).
 - **Privasi & data:** status unggah gambar (ubah/cabut), catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4), hapus semua data perangkat (P1).
-- **Lanjutan:** **Mode pengembang** → sumber data (Firebase / Simulasi), tampilkan IP/ID/versi. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
+- **Lanjutan:** **Mode pengembang** → sumber data (Firebase / Simulasi), tampilkan IP/ID/versi. Baris **Sumber data** selalu melaporkan sumber yang benar-benar aktif beserta alasannya (lihat §2 "Mode data"); toggle hanya menyatakan niat dan baru berlaku setelah mulai ulang. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
 - **Akun:** email, keluar. **Tentang:** versi aplikasi.
 
 ### 5.7 Splash & Login
 
-Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan Google, bahasa ramah, error jelas.
+Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan Google, bahasa ramah, error jelas. Saat aplikasi memakai simulasi, blok **Mode simulasi aktif** tampil di bawah hero — sebelum pengguna memasukkan kredensial — dengan alasan dan catatan bahwa akun apa pun hanya tersimpan di perangkat.
 
 **Cangkang native:** splash OS berlatar `#F6F6FB` + cakram logo (senada splash dalam-app, transisi tanpa kedip); ikon launcher adaptive (Android) & penuh (iOS/legacy) dari mark; label perangkat **SIGAP-NETRA**; status bar ikon gelap + latar transparan dipasang di akar `lib/app.dart`. Aset di `assets/branding/` (dihasilkan `tool/generate_branding_icons.ps1`), konfigurasi tool di `pubspec.yaml`.
 

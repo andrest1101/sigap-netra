@@ -1,5 +1,27 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-20 U4 — Sumber data jujur + penanda mode simulasi
+
+Batch ini menutup kontradiksi yang bisa menyesatkan: `main.dart` memakai `developer_mode ?? true` sementara toggle Pengaturan memakai `?? false`, sehingga instalasi baru menampilkan data demo sambil Pengaturan menulis "Firebase". Sekarang sumber data adalah **hasil resolusi**, bukan niat toggle, dan UI menandainya secara permanen.
+
+- **Satu kebenaran sumber data.** `DataSourceSelection` + `SimulationReason` (`developerMode` / `firebaseUnavailable`) di domain settings. `resolveDataSource` mengembalikan selection lengkap dengan alasan; default `developer_mode` kini `false` di `main` dan controller. Firebase hanya dipakai bila toggle mati **dan** init berhasil; kegagalan tetap jatuh ke simulasi, tetapi dengan alasan yang bisa dibaca pengguna.
+- **Provider app-wide.** `dataSourceSelectionProvider` di-override sekali di `main.dart`, lalu dibaca UI. Default `firebase` hanya untuk widget test/preview; build produksi selalu meng-override. UI tidak pernah menyimpulkan mode dari preferensi.
+- **Pil `SIMULASI`.** `SimulationBadge` tampil di deret aksi app bar **Beranda, Validasi, Riwayat, Perangkat** (sebelum gear): stadium tone `warn`, ikon `science_rounded`, huruf kecil tebal ber-tracking, satu label semantik utuh. Saat data live ukurannya nol, jadi app bar dan golden tidak bergeser. Test 360 dp memastikan pil + gear + menu Riwayat tetap muat.
+- **Layar masuk jujur.** `SimulationNotice` di bawah hero menjelaskan data demo, tidak ada koneksi cloud, akun apa pun hanya tersimpan di perangkat, plus alasan aktifnya — sebelum pengguna memasukkan kredensial.
+- **Pengaturan tidak lagi berbohong.** Baris **Sumber data** membaca `dataSourceSelectionProvider` dan menyebut alasannya ("Simulasi — mode pengembang aktif." / "Simulasi — Firebase belum tersedia pada build ini." / "Firebase — data tersinkron ke cloud."), bukan menyimpulkan dari nilai toggle.
+- **Test.** +15 (dari 262): 6 aturan `resolveDataSource` (termasuk prioritas mode pengembang), 4 `simulation_badge_test` (live nol ukuran, dua alasan, semantik), 2 sumber data Pengaturan, 1 notice login, 6 penanda di tab + batas 360 dp. Golden tab/layar masuk **tidak berubah** karena default test adalah data live.
+- **Verifikasi.** `dart format .` bersih (193 file, 0 berubah); `flutter analyze` No issues; `flutter test` **277 lulus**.
+- **Catatan.** Tanpa paket baru, tanpa perubahan schema/rules/device. **Ditunda:** kesegaran data `isFromCache` (butuh threading metadata lewat data layer; `OfflineBanner` masih kode mati) dan temuan U5 bahwa `PhotoViewerScreen` dibuka lewat branch navigator sehingga bottom nav tetap terlihat di layar "penuh" — jangan dipindah ke root tanpa menguji ulang Hero. Berikutnya: audit U5 pada 360–390 dp + text scale 1,3×.
+
+## 2026-10-20 U2 — Motion terarah dan hormati preferensi sistem
+
+- **Fade-through tab yang menjaga state.** `FadeThroughBranchContainer` menganimasikan keluar/masuk hanya cabang navigator lama dan baru (250 ms), menjaga stack tiap tab, dan menonaktifkan input, ticker, serta semantik untuk cabang tak aktif. Saat animasi berkurang, pergantian langsung tanpa fade.
+- **Kebijakan gerak terpusat.** `MotionPolicy` membaca `MediaQuery.disableAnimations`; `NavigationBar` memakai durasi sesuai preferensi sistem. Lens Ring fokus dan skeleton shimmer berhenti/menjadi statis ketika diminta, lalu pulih bila preferensi berubah.
+- **Penampil foto.** Transisi layar, zoom programatik, dan petunjuk zoom memakai durasi/kurva token; zoom langsung bila gerak dikurangi. Interaksi pinch/pan dan hasil zoom tetap sama.
+- **Test.** Ditambahkan test transisi cabang (incoming/outgoing) dan reduced motion; seluruh test aplikasi lulus.
+- **Verifikasi.** `dart format` bersih; `flutter analyze` No issues; `flutter test` **262 lulus**.
+- **Catatan.** Tanpa paket baru, perubahan schema/rules/device, maupun perubahan fungsi produk. Urutan poles selanjutnya: U4 strip simulasi → U5 audit 360–390 dp → U6 aksesibilitas.
+
 ## 2026-10-20 U3 — Zoom foto layar penuh (Validasi + detail Riwayat)
 
 Foto hasil bacaan kini bisa diperiksa lebih dekat tanpa paket pihak ketiga. Penampil baru memakai `InteractiveViewer` bawaan Flutter, jadi tidak ada unduhan tambahan dan bytes tetap berasal dari `thumbnailProvider` yang sudah ada.
