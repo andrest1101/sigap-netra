@@ -23,6 +23,7 @@ import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
 import '../../monitoring/domain/entities/detection.dart';
 import '../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../../settings/presentation/widgets/simulation_badge.dart';
 import '../../validation/presentation/providers/validation_providers.dart';
 
 /// Layar Beranda — identitas visual v3.
@@ -45,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
         data: (list) => list.isEmpty ? null : list.first.name,
         orElse: () => null,
       ),
-      actions: const [SettingsGearButton()],
+      actions: const [SimulationBadge(), SettingsGearButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(

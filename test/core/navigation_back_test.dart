@@ -18,6 +18,7 @@ import 'package:sigap_netra_app/features/provisioning/presentation/screens/wifi_
 import 'package:sigap_netra_app/core/widgets/settings_gear_button.dart';
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
+import 'package:sigap_netra_app/features/settings/domain/entities/data_source.dart';
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
@@ -70,7 +71,11 @@ void main() {
 
   final user = const AppUser(uid: 'user-1', email: 'user@example.com');
 
-  Future<void> pumpScreen(WidgetTester tester, Widget screen) async {
+  Future<void> pumpScreen(
+    WidgetTester tester,
+    Widget screen, {
+    DataSourceSelection selection = const DataSourceSelection.firebase(),
+  }) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
       ProviderScope(
@@ -78,6 +83,7 @@ void main() {
           deviceRepositoryProvider.overrideWithValue(repository),
           currentUserProvider.overrideWithValue(user),
           sharedPreferencesProvider.overrideWithValue(preferences),
+          dataSourceSelectionProvider.overrideWithValue(selection),
           ...graph.overrides,
         ],
         child: MaterialApp(
@@ -182,6 +188,53 @@ void main() {
       expect(find.byType(BackButton), findsOneWidget);
       // Email tersamar tampil di header akun.
       expect(find.textContaining('***'), findsOneWidget);
+    });
+  });
+
+  group('Penanda mode simulasi', () {
+    for (final entry in <(String, Widget)>[
+      ('Beranda', const HomeScreen()),
+      ('Validasi', const ValidationScreen()),
+      ('Riwayat', const HistoryScreen()),
+      ('Perangkat', const DeviceListScreen()),
+    ]) {
+      testWidgets('tab ${entry.$1} menampilkan pil SIMULASI', (tester) async {
+        await pumpScreen(
+          tester,
+          entry.$2,
+          selection: const DataSourceSelection.simulation(
+            SimulationReason.firebaseUnavailable,
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.text('SIMULASI'), findsOneWidget);
+      });
+    }
+
+    testWidgets('data live tidak menampilkan pil SIMULASI', (tester) async {
+      await pumpScreen(tester, const HomeScreen());
+      expect(find.text('SIMULASI'), findsNothing);
+    });
+
+    testWidgets('pil muat di 360 dp bersama gear + menu Riwayat', (
+      tester,
+    ) async {
+      // Riwayat adalah app bar terpadat (pil + gear + menu). 360 dp adalah
+      // lebar ponsel terkecil yang didukung; overflow akan menjadi exception.
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpScreen(
+        tester,
+        const HistoryScreen(),
+        selection: const DataSourceSelection.simulation(
+          SimulationReason.developerMode,
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('SIMULASI'), findsOneWidget);
     });
   });
 

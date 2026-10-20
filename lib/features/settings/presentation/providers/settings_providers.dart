@@ -15,6 +15,21 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
   ),
 );
 
+/// Sumber data yang **benar-benar aktif** di graf aplikasi ini.
+///
+/// Nilainya ditetapkan sekali di `main.dart` lewat `resolveDataSource`, lalu
+/// dipakai UI untuk menandai mode simulasi. UI sengaja tidak membaca preferensi
+/// `developer_mode` sendiri: preferensi hanya niat pengguna, sedangkan nilai
+/// ini adalah kenyataan (Firebase bisa gagal init dan aplikasi jatuh ke
+/// simulasi).
+///
+/// Default `firebase` dipakai agar widget test dan preview yang tidak peduli
+/// mode data tidak perlu meng-override apa pun. Build produksi selalu
+/// meng-override nilai ini.
+final dataSourceSelectionProvider = Provider<DataSourceSelection>(
+  (ref) => const DataSourceSelection.firebase(),
+);
+
 /// Mode pengembang.
 ///
 /// Saat aktif, seluruh data layer memakai `fake_*_data_source.dart` sehingga

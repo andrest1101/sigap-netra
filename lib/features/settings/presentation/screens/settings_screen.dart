@@ -9,6 +9,7 @@ import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../domain/entities/data_source.dart';
 import '../providers/settings_providers.dart';
 
 /// Layar Pengaturan — identitas visual v3.
@@ -136,6 +137,9 @@ class _AdvancedSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final developerMode = ref.watch(developerModeProvider);
+    // Sumber data dibaca dari hasil resolusi `main.dart`, bukan disimpulkan
+    // dari toggle: build tanpa Firebase tetap simulasi walau toggle mati.
+    final selection = ref.watch(dataSourceSelectionProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,13 +159,19 @@ class _AdvancedSection extends ConsumerWidget {
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.storage_outlined),
-          title: Text(l10n.settingsSourceTitle),
-          subtitle: Text(
-            developerMode
-                ? l10n.settingsDataSourceSimulation
-                : l10n.settingsDataSourceFirebase,
+          leading: Icon(
+            selection.isSimulation
+                ? Icons.science_outlined
+                : Icons.cloud_done_outlined,
           ),
+          title: Text(l10n.settingsSourceTitle),
+          subtitle: Text(switch (selection.simulationReason) {
+            SimulationReason.developerMode =>
+              l10n.settingsSourceSimulationDeveloperMode,
+            SimulationReason.firebaseUnavailable =>
+              l10n.settingsSourceSimulationFirebaseUnavailable,
+            null => l10n.settingsSourceLive,
+          }),
         ),
       ],
     );

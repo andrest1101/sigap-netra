@@ -6,6 +6,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/login_hero.dart';
@@ -150,6 +151,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const LoginHero(),
+                    const SimulationNotice(
+                      margin: EdgeInsets.only(top: DesignTokens.spaceLg),
+                      showLoginHint: true,
+                    ),
                     const SizedBox(height: DesignTokens.spaceXl),
                     Semantics(
                       header: true,

@@ -19,6 +19,7 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
+import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../providers/validation_providers.dart';
 import '../widgets/validation_photo.dart';
 
@@ -66,7 +67,7 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
       subtitle: !hasData || filtered.isEmpty
           ? null
           : l10n.validationProgressValue(clamped + 1, filtered.length),
-      actions: const [SettingsGearButton()],
+      actions: const [SimulationBadge(), SettingsGearButton()],
       // Body memakai `Expanded` (tumpukan kartu mengisi sisa layar), jadi
       // wajib `fillRemaining` agar constraint vertikal terbatas.
       fillRemaining: true,
