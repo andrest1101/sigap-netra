@@ -71,10 +71,11 @@ const String kWifiQrPayloadNote =
     'belum memindai QR — bila QR tidak terbaca, masukkan Wi-Fi dari layar '
     'sentuh alat.';
 
-/// Logo Google "G" resmi (PNG transparan) untuk tombol masuk Google.
+/// Logo Google "G" resmi (PNG transparan, 96px) untuk tombol masuk Google.
 ///
 /// Ikon Material `g_mobiledata` bukan logo Google dan menyesatkan, jadi
-/// memakai aset ini. Ukuran asli 3840px — selalu tampilkan kecil (20-24dp).
+/// memakai aset ini. Aset sudah dioptimalkan dari sumber 3840px — tampilkan
+/// kecil (20-24 dp), tanpa batas dekode.
 const String kGoogleLogoAsset = 'assets/images/google_g_logo.png';
 
 /// Mark merek SIGAP-NETRA (mata + gelombang sinyal), sudah dipangkas dari

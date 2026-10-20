@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/design_tokens.dart';
 import 'features/devices/presentation/providers/devices_providers.dart';
 import 'l10n/generated/app_localizations.dart';
 
@@ -29,6 +31,18 @@ class App extends ConsumerWidget {
       }
     });
 
+    // Gaya system UI terang-saja (ikon gelap, status bar transparan, navigation
+    // bar senada scaffold) dipasang di akar lewat `AnnotatedRegion` supaya
+    // berlaku juga di layar tanpa AppBar (splash, login). AppBar bawaan tidak
+    // menimpanya selama tema tidak menyetel `systemOverlayStyle` sendiri.
+    const overlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: BrandColors.background,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    );
+
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
@@ -36,6 +50,10 @@ class App extends ConsumerWidget {
       locale: const Locale('id'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: overlayStyle,
+        child: child ?? const SizedBox.shrink(),
+      ),
       routerConfig: ref.watch(appRouterProvider),
     );
   }

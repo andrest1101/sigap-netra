@@ -46,7 +46,7 @@ Dependency rule: `presentation → domain ← data`. Domain depends on nothing.
 - **Navigation:** `go_router` (auth redirect via a router that listens to auth state).
 - **Backend:** Firebase Auth (Email/Password + Google Sign-In) and **Cloud Firestore**.
 - **Real-time:** Firestore `snapshots()` streams (wrapped in repositories → `StreamProvider`). Always limit queries (`limit(...)`) to protect the read quota.
-- **Packages (expected):** `firebase_core`, `firebase_auth`, `cloud_firestore`, `flutter_riverpod`, `go_router`, `google_sign_in`, `share_plus`, `intl`, `shared_preferences`, `path_provider`, `equatable`, `flutter_localizations`, `qr_flutter`. Dev: `mocktail`, `firebase_auth_mocks`. Ask before adding anything else.
+- **Packages (expected):** `firebase_core`, `firebase_auth`, `cloud_firestore`, `flutter_riverpod`, `go_router`, `google_sign_in`, `share_plus`, `intl`, `shared_preferences`, `path_provider`, `equatable`, `flutter_localizations`, `qr_flutter`. Dev: `mocktail`, `firebase_auth_mocks`; tool build-time cangkang native: `flutter_launcher_icons`, `flutter_native_splash`. Ask before adding anything else.
 - **UI/UX:** Follow `docs/ui_spec.md` (identitas visual v3 "Lensa": large-title tanpa gradien, Lens Ring, bento, 4 tab standar, Pengaturan via avatar). Material 3, **terang-saja** (keputusan produk 2026-10-18: mode gelap dihapus), **Bahasa Indonesia** strings (all in `lib/l10n/app_id.arb`, none hardcoded in widgets). Brand name tampil: **SIGAP-NETRA**. Seed colour Netra Indigo `#4A47D6`, aksen Lensa Amber sebagai `tertiary` (`#F5A524`), font Plus Jakarta Sans (bundled). Radii: hero 28 / card 20 / thumbnail 14 / input 14 / sheet 28, tombol & chip pil (stadium), bottom nav 24→80 height standar. Strict status colours (ThemeExtension `StatusColors`): ok `#1E9E63` = Terhubung/Cocok, bad `#D64550` = Terputus/Tidak cocok/error, warn `#E5A00D` = Menunggu/peringatan, neutral `#6B6F80` = Belum/unknown. Android is the primary test target; keep code iOS-compatible (no platform-specific shortcuts).
 
 ## 6. Directory Structure
@@ -57,6 +57,8 @@ sigap_netra_app/
 ├── firebase.json
 ├── firebase/                  # firestore.rules, firestore.indexes.json
 ├── docs/                      # ui_spec.md, firestore_schema.md, device_protocol.md
+├── tool/                      # generate_branding_icons.ps1 — ikon launcher & splash native
+├── assets/                    # fonts/, images/, branding/ (branding: aset build-time ikon/splash)
 ├── device/                    # MaixCAM cloud bridge (MaixPy / Python) — no device/AGENTS.md yet
 │   ├── sigap_cloud.py         # REST client: device auth, heartbeat, detections, command polling
 │   └── config.example.py      # template config (project_id, device account) — config.py NEVER committed
