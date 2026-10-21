@@ -1,5 +1,19 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-21 Batch 2 — Satu bahasa header seksi & kartu
+
+Batch kedua poles UI/UX menyatukan bahasa visual layar pengaturan, detail perangkat, dan kontrol jarak jauh. Fokusnya bukan sekadar merapikan jarak, tetapi menghapus header privat dan tumpukan `ListTile` telanjang agar tiga layar terasa berasal dari produk yang sama.
+
+- **Primitif bersama.** `SectionHeader` dipindah dari `bento_tile.dart` ke `lib/core/widgets/section_header.dart` dengan varian halaman/`inset`, aksi kanan opsional, dan `dense`. Header privat `_SectionTitle` di Pengaturan dan panel Statistik serta `_SectionLabel` di Detail perangkat dihapus. `SectionCard` (kartu tonal + hairline, divider inset opsional) dan `ActionTile` (baris aksi 40 dp, judul/keterangan, chevron atau kunci) ditambahkan sebagai primitif Batch 2.
+- **Pengaturan.** Header akun tetap hero `primaryContainer`; Privasi dan data, Lanjutan, serta Tentang menjadi tiga kartu seksi. Teks penjelas panjang (thumbnail, retensi, mode pengembang) pindah ke lebar penuh di bawah saklar, bukan subtitle yang terhimpit switch. Sumber data tetap melaporkan hasil resolusi, bukan niat toggle. Masih terang-saja, tanpa pemilih tema.
+- **Detail perangkat.** Hero + tiga kartu: Informasi perangkat (model, firmware, Wi-Fi, baterai, jumlah boot), Privasi dan data (status thumbnail + catatan read-only), dan Aksi. QR/Kontrol/Log kini `ActionTile`, bukan chip mengambang.
+- **Kontrol jarak jauh.** Kartu **Aksi cepat** berisi lima `ActionTile` dan kartu **Riwayat perintah** berisi `CommandTile.embedded`. Status pindah ke baris judul; waktu/hasil memakai lebar penuh agar tidak terpotong di 360 dp. Tanpa perangkat: notice jelas, tombol Buka Perangkat, dan semua aksi nonaktif dengan ikon kunci serta alasan.
+- **Beranda.** Strip hero memakai `RelativeTime.timeOnly` (`22.15`) sehingga tidak lagi memotong tanggal di 390 dp; tanggal lengkap tetap di Bento. Stat strip diberi label semantik.
+- **l10n & teks.** Kunci Batch 2 ditambahkan, termasuk `deviceLogActionTitle`; keterangan aksi Kontrol dipendekkan agar terbaca penuh pada 360×800 @1,3×.
+- **Test & golden.** +11 test (dari 289): golden Pengaturan/Detail perangkat/Kontrol, test widget Detail perangkat, keadaan tanpa perangkat, 360×800 @1,3× untuk tiga layar, dan test `RelativeTime.timeOnly/timeAndDate`. Golden Beranda diperbarui untuk jam saja dan golden Statistik untuk header 16/SemiBold. Seluruh golden diinspeksi manual.
+- **Verifikasi.** `dart format .` bersih (206 file, 0 berubah); `flutter analyze` No issues; `flutter test` **300 lulus**.
+- **Catatan.** Tanpa paket baru dan tanpa perubahan schema/rules/protokol perangkat/perilaku data. Batch 3 (layar masuk, QR, sheet, gestur) menjadi fokus berikutnya.
+
 ## 2026-10-20 Koreksi header — kembali ke app bar rapat
 
 Review produk menemukan header tab akar terlalu turun: Batch 1 sempat memakai large-title 28/Bold dan menaruh deret aksi di baris terpisah di atas judul. Akibatnya judul berada jauh di bawah tepi atas dan konten ikut terdorong.
