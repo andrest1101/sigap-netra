@@ -59,6 +59,12 @@ Satu keluarga: **Plus Jakarta Sans** (di-_bundle_ sebagai asset di `assets/fonts
 - Ikon: set **rounded** (`Icons.*_rounded`), ukuran 24; ikon status 20.
 - Tap target ≥ 48 dp. Dukungan _text scale_ hingga 1,3× tanpa overflow.
 
+### Header seksi & kartu
+
+- **Satu header seksi.** `SectionHeader` (bukan header privat) dengan varian `page`/`inset`, aksi kanan opsional, dan `dense`; judul `titleMedium` 16/SemiBold. Jarak ke konten 8, antar-seksi 24 (12 untuk `dense`). Varian `inset` tidak menambah padding horizontal karena body sudah memakai padding halaman 20.
+- **Kartu seksi.** `SectionCard` tonal `surfaceContainerLow`, radius 20, hairline `outlineVariant`; divider inset 16 dan padding baris 12–16. Satu kartu = satu topik; jangan menumpuk `ListTile` telanjang tanpa pengelompokan.
+- **Aksi berbentuk baris.** `ActionTile` untuk aksi di dalam kartu: leading 40 dp tonal, judul 14/SemiBold, keterangan 12/Regular, chevron 20; seluruh baris target sentuh. Chip mengambang hanya untuk filter/status, bukan daftar aksi.
+
 ### App bar
 
 - **Empat tab akar** memakai `LargeTitleScaffold` dengan app bar **rapat** 18/SemiBold dan aksi sebaris di kanan (pil `SIMULASI`, refresh, menu, avatar). App bar menempel di atas saat konten digulir.
@@ -128,7 +134,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 1. **App bar rapat:** judul "Beranda", subjudul nama perangkat (mis. `SGP-NETRA-0007`) di bawahnya, avatar → Pengaturan.
 2. **Hero perangkat** (kartu tonal `primaryContainer`, radius 28):
    - Baris identitas: lingkaran ikon kacamata dengan **titik status** (ok/bad); nama perangkat; chevron → detail.
-   - **Strip 3 stat** (satu baris, pemisah hairline): status koneksi ("Terhubung"/"Terputus"), baterai ringkas (ikon + persen; "–" bila tidak tersedia), sinkron terakhir (jam absolut). Ring baterai besar **bukan** di Hero — satu-satunya ring besar di Beranda adalah ring kecocokan di bento.
+   - **Strip 3 stat** (satu baris, pemisah hairline): status koneksi ("Terhubung"/"Terputus"), baterai ringkas (ikon + persen; "–" bila tidak tersedia), sinkron terakhir (**hanya jam absolut** `HH.mm`). Tanggal lengkap tetap di Bento agar strip tidak terpotong di 390 dp. Ring baterai besar **bukan** di Hero — satu-satunya ring besar di Beranda adalah ring kecocokan di bento.
    - Baris aksi (pil): **Sinkronkan** (filled; menampilkan pending → selesai/gagal) dan **QR Wi-Fi** (tonal). Saat offline, **QR Wi-Fi** menjadi aksi utama dan muncul panel 3 langkah: ① nyalakan hotspot/Wi-Fi ② tampilkan QR ③ arahkan ke kamera SIGAP-NETRA.
 3. **Bento grid 2 kolom** (tone ubin `surfaceContainer` + hairline `outlineVariant`; dua ubin dalam satu baris **wajib sama tinggi** — `IntrinsicHeight` + `CrossAxisAlignment.stretch`):
    - **Menunggu validasi**: angka besar + tombol "Periksa" → tab Validasi.
@@ -149,6 +155,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 - **App bar:** "Riwayat", subjudul jujur jumlah yang dimuat ("N pembacaan tersimpan"; "N+ pembacaan dimuat" bila masih ada halaman berikut), menu ⋯ (Reset status validasi…, Ekspor CSV, Bagikan ringkasan). **Ekspor CSV** membuka dialog persetujuan (teks OCR dapat memuat data pribadi) sebelum menulis berkas; isinya maksimal **500 pembacaan terbaru sesuai filter aktif** (kategori + status) sebagai CSV titik-koma + BOM UTF-8 (langsung rapi di Excel Indonesia); berkas dibuat di perangkat pengguna lalu dibuka lewat share sheet, dan bila filter memuat lebih banyak baris pengguna diberi tahu bahwa hasilnya terpotong.
 - **Segmen:** **Daftar | Statistik**.
+- **Header panel Statistik:** "Pembacaan per hari", "Jenis pembacaan", dan "Status validasi" memakai `SectionHeader` halaman (16/SemiBold) yang sama dengan tab lain — bukan header privat.
 - **Daftar:** filter chip kategori (Semua · Uang · Menu/Teks) + chip Saring yang membuka sheet filter status (Semua · Belum · Cocok · Tidak cocok; tutup sheet tanpa memilih mempertahankan filter aktif — tidak me-reset diam-diam). **Dikelompokkan per hari** ("Hari ini", "Kemarin", tanggal) dengan nomor urut global. Header hari memuat ringkasan jujur di kanan: `{N} pembacaan · {uang} uang · {teks} teks` untuk grup yang sudah lengkap, dan `{N}+ pembacaan` **tanpa** rincian jenis untuk grup terakhir yang masih terpotong halaman berikut — jangan mengklaim angka yang belum diambil. Baris dua baris: thumbnail 56/radius 14 (`ThumbnailTile`: foto bila ada, **ikon kategori uang/teks** bila tanpa gambar — bukan ikon "gambar rusak" yang menyesatkan, skeleton saat memuat; tanpa unduh di query daftar — lazy per kartu via `media/{id}`) + titik status menempel (pola Aktivitas Beranda), label SemiBold, lalu baris meta `Wrap` rapat `No. N · HH.mm` + `MetricChip` keyakinan (dense) + `MetricChip` jarak (dense) + `StatusChip` dense, plus chevron di kanan. Chip status ikut di dalam `Wrap` (bukan dipaku di kanan) supaya di layar 360 dp isinya turun ke run berikutnya, bukan terpotong. Halaman berikutnya lewat tombol **Muat lagi** (`FilledButton.tonalIcon`); bila semua halaman sudah dimuat, muncul teks "Inilah seluruh riwayat.". **Geser untuk menghapus**: latar `bad.container`, konfirmasi SEBELUM hapus via `ConfirmSheet` (tanpa Undo — Firestore tak bisa undelete dan app dilarang membuat ulang deteksi, skema §1). Ketuk → detail (foto besar Hero bila ada thumbnail — ketuk foto atau tombol zoom di sudutnya untuk membuka penampil layar penuh `PhotoViewerScreen` — panel informatif bila tanpa thumbnail, label, kartu OCR + Salin, MetricChip, "Divalidasi oleh UID · waktu", tombol Cocok `ok.solid` / Tidak cocok `outlined bad.solid` sama seperti Validasi §5.2, Bagikan + Hapus di app bar).
 - **Empty state (3 kasus, jujur — pola Validasi §5.2):** ① belum ada perangkat → "Belum ada perangkat terhubung" + "Buka Perangkat"; ② riwayat benar-benar kosong → "Belum ada pembacaan"; ③ filter aktif kosong → "Tidak ada hasil untuk filter ini" + "Tampilkan semua" (reset kategori + status sekaligus).
 - **Statistik (P1):** pemilih rentang **7 hari terakhir | 4 minggu terakhir** (ChoiceChip). Semua angka dari `count()` agregat — grafik **tidak pernah** mengunduh dokumen (skema §7.3 poin 3): 7 hari = 17 hitungan, 4 minggu = 11 hitungan, dijalankan paralel.
@@ -163,14 +170,15 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 ### 5.4 Perangkat
 
 - **Kepala:** ringkasan status (titik status, baterai, versi firmware/model, terakhir terlihat/sinkron).
+- **Detail perangkat:** hero identitas + tiga kartu seksi ber-`SectionHeader.inset`: **Informasi perangkat** (model, firmware, Wi-Fi, baterai, jumlah boot), **Privasi dan data** (status thumbnail dan catatan read-only), dan **Aksi**. Tindakan **Pasang Wi-Fi**, **Kontrol jarak jauh**, dan **Log koneksi** memakai `ActionTile` (bukan `ActionChip` mengambang).
 - **Hubungkan:** kartu dengan tombol **Tampilkan QR Wi-Fi** + teks bantuan singkat → `/wifi-qr`.
-- **Kontrol (fungsional sejak 2026-10-18):** kartu dengan slider **Volume** (satu perintah `set_volume` per penyesuaian selesai, bukan per geseran; angka tabular), tombol **Sinkronkan sekarang** (filled tonal), chip **Ucapkan teks** (sheet teks, batas 200 karakter) dan **Mulai ulang** (konfirmasi dulu). Perintah boleh dikirim saat alat offline — diantre dan dieksekusi saat alat kembali, dengan catatan jujur di bawah tombol selama alat tidak tersambung; status menunggu selalu berbunyi **"Menunggu alat · {waktu}"**, tidak pernah "kedaluwarsa".
+- **Kontrol (fungsional sejak 2026-10-18):** slider **Volume** (satu perintah `set_volume` per penyesuaian selesai, bukan per geseran; angka tabular), **Sinkronkan sekarang**, **Ucapkan teks** (sheet teks, batas 200 karakter), dan **Mulai ulang** (konfirmasi dulu). Perintah boleh dikirim saat alat offline — diantre dan dieksekusi saat alat kembali, dengan catatan jujur di bawah tombol selama alat tidak tersambung; status menunggu selalu berbunyi **"Menunggu alat · {waktu}"**, tidak pernah "kedaluwarsa".
 - **Timeline dua kartu terpisah (2026-10-20):** masing-masing kartu tonal `surfaceContainerLow` + hairline, padding baris 12/16, leading ikon 40 dp bernada status, divider inset 16, tinggi baris ±56–64 dp.
   - **Kejadian terakhir:** maksimal **4 event terbaru**; pesan SemiBold + meta `waktu · kategori` (Jaringan/Perintah/Sistem/Pembacaan/Kejadian) + chip severity. **Kode mentah** (`wlan_disconnected`, `command_failed`) hanya tampil di Log koneksi, bukan di kartu. "Lihat semua" → Log koneksi.
   - **Perintah terakhir:** maksimal **3 perintah terbaru**; judul + baris waktu + chip status. "Lihat semua" → layar Kontrol jarak jauh. Kosong → "Belum ada perintah yang dikirim dari aplikasi".
   - Saringan severity **tidak** ditampilkan di tab ini: saringan di kartu hanya akan menyaring 50 event yang sudah dimuat. Saringan menyeluruh (query server + paginasi) ada di **Log koneksi**.
   - Loading/error/empty ditangani di dalam masing-masing kartu, bukan sebagai daftar mengambang. Dua seksi tidak boleh digabung dalam satu daftar tanpa label.
-- **Sub-layar Kontrol jarak jauh:** deretan aksi (Sinkron · Ucapkan · Volume · Restart · Pasang ulang Wi-Fi) + daftar `CommandTile` bersama (ikon jenis, judul, baris waktu, ringkasan payload yang aman ditampilkan — level volume / teks yang diucapkan, chip status). Tile yang sama dipakai tab "Perintah jarak jauh" di Log koneksi supaya bahasa status tidak pernah divergen.
+- **Sub-layar Kontrol jarak jauh (Batch 2):** dua header seksi `SectionHeader.inset`, **Aksi cepat** dan **Riwayat perintah**. Aksi cepat = satu `SectionCard` berisi lima `ActionTile` (Sinkron · Ucapkan · Volume · Restart · Pasang ulang Wi-Fi) dengan ikon 40, keterangan singkat, dan chevron. Riwayat = satu `SectionCard` berisi `CommandTile.embedded` dengan divider inset; status pindah ke baris judul dan baris waktu/hasil memakai lebar penuh. Tanpa perangkat: notice **"Belum ada perangkat dipilih"** + tombol **Buka Perangkat**, semua `ActionTile` nonaktif dengan ikon kunci dan alasan yang terlihat. Loading/empty/error ditangani di dalam kartu riwayat. Tile yang sama dipakai tab "Perintah jarak jauh" di Log koneksi supaya bahasa status tidak pernah divergen.
 - **Sub-layar Log koneksi:** tab **Event** punya dua mode jujur — **Semua** = streaming realtime 50 kejadian terbaru + catatan "Menampilkan N kejadian terbaru. Pilih saringan untuk menjelajah lebih jauh."; **saringan severity** = query server berhalaman (`getEventsPage`, indeks `severity + createdAt`, 25 per halaman) dengan tombol **Muat lagi**, spinner saat memuat, retry inline tanpa menghapus daftar yang sudah tampil, dan "Semua kejadian pada saringan ini sudah dimuat." saat habis. Tanpa perangkat terpilih saringan disembunyikan (schema tidak mengizinkan query lintas perangkat). Kode mentah event tampil di sini untuk diagnosis.
 - **[PERLU KONFIRMASI] Kontrol yang menunggu kontrak firmware — jangan bangun UI palsu:** slider ambang keyakinan, saklar deteksi aktif/nonaktif, dan saklar unggah thumbnail jarak jauh belum punya jenis perintah di `docs/firestore_schema.md` §4.5; ditahan sampai tim perangkat mengonfirmasi.
 - Mode pengembang aktif → tampil IP, ID perangkat, versi.
@@ -186,10 +194,11 @@ Stepper 3 langkah:
 
 ### 5.6 Pengaturan (`/settings`, via avatar)
 
+- **Struktur kartu (Batch 2):** header akun tetap hero `primaryContainer` (avatar, nama, email tersamar, **Keluar** di baris terpisah) + tiga seksi ber-`SectionHeader.inset`: **Privasi dan data**, **Lanjutan**, **Tentang**. Setiap seksi memakai `SectionCard` tonal + hairline, divider inset 16, leading 36, dan padding 16. Teks penjelas panjang memakai lebar penuh di bawah saklar — bukan subtitle yang terhimpit switch. Tidak ada label seksi biru/privat.
 - **Tampilan:** tidak ada pemilih tema — aplikasi terang-saja (keputusan produk 2026-10-18).
-- **Privasi & data:** status unggah gambar (ubah/cabut), catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4), hapus semua data perangkat (P1).
-- **Lanjutan:** **Mode pengembang** → sumber data (Firebase / Simulasi), tampilkan IP/ID/versi. Baris **Sumber data** selalu melaporkan sumber yang benar-benar aktif beserta alasannya (lihat §2 "Mode data"); toggle hanya menyatakan niat dan baru berlaku setelah mulai ulang. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
-- **Akun:** email, keluar. **Tentang:** versi aplikasi.
+- **Privasi & data:** status unggah gambar (ubah/cabut) + penjelasan thumbnail 60 KB dan tanpa video/audio; catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4); hapus semua data perangkat (P1).
+- **Lanjutan:** **Mode pengembang** + catatan berlaku setelah mulai ulang; sumber data (Firebase / Simulasi). Baris **Sumber data** selalu melaporkan sumber yang benar-benar aktif beserta alasannya (lihat §2 "Mode data"); toggle hanya menyatakan niat dan baru berlaku setelah mulai ulang. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
+- **Akun & Tentang:** akun (email, keluar) ada di hero; **Tentang** hanya versi aplikasi.
 
 ### 5.7 Splash & Login
 
@@ -199,7 +208,7 @@ Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan G
 
 ## 6. Inventaris Widget Bersama (`lib/core/widgets/`)
 
-`LargeTitleScaffold` · `LensRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `DeviceHeroCard` · `SectionHeader` · `ThumbnailTile` · `PhotoViewerScreen` + `PhotoZoomButton` · `DayGroupedList` · `SwipeStack` · `UndoSnackbar` (helper) · `ConfirmSheet` · `ConsentSheet` · `EmptyState` · `ErrorState` · `SkeletonBox` · `OfflineBanner`.
+`LargeTitleScaffold` · `LensRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `DeviceHeroCard` · `SectionHeader` · `SectionCard` · `ActionTile` · `ThumbnailTile` · `PhotoViewerScreen` + `PhotoZoomButton` · `DayGroupedList` · `SwipeStack` · `UndoSnackbar` (helper) · `ConfirmSheet` · `ConsentSheet` · `EmptyState` · `ErrorState` · `SkeletonBox` · `OfflineBanner`.
 
 Semua widget menerima data lewat parameter; tidak ada akses Firebase di dalamnya.
 

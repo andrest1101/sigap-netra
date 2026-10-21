@@ -8,15 +8,15 @@ atau perilaku data produk. Semua string tampil lewat `lib/l10n/app_id.arb`.
 Tidak menambah package tanpa persetujuan. Jangan commit — deskripsi commit
 disiapkan untuk pemilik repo.
 
-**Status:** 20 Oktober 2026 · Batch 1 selesai.
+**Status:** 21 Oktober 2026 · Batch 2 selesai.
 
 ## Ringkasan
 
 | Batch | Fokus | Status |
 | ----- | ----- | ------ |
 | 1 | Fondasi app bar, avatar Pengaturan, hierarki judul, golden ponsel + font nyata | ✅ Selesai |
-| 2 | Unifikasi header seksi + hierarki Pengaturan / Detail perangkat / Kontrol | ⏳ Berikutnya |
-| 3 | Layar masuk, QR provisioning, sheet aman-scroll, detail gestur | ⏳ Belum |
+| 2 | Unifikasi header seksi + hierarki Pengaturan / Detail perangkat / Kontrol | ✅ Selesai |
+| 3 | Layar masuk, QR provisioning, sheet aman-scroll, detail gestur | ⏳ Berikutnya |
 | 4 | Navigasi layar anak, tablet/landscape, kode mati, konsistensi sisa | ⏳ Belum |
 | U6 | Audit aksesibilitas & semantik lintas layar | ⏳ Belum |
 
@@ -52,43 +52,52 @@ disiapkan untuk pemilik repo.
 
 **Catatan yang sengaja ditunda:** tautan daftar di layar masuk 390×844 masih
 rapat di tepi bawah (Batch 3); label latar geser Validasi terpotong kartu
-(Batch 3); strip stat hero Beranda memotong tanggal menjadi "22.15 · 2..."
-(Batch 2).
+(Batch 3). Strip stat hero Beranda sudah diperbaiki di Batch 2: hanya jam,
+tanggal lengkap tetap di Bento.
 
 ---
 
-## Batch 2 — Header seksi & hierarki layar (berikutnya)
+## Batch 2 — Header seksi & hierarki layar (selesai 21 Okt 2026)
 
 Tujuan: menghapus tiga bahasa header seksi yang berbeda dan membuat layar
 pengaturan/detail terasa seperti satu produk, bukan daftar `ListTile` polos.
 
-- [ ] **Satu widget header seksi.** `SectionHeader` di `bento_tile.dart` masih
-      menyatu dengan padding halaman; Pengaturan memakai `_SectionTitle` privat
-      dan Detail perangkat memakai `_SectionLabel` privat. Satukan ke satu API
-      (`SectionHeader` dengan varian `page`/`inset`, aksi opsional, dense) dan
-      pakai di Beranda, Perangkat, Riwayat (header hari tetap boleh khusus),
-      Pengaturan, Detail perangkat, dan Kontrol.
-- [ ] **Pengaturan:** kelompokkan Privasi, Lanjutan, Akun, dan Tentang menjadi
-      kartu tonal `surfaceContainerLow` + hairline; `ListTile` di dalam kartu
-      dengan divider inset, leading 20/24, padding 16; hilangkan label seksi
-      biru yang dobel. Header akun tetap hero `primaryContainer`.
-- [ ] **Detail perangkat:** jadikan kartu "Informasi perangkat", "Privasi", dan
+- [x] **Satu widget header seksi.** `SectionHeader` dipindah keluar dari
+      `bento_tile.dart`; varian `page`/`inset`, aksi opsional, dan `dense`.
+      Dipakai di Beranda, Perangkat, panel Statistik Riwayat, Pengaturan,
+      Detail perangkat, dan Kontrol. Header privat `_SectionTitle`/`_SectionLabel`
+      di tiga layar itu dihapus.
+- [x] **Pengaturan:** header akun hero `primaryContainer` + tiga kartu tonal
+      `surfaceContainerLow` + hairline (Privasi dan data, Lanjutan, Tentang);
+      `ListTile` di dalam kartu dengan divider inset 16, leading 36, padding 16;
+      label seksi biru yang dobel dihapus. Teks penjelas panjang memakai lebar
+      penuh di bawah saklar, bukan subtitle yang terhimpit switch.
+- [x] **Detail perangkat:** kartu "Informasi perangkat", "Privasi dan data", dan
       "Aksi" (bukan tiga label seksi + baris telanjang). Aksi QR/Kontrol/Log
-      menjadi deretan tombol yang jelas, bukan `ActionChip` mengambang.
-- [ ] **Kontrol jarak jauh:** beri header "Aksi cepat" dan "Riwayat perintah";
-      kelompokkan aksi ke kartu; jelaskan keadaan tanpa perangkat (tombol
-      disabled + alasan), bukan deretan chip mati tanpa konteks.
-- [ ] **Konsistensi jarak:** jarak antar-seksi 24, dalam kartu 12/16; tidak ada
+      menjadi `ActionTile` yang jelas, bukan `ActionChip` mengambang.
+- [x] **Kontrol jarak jauh:** header "Aksi cepat" dan "Riwayat perintah";
+      aksi dikelompokkan ke kartu; keadaan tanpa perangkat dijelaskan (notice +
+      tombol Buka Perangkat + semua aksi nonaktif dengan ikon kunci).
+- [x] **Konsistensi jarak:** jarak antar-seksi 24, dalam kartu 12/16; tidak ada
       padding horizontal ganda antara `SectionHeader` dan body layar.
-- [ ] **Strip stat hero Beranda:** "Sinkron terakhir 22.15 · 2..." terpotong di
-      390 dp; ringkas jadi jam saja atau pindahkan tanggal ke baris kedua tanpa
-      mengubah data. Bento di bawahnya tetap menampilkan tanggal lengkap.
-- [ ] Test widget 360×800 + 1,3× untuk Pengaturan, Detail perangkat, dan
-      Kontrol; golden ponsel jika perubahan visualnya besar.
-- [ ] Update `docs/ui_spec.md` bila pola kartu seksi disepakati.
+- [x] **Strip stat hero Beranda:** hanya jam (`RelativeTime.timeOnly`) di strip;
+      tanggal lengkap tetap di Bento. Label semantik stat ditambahkan.
+- [x] Test widget 360×800 + 1,3× untuk Pengaturan, Detail perangkat, dan
+      Kontrol; test tanpa perangkat untuk Kontrol; golden ponsel baru untuk
+      ketiga layar, golden Beranda diperbarui untuk jam saja, dan golden
+      Statistik diperbarui untuk header 16/SemiBold.
+- [x] Update `docs/ui_spec.md` dengan pola `SectionHeader`/`SectionCard`/
+      `ActionTile` dan struktur tiga layar.
 
 **Definition of done:** tidak ada header seksi privat baru; `flutter analyze`
 bersih; test + golden relevan lulus; tidak menyentuh data/skema.
+
+**Bukti (21 Okt 2026):** `dart format .` bersih (206 file, 0 berubah);
+`flutter analyze` No issues; `flutter test` **300 lulus**. Golden
+`settings_phone_light.png`, `device_detail_phone_light.png`,
+`commands_phone_light.png`, `home_tab_light.png`, dan
+`history_stats_light.png` diinspeksi manual; tampilan 360×800 @1,3× juga
+diperiksa. Tanpa perubahan schema/rules/device atau package.
 
 ---
 
@@ -131,9 +140,8 @@ sama; test 1,3× lulus.
       dan Pengaturan; uji 800×1280 dan landscape.
 - [ ] **Kode/token mati:** hapus atau pakai `OfflineBanner`
       (`lib/core/widgets/offline_banner.dart` belum dipasang), `radiusBottomNav`,
-      `SectionHeader.compact` yang tak terpakai, komentar `radiusPill` yang
-      menunjuk konstanta tidak ada, dan key l10n yatim. Hati-hati: hapus hanya
-      setelah `grep` seluruh `lib/` + `test/`.
+      komentar `radiusPill` yang menunjuk konstanta tidak ada, dan key l10n
+      yatim. Hati-hati: hapus hanya setelah `grep` seluruh `lib/` + `test/`.
 - [ ] **Dokumentasi:** pastikan `docs/ui_spec.md` dan `AGENTS.md` tidak
       menyebut gear atau "Pengaturan → Koneksi" (Log koneksi ada di Perangkat);
       entri historis `progress.md` boleh tetap. Route `/pengaturan/koneksi` boleh
