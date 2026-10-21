@@ -9,6 +9,7 @@ import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/lens_ring.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../domain/entities/history_insights.dart';
@@ -135,8 +136,8 @@ class _StatsBody extends StatelessWidget {
           ),
           child: _AccuracyHero(insights: insights),
         ),
-        _SectionTitle(
-          label: insights.window.isDaily
+        SectionHeader(
+          title: insights.window.isDaily
               ? l10n.historyStatsChartDaily
               : l10n.historyStatsChartWeekly,
         ),
@@ -146,7 +147,7 @@ class _StatsBody extends StatelessWidget {
           ),
           child: _ChartCard(insights: insights),
         ),
-        _SectionTitle(label: l10n.historyStatsTypesTitle),
+        SectionHeader(title: l10n.historyStatsTypesTitle),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacePage,
@@ -171,7 +172,7 @@ class _StatsBody extends StatelessWidget {
             total: insights.total,
           ),
         ),
-        _SectionTitle(label: l10n.historyStatsValidationTitle),
+        SectionHeader(title: l10n.historyStatsValidationTitle),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: DesignTokens.spacePage,
@@ -508,31 +509,6 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// Judul seksi panel Statistik.
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        DesignTokens.spacePage,
-        DesignTokens.spaceSection,
-        DesignTokens.spacePage,
-        DesignTokens.spaceMd,
-      ),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
     );
   }
 }

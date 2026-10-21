@@ -15,6 +15,7 @@ import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../core/widgets/logo_mark.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -262,6 +263,7 @@ class _HeroStatsStrip extends StatelessWidget {
               icon: pill.icon ?? Icons.circle_rounded,
               iconTone: pill.tone,
               label: pill.label,
+              semanticLabel: pill.label,
               onHero: onHero,
             ),
           ),
@@ -278,6 +280,9 @@ class _HeroStatsStrip extends StatelessWidget {
                   ? Icons.battery_full_rounded
                   : Icons.battery_alert_rounded,
               label: battery == null ? '–' : '$battery%',
+              semanticLabel: battery == null
+                  ? l10n.homeBatteryUnavailable
+                  : '${l10n.homeBatteryLabel} $battery%',
               onHero: onHero,
             ),
           ),
@@ -289,7 +294,11 @@ class _HeroStatsStrip extends StatelessWidget {
           Expanded(
             child: _HeroStatCell(
               icon: Icons.sync_rounded,
-              label: RelativeTime.timeAndDate(device.lastSeen, l10n: l10n),
+              // Strip hanya memuat jam (tanggal lengkap ada di bento) agar
+              // tidak terpotong di lebar 390 dp.
+              label: RelativeTime.timeOnly(device.lastSeen, l10n: l10n),
+              semanticLabel:
+                  '${l10n.homeSyncedLabel} ${RelativeTime.timeOnly(device.lastSeen, l10n: l10n)}',
               onHero: onHero,
             ),
           ),
@@ -304,11 +313,13 @@ class _HeroStatCell extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onHero,
+    required this.semanticLabel,
     this.iconTone,
   });
 
   final IconData icon;
   final String label;
+  final String semanticLabel;
   final Color onHero;
   final AppStatusTone? iconTone;
 
@@ -324,24 +335,28 @@ class _HeroStatCell extends StatelessWidget {
       null => onHero,
     };
     final textTheme = Theme.of(context).textTheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: iconColor),
-        const SizedBox(width: DesignTokens.spaceXs),
-        Flexible(
-          child: Text(
-            label,
-            style: textTheme.labelLarge?.copyWith(
-              color: onHero,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    return Semantics(
+      label: semanticLabel,
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: iconColor),
+          const SizedBox(width: DesignTokens.spaceXs),
+          Flexible(
+            child: Text(
+              label,
+              style: textTheme.labelLarge?.copyWith(
+                color: onHero,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
