@@ -2348,6 +2348,12 @@ abstract class AppLocalizations {
   /// **'Menunggu alat'**
   String get provisioningStepWaiting;
 
+  /// No description provided for @provisioningStepProgress.
+  ///
+  /// In id, this message translates to:
+  /// **'Langkah {current} dari {total}'**
+  String provisioningStepProgress(int current, int total);
+
   /// No description provided for @provisioningHotspot.
   ///
   /// In id, this message translates to:

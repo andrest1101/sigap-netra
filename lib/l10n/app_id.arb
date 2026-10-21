@@ -572,6 +572,13 @@
   "provisioningStepNetwork": "Jaringan",
   "provisioningStepQr": "Tampilkan QR",
   "provisioningStepWaiting": "Menunggu alat",
+  "provisioningStepProgress": "Langkah {current} dari {total}",
+  "@provisioningStepProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
   "provisioningHotspot": "Hotspot ponsel",
   "provisioningHomeWifi": "Wi-Fi rumah",
   "provisioningRememberSsid": "Ingat nama jaringan",
