@@ -103,11 +103,16 @@ class DailyReadingsChart extends StatelessWidget {
                         for (final tick in ticks)
                           Positioned(
                             right: DesignTokens.spaceSm,
-                            // Label duduk di tengah garis bantunya.
-                            bottom:
-                                _valueLabelHeight +
-                                tick / axis.max * _plotHeight -
-                                7,
+                            // Label duduk di tengah garis bantunya. Label tick
+                            // teratas dimulai dari tepi atas karena
+                            // pemusatan penuh akan terpotong oleh SizedBox
+                            // (terlihat sebagai "~" di atas grafik).
+                            top: tick == axis.max ? 0 : null,
+                            bottom: tick == axis.max
+                                ? null
+                                : _valueLabelHeight +
+                                      tick / axis.max * _plotHeight -
+                                      7,
                             child: Text(
                               NumberFormatId.integer(tick),
                               style: textTheme.labelSmall?.copyWith(
