@@ -1254,6 +1254,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get provisioningStepWaiting => 'Menunggu alat';
 
   @override
+  String provisioningStepProgress(int current, int total) {
+    return 'Langkah $current dari $total';
+  }
+
+  @override
   String get provisioningHotspot => 'Hotspot ponsel';
 
   @override

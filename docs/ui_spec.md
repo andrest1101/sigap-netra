@@ -147,7 +147,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 - **App bar:** "Validasi", subjudul progres "1 dari N" (muncul bersama antrean; disembunyikan saat memuat / tanpa perangkat / antrean kosong); di bawahnya `SegmentedButton`: Gabungan · Uang · Menu/Teks + indikator progres linear tipis 6 dp.
 - **Tumpukan kartu:** kartu teratas menampilkan area gambar (panel informatif "Gambar tidak diunggah" bila tanpa gambar; thumbnail rasio 4:3 saat media dimuat — tap foto → detail via Hero `detection-{id}`, tombol zoom di sudut membuka **penampil foto layar penuh** `PhotoViewerScreen`: cubit/geser + ketuk dua kali beranimasi 2,5×, tombol reset saat diperbesar, tutup; tanpa paket tambahan), kategori sebagai chip + nama perangkat, label kecil **TERBACA AS** + nilai besar (maks 4 baris), lalu baris `MetricChip`: keyakinan · jarak · waktu. Kartu di belakang **terlihat tepinya** sebagai tumpukan: terdorong 12 px ke bawah + menyempit 12 px per lapis, tone `surfaceContainerHigh` + hairline, samar (opacity bertingkat).
-- **Aksi:** bar bawah dua tombol besar sejajar: **Tidak cocok** (outlined `bad.solid`) dan **Cocok** (filled `ok.solid`, teks `surface`). **Geser kartu** kiri/kanan = pintasan yang sama — hanya kartu yang bergeser (tombol & kerangka tetap diam), latar petunjuk berwarna status: kiri `bad.container` "Tidak cocok", kanan `ok.container` "Cocok". Setelah memilih: kartu berikutnya naik dengan animasi fade + slide 250 ms + snackbar **Urungkan** (5 dtk).
+- **Aksi:** bar bawah dua tombol besar sejajar: **Tidak cocok** (outlined `bad.solid`) dan **Cocok** (filled `ok.solid`, teks `surface`). **Geser kartu** kiri/kanan = pintasan yang sama - hanya kartu yang bergeser (tombol & kerangka tetap diam). Latar yang terbuka memakai warna status (`bad.container` kiri, `ok.container` kanan) dengan ikon; label **"Tidak cocok"/"Cocok"** tampil sebagai pil mengambang di atas tepi atas kartu selama geseran, jadi tidak pernah tertutup kartu pada geseran awal. Setelah memilih: kartu berikutnya naik dengan animasi fade + slide 250 ms + snackbar **Urungkan** (5 dtk).
 - **Tanpa gambar** (unggah gambar dimatikan): area gambar menjadi panel informatif "Gambar tidak diunggah" + ajakan membuka pengaturan privasi; validasi tetap bisa.
 - **Empty state (3 kasus, jujur):** ① belum ada perangkat → "Belum ada perangkat terhubung" + "Buka Perangkat"; ② antrean habis → "Semua pembacaan sudah diperiksa" + "Buka Riwayat"; ③ filter aktif kosong padahal kategori lain masih menunggu → "Tidak ada antrean di filter ini" + jumlah yang menunggu + "Tampilkan semua" (reset filter ke Gabungan).
 
@@ -185,7 +185,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 ### 5.5 QR Wi-Fi (`/wifi-qr`, layar penuh)
 
-Stepper 3 langkah:
+Header langkah kustom 3 langkah (bukan `Stepper` Material): penanda 1-2-3 dengan garis progres, label tetap terlihat, langkah aktif disorot, dan langkah selesai dapat diketuk untuk kembali. Hanya isi langkah aktif yang dibangun; panel isi scrollable dengan padding bawah aman. Urutan langkah, nama field, dan payload QR tidak berubah.
 
 1. **Jaringan:** segmen _Hotspot ponsel_ / _Wi-Fi rumah_; isian SSID dan password (sembunyikan/tampilkan). Opsi "Ingat nama jaringan" (password **tidak pernah disimpan**).
 2. **Tampilkan QR:** QR hitam di atas panel putih (selalu putih agar terbaca kamera alat), kecerahan layar dinaikkan bila memungkinkan, petunjuk "Arahkan ke kamera SIGAP-NETRA".
@@ -199,10 +199,13 @@ Stepper 3 langkah:
 - **Privasi & data:** status unggah gambar (ubah/cabut) + penjelasan thumbnail 60 KB dan tanpa video/audio; catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4); hapus semua data perangkat (P1).
 - **Lanjutan:** **Mode pengembang** + catatan berlaku setelah mulai ulang; sumber data (Firebase / Simulasi). Baris **Sumber data** selalu melaporkan sumber yang benar-benar aktif beserta alasannya (lihat §2 "Mode data"); toggle hanya menyatakan niat dan baru berlaku setelah mulai ulang. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
 - **Akun & Tentang:** akun (email, keluar) ada di hero; **Tentang** hanya versi aplikasi.
+- **Batas bawah aman:** isi Pengaturan dibungkus `SafeArea` bawah + padding gulir 24 dp. Pada Android edge-to-edge, baris **Tentang / versi** tidak boleh tertutup navigation bar dan harus masih punya ruang gulir setelah kartu terakhir.
 
 ### 5.7 Splash & Login
 
 Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan Google, bahasa ramah, error jelas. Saat aplikasi memakai simulasi, blok **Mode simulasi aktif** tampil di bawah hero — sebelum pengguna memasukkan kredensial — dengan alasan dan catatan bahwa akun apa pun hanya tersimpan di perangkat.
+
+**Layar masuk responsif:** hero ringkas dipakai saat tinggi < 900 dp atau text scale > 1,15× (cincin 64, jarak dan padding kartu poin dipadatkan). Hero, form, CTA, tautan daftar, dan catatan privasi berada dalam satu `SingleChildScrollView` dengan padding bawah 32 dp di dalam `SafeArea`; footer memakai `Wrap` agar "Belum punya akun? / Daftar" tetap utuh di 360 dp @1,3×. Tautan daftar tidak boleh menempel atau tertutup navigation bar.
 
 **Cangkang native:** splash OS berlatar `#F6F6FB` + cakram logo (senada splash dalam-app, transisi tanpa kedip); ikon launcher adaptive (Android) & penuh (iOS/legacy) dari mark; label perangkat **SIGAP-NETRA**; status bar ikon gelap + latar transparan dipasang di akar `lib/app.dart`. Aset di `assets/branding/` (dihasilkan `tool/generate_branding_icons.ps1`), konfigurasi tool di `pubspec.yaml`.
 
@@ -211,6 +214,8 @@ Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan G
 `LargeTitleScaffold` · `LensRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `DeviceHeroCard` · `SectionHeader` · `SectionCard` · `ActionTile` · `ThumbnailTile` · `PhotoViewerScreen` + `PhotoZoomButton` · `DayGroupedList` · `SwipeStack` · `UndoSnackbar` (helper) · `ConfirmSheet` · `ConsentSheet` · `EmptyState` · `ErrorState` · `SkeletonBox` · `OfflineBanner`.
 
 Semua widget menerima data lewat parameter; tidak ada akses Firebase di dalamnya.
+
+`ConfirmSheet` dan `ConsentSheet` memakai kerangka bersama: isi (ikon, judul, pesan) scrollable, tinggi sheet maksimal 85% layar, baris aksi tetap di bawah dalam `SafeArea`, dan fokus awal pada Batal. Teks panjang pada 360×640 @1,3× tidak boleh mendorong tombol keluar dari layar.
 
 ## 7. State & Kasus Tepi (wajib di tiap layar)
 

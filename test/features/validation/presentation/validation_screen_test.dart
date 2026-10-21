@@ -210,6 +210,28 @@ void main() {
       expect(find.text('Semua pembacaan sudah diperiksa'), findsNothing);
     });
 
+    testWidgets('360x640 @1,3x tanpa perangkat: CTA tetap dapat dicapai', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpValidation(
+        tester,
+        deviceRepository: const _EmptyDeviceRepository(),
+        textScale: 1.3,
+      );
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      final cta = find.text('Buka Perangkat');
+      expect(cta, findsOneWidget);
+      await tester.ensureVisible(cta);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.getRect(cta).bottom, lessThanOrEqualTo(640));
+    });
+
     testWidgets('filter kosong jujur, bukan "semua sudah diperiksa"', (
       tester,
     ) async {
@@ -246,6 +268,49 @@ void main() {
       await tester.tap(find.text('Tampilkan semua'));
       await pumpFrames(tester);
       expect(find.textContaining('75.000'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('petunjuk geser tetap terbaca di atas kartu', (tester) async {
+      await pumpValidation(tester);
+      await pumpFrames(tester);
+
+      final card = find.byType(Dismissible);
+      expect(card, findsOneWidget);
+
+      // Geser ke kanan (Tidak cocok). Label harus muncul sebagai petunjuk
+      // mengambang, bukan tertutup kartu di latar belakang.
+      final right = await tester.startGesture(tester.getCenter(card));
+      // Event pertama hanya melewati gesture slop; event kedua yang
+      // benar-benar menggeser Dismissible.
+      await right.moveBy(const Offset(40, 0));
+      await tester.pump();
+      await right.moveBy(const Offset(40, 0));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('validation-swipe-hint-mismatch')),
+        findsOneWidget,
+      );
+      await right.up();
+      await pumpFrames(tester);
+      expect(
+        find.byKey(const ValueKey('validation-swipe-hint-mismatch')),
+        findsNothing,
+      );
+
+      // Geser ke kiri (Cocok).
+      final left = await tester.startGesture(tester.getCenter(card));
+      await left.moveBy(const Offset(-40, 0));
+      await tester.pump();
+      await left.moveBy(const Offset(-40, 0));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('validation-swipe-hint-match')),
+        findsOneWidget,
+      );
+      await left.up();
+      await pumpFrames(tester);
+
       expect(tester.takeException(), isNull);
     });
 

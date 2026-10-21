@@ -295,7 +295,7 @@ class _FilterSegmented extends StatelessWidget {
 }
 
 /// Tumpukan kartu validasi: kartu teratas interaktif + dua samar di belakang.
-class _ValidationStack extends StatelessWidget {
+class _ValidationStack extends StatefulWidget {
   const _ValidationStack({
     required this.detection,
     required this.queueBehind,
@@ -310,9 +310,38 @@ class _ValidationStack extends StatelessWidget {
   final VoidCallback onMismatch;
 
   @override
+  State<_ValidationStack> createState() => _ValidationStackState();
+}
+
+class _ValidationStackState extends State<_ValidationStack> {
+  /// Arah geser aktif. Petunjuk mengambang di atas kartu (bukan di latar
+  /// belakang) supaya label tidak tertutup kartu pada geseran awal.
+  DismissDirection? _hintDirection;
+
+  void _handleDragUpdate(DismissUpdateDetails details) {
+    final direction = details.direction;
+    final visible =
+        details.progress > 0.01 &&
+        (direction == DismissDirection.startToEnd ||
+            direction == DismissDirection.endToStart);
+    final next = visible ? direction : null;
+    if (next == _hintDirection) return;
+    setState(() => _hintDirection = next);
+  }
+
+  void _clearHint() {
+    if (_hintDirection == null) return;
+    setState(() => _hintDirection = null);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final statusColors = StatusColors.of(context);
+    final detection = widget.detection;
+    final queueBehind = widget.queueBehind;
+    final onMatch = widget.onMatch;
+    final onMismatch = widget.onMismatch;
 
     // Hanya area kartu yang di-Dismissible: saat digeser, tombol aksi dan
     // seluruh kerangka layar tetap diam — yang bergerak hanya tumpukan kartu.
@@ -333,56 +362,74 @@ class _ValidationStack extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Dismissible(
-                  key: ValueKey('swipe-${detection.id}'),
-                  direction: DismissDirection.horizontal,
-                  background: _SwipeHint(
-                    alignment: Alignment.centerLeft,
-                    icon: Icons.close_rounded,
-                    label: l10n.validationMarkMismatch,
-                    palette: statusColors.bad,
-                  ),
-                  secondaryBackground: _SwipeHint(
-                    alignment: Alignment.centerRight,
-                    icon: Icons.check_rounded,
-                    label: l10n.validationMarkMatch,
-                    palette: statusColors.ok,
-                  ),
-                  confirmDismiss: (direction) async {
-                    if (direction == DismissDirection.startToEnd) {
-                      onMismatch();
-                    } else {
-                      onMatch();
-                    }
-                    return false;
-                  },
-                  child: Stack(
-                    children: [
-                      // Dua kartu samar di belakang: masing-masing terdorong
-                      // 12 px ke bawah + menyempit, dan kartu depan diberi
-                      // ruang bawah (Padding) supaya tepi kartu belakang
-                      // benar-benar terlihat sebagai tumpukan — versi lama
-                      // menaruhnya di belakang kartu opak sehingga tak
-                      // pernah tampak.
-                      for (var i = queueBehind.length - 1; i >= 0; i--)
-                        Positioned(
-                          top: 12.0 * (i + 1),
-                          left: 12.0 * (i + 1),
-                          right: 12.0 * (i + 1),
-                          bottom: 12.0 * (queueBehind.length - 1 - i),
-                          child: Opacity(
-                            opacity: 0.85 - 0.3 * i,
-                            child: const _GhostCard(),
-                          ),
-                        ),
-                      Padding(
-                        padding: EdgeInsets.only(
-                          bottom: 12.0 * queueBehind.length,
-                        ),
-                        child: _ValidationCard(detection: detection),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Dismissible(
+                      key: ValueKey('swipe-${detection.id}'),
+                      direction: DismissDirection.horizontal,
+                      onUpdate: _handleDragUpdate,
+                      background: _SwipeBackdrop(
+                        alignment: Alignment.centerLeft,
+                        icon: Icons.close_rounded,
+                        palette: statusColors.bad,
                       ),
-                    ],
-                  ),
+                      secondaryBackground: _SwipeBackdrop(
+                        alignment: Alignment.centerRight,
+                        icon: Icons.check_rounded,
+                        palette: statusColors.ok,
+                      ),
+                      confirmDismiss: (direction) async {
+                        _clearHint();
+                        if (direction == DismissDirection.startToEnd) {
+                          onMismatch();
+                        } else {
+                          onMatch();
+                        }
+                        return false;
+                      },
+                      child: Stack(
+                        children: [
+                          // Dua kartu samar di belakang: masing-masing
+                          // terdorong 12 px ke bawah + menyempit, dan kartu
+                          // depan diberi ruang bawah (Padding) supaya tepi
+                          // kartu belakang benar-benar terlihat sebagai
+                          // tumpukan — versi lama menaruhnya di belakang
+                          // kartu opak sehingga tak pernah tampak.
+                          for (var i = queueBehind.length - 1; i >= 0; i--)
+                            Positioned(
+                              top: 12.0 * (i + 1),
+                              left: 12.0 * (i + 1),
+                              right: 12.0 * (i + 1),
+                              bottom: 12.0 * (queueBehind.length - 1 - i),
+                              child: Opacity(
+                                opacity: 0.85 - 0.3 * i,
+                                child: const _GhostCard(),
+                              ),
+                            ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: 12.0 * queueBehind.length,
+                            ),
+                            child: _ValidationCard(detection: detection),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      top: DesignTokens.spaceMd,
+                      left: 0,
+                      right: 0,
+                      child: IgnorePointer(
+                        child: AnimatedSwitcher(
+                          duration: DesignTokens.animationFast,
+                          switchInCurve: DesignTokens.motionCurve,
+                          switchOutCurve: DesignTokens.motionCurve,
+                          child: _buildHint(l10n, statusColors),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.only(
@@ -428,19 +475,67 @@ class _ValidationStack extends StatelessWidget {
       },
     );
   }
+
+  Widget _buildHint(AppLocalizations l10n, StatusColors statusColors) {
+    final direction = _hintDirection;
+    if (direction == null) {
+      return const SizedBox.shrink(key: ValueKey('validation-swipe-hint-none'));
+    }
+    final isMismatch = direction == DismissDirection.startToEnd;
+    final palette = isMismatch ? statusColors.bad : statusColors.ok;
+    return Center(
+      key: ValueKey(
+        isMismatch
+            ? 'validation-swipe-hint-mismatch'
+            : 'validation-swipe-hint-match',
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignTokens.spaceMd,
+          vertical: DesignTokens.spaceSm,
+        ),
+        decoration: BoxDecoration(
+          color: palette.container,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusBadge),
+          border: Border.all(color: palette.content.withValues(alpha: 0.18)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isMismatch ? Icons.close_rounded : Icons.check_rounded,
+              size: 18,
+              color: palette.content,
+            ),
+            const SizedBox(width: DesignTokens.spaceSm),
+            Text(
+              isMismatch
+                  ? l10n.validationMarkMismatch
+                  : l10n.validationMarkMatch,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: palette.content,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _SwipeHint extends StatelessWidget {
-  const _SwipeHint({
+/// Latar warna status saat kartu digeser. Labelnya sendiri tampil sebagai
+/// petunjuk mengambang di atas kartu, jadi latar cukup ikon besar di sisi
+/// yang terbuka — tidak ada teks yang tertutup kartu.
+class _SwipeBackdrop extends StatelessWidget {
+  const _SwipeBackdrop({
     required this.alignment,
     required this.icon,
-    required this.label,
     required this.palette,
   });
 
   final Alignment alignment;
   final IconData icon;
-  final String label;
   final StatusPalette palette;
 
   @override
@@ -454,19 +549,7 @@ class _SwipeHint extends StatelessWidget {
         color: palette.container,
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: palette.content),
-          const SizedBox(width: DesignTokens.spaceSm),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(color: palette.content),
-          ),
-        ],
-      ),
+      child: Icon(icon, size: 28, color: palette.content),
     );
   }
 }

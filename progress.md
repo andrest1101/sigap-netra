@@ -1,5 +1,19 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-21 Batch 3 — Alur masuk, QR, sheet, dan gestur
+
+Batch ketiga menutup kasus layar pendek dan teks besar yang masih memotong CTA atau petunjuk. Fokusnya aksesibilitas alur masuk, QR provisioning, sheet konfirmasi, gestur Validasi, state kosong/error, dan batas bawah Pengaturan di Android edge-to-edge.
+
+- **Layar masuk.** Hero ringkas aktif saat tinggi < 900 dp atau text scale > 1,15×; seluruh hero, form, CTA, tautan daftar, dan catatan privasi berada dalam satu `SingleChildScrollView` dengan padding bawah 32 dp di dalam `SafeArea`. Footer memakai `Wrap`, jadi "Belum punya akun? / Daftar" tetap utuh di 360 dp @1,3×. Test 360×640 dan 390×844 @1,3× memastikan CTA + Daftar dapat dicapai tanpa terpotong; golden login diperbarui.
+- **QR provisioning.** `Stepper` Material diganti header langkah kustom 3 langkah dengan penanda 1-2-3, garis progres, label tetap terlihat, langkah aktif disorot, dan langkah selesai dapat diketuk. Hanya isi langkah aktif yang dibangun dalam `AnimatedSwitcher`; panel scrollable, intro QR, dan scroll-to-top saat pindah langkah. Urutan langkah, nama field, dan payload `WIFI:T:WPA;S:<ssid>;P:<sandi>;;` tidak berubah. Kunci l10n `provisioningStepProgress` ditambahkan.
+- **ConfirmSheet / ConsentSheet.** Satu kerangka bersama: isi (ikon, judul, pesan) scrollable, tinggi maksimal 85% layar, baris aksi tetap di bawah dalam `SafeArea`, fokus awal pada Batal. Teks panjang pada 360×640 @1,3× tidak lagi mendorong tombol keluar layar.
+- **Validasi.** Label "Tidak cocok"/"Cocok" kini pil mengambang di atas kartu selama geseran; latar status hanya ikon. Label tidak tertutup kartu pada geseran awal dan tetap terbaca di viewport ponsel. Golden petunjuk geser diperbarui.
+- **State kosong/error.** `EmptyView`/`ErrorView` diuji langsung pada 360×640 @1,3× dengan CTA yang dapat digulir dan disentuh. Validasi, Riwayat, dan Perangkat mendapat cakupan state tanpa perangkat/error pada ukuran yang sama; tidak ada CTA tersembunyi di bawah lipatan tanpa jalur gulir.
+- **Pengaturan / navigation bar.** Body dibungkus `SafeArea` bawah + padding minimum 16 dp, di atas padding gulir 24 dp. Baris **Tentang / versi** tidak lagi tertutup navigation bar Android edge-to-edge dan masih punya ruang gulir; diuji pada 360×800 @1,3× dengan inset 48 dp.
+- **Test & golden.** Test baru/diperluas untuk login, QR, sheet, Validasi, Pengaturan, `EmptyView`/`ErrorView`, state Perangkat, dan state tanpa perangkat Riwayat. Dua golden diperbarui dan diinspeksi: `login_light.png` dan `validation_swipe_light.png`.
+- **Verifikasi.** `dart format .` bersih (209 file); `flutter analyze` No issues; `flutter test` **314 lulus**.
+- **Catatan.** Tanpa paket baru dan tanpa perubahan schema/rules/kode perangkat/perilaku data. Batch 4 dan U6 tetap ditunda.
+
 ## 2026-10-21 Batch 2 — Satu bahasa header seksi & kartu
 
 Batch kedua poles UI/UX menyatukan bahasa visual layar pengaturan, detail perangkat, dan kontrol jarak jauh. Fokusnya bukan sekadar merapikan jarak, tetapi menghapus header privat dan tumpukan `ListTile` telanjang agar tiga layar terasa berasal dari produk yang sama.

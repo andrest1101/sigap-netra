@@ -138,164 +138,208 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(DesignTokens.spaceXl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: DesignTokens.maxContentWidth,
-              ),
-              child: AutofillGroup(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const LoginHero(),
-                    const SimulationNotice(
-                      margin: EdgeInsets.only(top: DesignTokens.spaceLg),
-                      showLoginHint: true,
-                    ),
-                    const SizedBox(height: DesignTokens.spaceXl),
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        l10n.loginWelcomeBack,
-                        style: textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+        bottom: true,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Tinggi pendek atau teks besar memakai hero ringkas. Ambang 900
+            // dp sengaja lebih tinggi dari ponsel 390x844: form lengkap
+            // (hero + 3 cara masuk + tautan daftar) harus muat tanpa
+            // menempel di navigation bar.
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final compact = constraints.maxHeight < 900 || textScale > 1.15;
+            final pagePadding = compact
+                ? DesignTokens.spaceLg
+                : DesignTokens.spaceXl;
+
+            return Center(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                // Padding bawah 32 dp memberi ruang gulir nyata setelah
+                // catatan privasi, sehingga tautan "Daftar" tidak pernah
+                // berhenti tepat di tepi navigation bar.
+                padding: EdgeInsets.fromLTRB(
+                  pagePadding,
+                  compact ? DesignTokens.spaceMd : DesignTokens.spaceXl,
+                  pagePadding,
+                  DesignTokens.spaceXxl,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: DesignTokens.maxContentWidth,
+                  ),
+                  child: AutofillGroup(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        LoginHero(compact: compact),
+                        const SimulationNotice(
+                          margin: EdgeInsets.only(top: DesignTokens.spaceLg),
+                          showLoginHint: true,
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignTokens.spaceLg),
-                    AuthTextField(
-                      controller: _emailController,
-                      label: l10n.loginEmailLabel,
-                      errorText: _emailError,
-                      prefixIcon: Icons.mail_outline_rounded,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
-                      enabled: !_isBusy,
-                      onSubmitted: (_) => _submitEmail(),
-                    ),
-                    const SizedBox(height: DesignTokens.spaceMd),
-                    AuthTextField(
-                      controller: _passwordController,
-                      label: l10n.loginPasswordLabel,
-                      hint: l10n.loginPasswordHint,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      obscureText: true,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.password],
-                      enabled: !_isBusy,
-                      onSubmitted: (_) => _submitEmail(),
-                    ),
-                    const SizedBox(height: DesignTokens.spaceLg),
-                    FilledButton(
-                      onPressed: _isBusy ? null : _submitEmail,
-                      child: _busy == _BusyMode.email
-                          ? const SizedBox.square(
-                              dimension: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.loginSignInWithEmail),
-                    ),
-                    const SizedBox(height: DesignTokens.spaceMd),
-                    const OrDivider(),
-                    const SizedBox(height: DesignTokens.spaceMd),
-                    OutlinedButton.icon(
-                      onPressed: _isBusy ? null : _submitGoogle,
-                      icon: _busy == _BusyMode.google
-                          ? const SizedBox.square(
-                              dimension: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Image.asset(
-                              kGoogleLogoAsset,
-                              width: 20,
-                              height: 20,
-                              // Aset sudah kecil (96 px); tanpa batas dekode.
-                              semanticLabel: l10n.loginSignInWithGoogle,
-                            ),
-                      label: Text(
-                        l10n.loginSignInWithGoogle,
-                        style: textTheme.labelLarge,
-                      ),
-                    ),
-                    const SizedBox(height: DesignTokens.spaceSm),
-                    TextButton.icon(
-                      onPressed: _isBusy ? null : _submitGuest,
-                      icon: _busy == _BusyMode.guest
-                          ? const SizedBox.square(
-                              dimension: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.person_outline_rounded, size: 18),
-                      label: Text(l10n.loginContinueAsGuest),
-                    ),
-                    if (_errorMessage != null) ...[
-                      const SizedBox(height: DesignTokens.spaceMd),
-                      Semantics(
-                        liveRegion: true,
-                        child: Container(
-                          padding: const EdgeInsets.all(DesignTokens.spaceMd),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(
-                              DesignTokens.radiusButton,
+                        SizedBox(
+                          height: compact
+                              ? DesignTokens.spaceLg
+                              : DesignTokens.spaceXl,
+                        ),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            l10n.loginWelcomeBack,
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 20,
-                                color: colorScheme.onErrorContainer,
-                              ),
-                              const SizedBox(width: DesignTokens.spaceSm),
-                              Expanded(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onErrorContainer,
+                        ),
+                        const SizedBox(height: DesignTokens.spaceLg),
+                        AuthTextField(
+                          controller: _emailController,
+                          label: l10n.loginEmailLabel,
+                          errorText: _emailError,
+                          prefixIcon: Icons.mail_outline_rounded,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          enabled: !_isBusy,
+                          onSubmitted: (_) => _submitEmail(),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceMd),
+                        AuthTextField(
+                          controller: _passwordController,
+                          label: l10n.loginPasswordLabel,
+                          hint: l10n.loginPasswordHint,
+                          prefixIcon: Icons.lock_outline_rounded,
+                          obscureText: true,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          enabled: !_isBusy,
+                          onSubmitted: (_) => _submitEmail(),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceLg),
+                        FilledButton(
+                          onPressed: _isBusy ? null : _submitEmail,
+                          child: _busy == _BusyMode.email
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                   ),
+                                )
+                              : Text(l10n.loginSignInWithEmail),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceMd),
+                        const OrDivider(),
+                        const SizedBox(height: DesignTokens.spaceMd),
+                        OutlinedButton.icon(
+                          onPressed: _isBusy ? null : _submitGoogle,
+                          icon: _busy == _BusyMode.google
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Image.asset(
+                                  kGoogleLogoAsset,
+                                  width: 20,
+                                  height: 20,
+                                  // Aset sudah kecil (96 px); tanpa batas dekode.
+                                  semanticLabel: l10n.loginSignInWithGoogle,
+                                ),
+                          label: Text(
+                            l10n.loginSignInWithGoogle,
+                            style: textTheme.labelLarge,
+                          ),
+                        ),
+                        const SizedBox(height: DesignTokens.spaceSm),
+                        TextButton.icon(
+                          onPressed: _isBusy ? null : _submitGuest,
+                          icon: _busy == _BusyMode.guest
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person_outline_rounded,
+                                  size: 18,
+                                ),
+                          label: Text(l10n.loginContinueAsGuest),
+                        ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: DesignTokens.spaceMd),
+                          Semantics(
+                            liveRegion: true,
+                            child: Container(
+                              padding: const EdgeInsets.all(
+                                DesignTokens.spaceMd,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.errorContainer,
+                                borderRadius: BorderRadius.circular(
+                                  DesignTokens.radiusButton,
                                 ),
                               ),
-                            ],
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 20,
+                                    color: colorScheme.onErrorContainer,
+                                  ),
+                                  const SizedBox(width: DesignTokens.spaceSm),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onErrorContainer,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
+                        ],
+                        const SizedBox(height: DesignTokens.spaceLg),
+                        // Wrap, bukan Row: pada 360 dp + teks 1,3x label
+                        // "Belum punya akun?" dan tombol Daftar tetap utuh
+                        // tanpa overflow horizontal.
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              l10n.loginNoAccount,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _isBusy
+                                  ? null
+                                  : () => SignUpSheet.show(context),
+                              child: Text(l10n.loginSignUpLink),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: DesignTokens.spaceLg),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                        const SizedBox(height: DesignTokens.spaceSm),
                         Text(
-                          l10n.loginNoAccount,
-                          style: textTheme.bodyMedium?.copyWith(
+                          l10n.loginPrivacyNote,
+                          style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
-                        ),
-                        TextButton(
-                          onPressed: _isBusy
-                              ? null
-                              : () => SignUpSheet.show(context),
-                          child: Text(l10n.loginSignUpLink),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                    const SizedBox(height: DesignTokens.spaceSm),
-                    Text(
-                      l10n.loginPrivacyNote,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

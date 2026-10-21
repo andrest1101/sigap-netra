@@ -117,7 +117,7 @@ void main() {
       );
     });
 
-    testWidgets('light: petunjuk geser "Tidak cocok" tampil di latar bad', (
+    testWidgets('light: petunjuk geser "Tidak cocok" mengambang di atas kartu', (
       tester,
     ) async {
       final graph = await pumpValidation(tester);
@@ -133,10 +133,12 @@ void main() {
       );
       await gesture.moveBy(const Offset(80, 0));
       await gesture.moveBy(const Offset(80, 0));
+      // Pump pertama membangun petunjuk, pump kedua memajukan fade-in-nya.
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
 
-      // Label "Tidak cocok" muncul dua kali: di tombol DAN di latar geseran —
-      // bukti petunjuk benar-benar terlihat di viewport ponsel.
+      // Label "Tidak cocok" muncul dua kali: di tombol DAN di petunjuk
+      // mengambang — bukti label tidak tertutup kartu di viewport ponsel.
       expect(find.text('Tidak cocok'), findsNWidgets(2));
 
       await expectLater(

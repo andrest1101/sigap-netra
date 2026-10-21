@@ -52,6 +52,7 @@ class _WifiProvisioningScreenState
 
   final TextEditingController _ssidController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   int _step = 0;
@@ -71,8 +72,18 @@ class _WifiProvisioningScreenState
   void dispose() {
     _ssidController.dispose();
     _passwordController.dispose();
+    _scrollController.dispose();
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// Setiap perpindahan langkah mulai dari atas. Tanpa ini, pengguna yang
+  /// menggulir form Jaringan akan mendarat di tengah panel QR.
+  void _scrollToTop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(0);
+    });
   }
 
   void _startCountdown() {
@@ -97,6 +108,7 @@ class _WifiProvisioningScreenState
     _connected = false;
     _timedOut = false;
     setState(() => _step = 2);
+    _scrollToTop();
     _startCountdown();
   }
 
@@ -106,6 +118,7 @@ class _WifiProvisioningScreenState
       _connected = false;
       _timedOut = false;
     });
+    _scrollToTop();
     _startCountdown();
   }
 
@@ -116,12 +129,14 @@ class _WifiProvisioningScreenState
       _connected = false;
       _timedOut = false;
     });
+    _scrollToTop();
   }
 
   void _nextFromNetwork() {
     final form = _formKey.currentState;
     if (form == null || !form.validate()) return;
     setState(() => _step = 1);
+    _scrollToTop();
   }
 
   /// Payload QR dari isi form saat ini. Hanya hidup di memori selama layar
@@ -159,61 +174,263 @@ class _WifiProvisioningScreenState
       }
     });
 
+    final stepContent = switch (_step) {
+      0 => _NetworkForm(
+        key: const ValueKey('provisioning-network'),
+        formKey: _formKey,
+        ssidController: _ssidController,
+        passwordController: _passwordController,
+        useHotspot: _useHotspot,
+        onModeChanged: (value) => setState(() => _useHotspot = value),
+        rememberSsid: _rememberSsid,
+        onRememberChanged: (value) => setState(() => _rememberSsid = value),
+        obscurePassword: _obscurePassword,
+        onObscureToggled: () =>
+            setState(() => _obscurePassword = !_obscurePassword),
+        onNext: _nextFromNetwork,
+      ),
+      1 => _QrShell(
+        key: const ValueKey('provisioning-qr'),
+        payload: _qrPayload,
+        onNext: _enterWaiting,
+        onBack: () => _leaveWaiting(0),
+      ),
+      _ => _WaitingStep(
+        key: const ValueKey('provisioning-waiting'),
+        countdown: _countdown,
+        connected: _connected,
+        timedOut: _timedOut,
+        onBack: () => _leaveWaiting(1),
+        onRetry: _retryWaiting,
+        onFinish: () => Navigator.of(context).maybePop(),
+      ),
+    };
+
     return Scaffold(
       appBar: BackAppBar(
         title: Text(l10n.provisioningTitle),
         fallbackRoute: AppRoutes.devices,
       ),
-      body: Stepper(
-        currentStep: _step,
-        onStepTapped: (index) {
-          if (index < _step) _leaveWaiting(index);
-        },
-        controlsBuilder: (context, details) => const SizedBox.shrink(),
-        steps: [
-          Step(
-            title: Text(l10n.provisioningStepNetwork),
-            isActive: _step >= 0,
-            state: _step > 0 ? StepState.complete : StepState.indexed,
-            content: _NetworkForm(
-              formKey: _formKey,
-              ssidController: _ssidController,
-              passwordController: _passwordController,
-              useHotspot: _useHotspot,
-              onModeChanged: (value) => setState(() => _useHotspot = value),
-              rememberSsid: _rememberSsid,
-              onRememberChanged: (value) =>
-                  setState(() => _rememberSsid = value),
-              obscurePassword: _obscurePassword,
-              onObscureToggled: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-              onNext: _nextFromNetwork,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                DesignTokens.spacePage,
+                DesignTokens.spaceMd,
+                DesignTokens.spacePage,
+                DesignTokens.spaceSm,
+              ),
+              child: _ProvisioningProgress(
+                currentStep: _step,
+                onStepSelected: (index) {
+                  if (index < _step) _leaveWaiting(index);
+                },
+              ),
             ),
-          ),
-          Step(
-            title: Text(l10n.provisioningStepQr),
-            isActive: _step >= 1,
-            state: _step > 1 ? StepState.complete : StepState.indexed,
-            content: _QrShell(
-              payload: _qrPayload,
-              onNext: _enterWaiting,
-              onBack: () => _leaveWaiting(0),
+            const Divider(height: 1),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(
+                  DesignTokens.spacePage,
+                  DesignTokens.spaceLg,
+                  DesignTokens.spacePage,
+                  DesignTokens.spaceXl,
+                ),
+                child: AnimatedSwitcher(
+                  duration: DesignTokens.animationMedium,
+                  switchInCurve: DesignTokens.motionCurve,
+                  switchOutCurve: DesignTokens.motionCurve,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.015),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: stepContent,
+                ),
+              ),
             ),
-          ),
-          Step(
-            title: Text(l10n.provisioningStepWaiting),
-            isActive: _step >= 2,
-            state: _connected ? StepState.complete : StepState.indexed,
-            content: _WaitingStep(
-              countdown: _countdown,
-              connected: _connected,
-              timedOut: _timedOut,
-              onBack: () => _leaveWaiting(1),
-              onRetry: _retryWaiting,
-              onFinish: () => Navigator.of(context).maybePop(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Header langkah kustom: tiga penanda, garis progres, satu langkah aktif.
+///
+/// Menggantikan `Stepper` Material yang tinggi dan menyisakan ruang kosong.
+/// Hanya isi langkah aktif yang dibangun, jadi layar tidak lagi memuat tiga
+/// panel sekaligus. Langkah yang sudah selesai tetap bisa diketuk untuk
+/// kembali; langkah aktif/depan tidak bisa dilompati.
+class _ProvisioningProgress extends StatelessWidget {
+  const _ProvisioningProgress({
+    required this.currentStep,
+    required this.onStepSelected,
+  });
+
+  final int currentStep;
+  final ValueChanged<int> onStepSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final labels = [
+      l10n.provisioningStepNetwork,
+      l10n.provisioningStepQr,
+      l10n.provisioningStepWaiting,
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        // Pusat tiap penanda berada di 1/6, 1/2, dan 5/6 lebar konten.
+        final firstCenter = width / 6;
+        final activeWidth = width * (currentStep / 3);
+
+        return Stack(
+          children: [
+            Positioned(
+              top: 15,
+              left: firstCenter,
+              width: width * 2 / 3,
+              child: Container(
+                height: 2,
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
             ),
+            if (currentStep > 0)
+              Positioned(
+                top: 15,
+                left: firstCenter,
+                width: activeWidth,
+                child: Container(
+                  height: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var index = 0; index < labels.length; index++)
+                  Expanded(
+                    child: _ProvisioningStepMarker(
+                      key: ValueKey('provisioning-step-$index'),
+                      index: index,
+                      label: labels[index],
+                      currentStep: currentStep,
+                      onTap: index < currentStep
+                          ? () => onStepSelected(index)
+                          : null,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ProvisioningStepMarker extends StatelessWidget {
+  const _ProvisioningStepMarker({
+    required this.index,
+    required this.label,
+    required this.currentStep,
+    required this.onTap,
+    super.key,
+  });
+
+  final int index;
+  final String label;
+  final int currentStep;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isComplete = index < currentStep;
+    final isActive = index == currentStep;
+    final markerColor = isComplete || isActive
+        ? colorScheme.primary
+        : colorScheme.surfaceContainerHighest;
+    final markerForeground = isComplete || isActive
+        ? colorScheme.onPrimary
+        : colorScheme.onSurfaceVariant;
+
+    return Semantics(
+      button: onTap != null,
+      enabled: onTap != null,
+      selected: isActive,
+      label:
+          '${l10n.provisioningStepProgress(index + 1, 3)}. $label'
+          '${isComplete ? ', ${l10n.commonDone}' : ''}',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: DesignTokens.spaceXs),
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: DesignTokens.animationFast,
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: markerColor,
+                  shape: BoxShape.circle,
+                  border: isActive
+                      ? Border.all(
+                          color: colorScheme.primaryContainer,
+                          width: 3,
+                        )
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: isComplete
+                    ? Icon(
+                        Icons.check_rounded,
+                        size: 18,
+                        color: markerForeground,
+                      )
+                    : Text(
+                        '${index + 1}',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: markerForeground,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+              const SizedBox(height: DesignTokens.spaceSm),
+              Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: textTheme.labelMedium?.copyWith(
+                  color: isActive
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -231,6 +448,7 @@ class _NetworkForm extends StatelessWidget {
     required this.obscurePassword,
     required this.onObscureToggled,
     required this.onNext,
+    super.key,
   });
 
   final GlobalKey<FormState> formKey;
@@ -337,6 +555,7 @@ class _QrShell extends StatelessWidget {
     required this.payload,
     required this.onNext,
     required this.onBack,
+    super.key,
   });
 
   final String payload;
@@ -351,6 +570,14 @@ class _QrShell extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(
+          l10n.provisioningIntro,
+          style: textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: DesignTokens.spaceLg),
         Container(
           padding: const EdgeInsets.all(DesignTokens.spacePage),
           decoration: BoxDecoration(
@@ -431,6 +658,7 @@ class _WaitingStep extends StatelessWidget {
     required this.onBack,
     required this.onRetry,
     required this.onFinish,
+    super.key,
   });
 
   final int countdown;

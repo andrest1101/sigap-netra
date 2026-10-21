@@ -11,7 +11,12 @@ import '../../../../l10n/generated/app_localizations.dart';
 /// menjelaskan apa yang dilakukan aplikasi sebelum pengguna memasukkan
 /// kredensial — pola aplikasi profesional (nilai dulu, form kemudian).
 class LoginHero extends StatelessWidget {
-  const LoginHero({super.key});
+  const LoginHero({super.key, this.compact = false});
+
+  /// Varian ringkas untuk layar pendek / teks 1,3x. Tetap mempertahankan
+  /// tiga janji produk, tetapi cincin, jarak, dan padding kartu mengecil agar
+  /// CTA dan tautan daftar tidak terdorong jauh ke bawah lipatan.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -26,14 +31,17 @@ class LoginHero extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const LensRing(diameter: 88, mode: LensRingMode.focusing),
+              LensRing(
+                diameter: compact ? 64 : 88,
+                mode: LensRingMode.focusing,
+              ),
               // Mark merek di tengah cincin fokus — identitas SIGAP-NETRA,
               // bukan ikon lensa generik.
-              const LogoMark(size: 52),
+              LogoMark(size: compact ? 38 : 52),
             ],
           ),
         ),
-        const SizedBox(height: DesignTokens.spaceLg),
+        SizedBox(height: compact ? DesignTokens.spaceMd : DesignTokens.spaceLg),
         Text(
           l10n.appTitle,
           style: textTheme.headlineSmall?.copyWith(
@@ -42,7 +50,7 @@ class LoginHero extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: DesignTokens.spaceSm),
+        SizedBox(height: compact ? DesignTokens.spaceXs : DesignTokens.spaceSm),
         Text(
           l10n.loginWelcomeSubtitle,
           style: textTheme.bodyMedium?.copyWith(
@@ -50,9 +58,11 @@ class LoginHero extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: DesignTokens.spaceLg),
+        SizedBox(height: compact ? DesignTokens.spaceMd : DesignTokens.spaceLg),
         Container(
-          padding: const EdgeInsets.all(DesignTokens.spaceMd),
+          padding: EdgeInsets.all(
+            compact ? DesignTokens.spaceMd : DesignTokens.spaceLg,
+          ),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
@@ -64,16 +74,23 @@ class LoginHero extends StatelessWidget {
               _HeroPoint(
                 icon: Icons.payments_rounded,
                 text: l10n.loginHeroPointMoney,
+                compact: compact,
               ),
-              const SizedBox(height: DesignTokens.spaceSm),
+              SizedBox(
+                height: compact ? DesignTokens.spaceXs : DesignTokens.spaceSm,
+              ),
               _HeroPoint(
                 icon: Icons.fact_check_rounded,
                 text: l10n.loginHeroPointValidate,
+                compact: compact,
               ),
-              const SizedBox(height: DesignTokens.spaceSm),
+              SizedBox(
+                height: compact ? DesignTokens.spaceXs : DesignTokens.spaceSm,
+              ),
               _HeroPoint(
                 icon: Icons.privacy_tip_outlined,
                 text: l10n.loginHeroPointPrivate,
+                compact: compact,
               ),
             ],
           ),
@@ -84,27 +101,42 @@ class LoginHero extends StatelessWidget {
 }
 
 class _HeroPoint extends StatelessWidget {
-  const _HeroPoint({required this.icon, required this.text});
+  const _HeroPoint({
+    required this.icon,
+    required this.text,
+    required this.compact,
+  });
 
   final IconData icon;
   final String text;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final iconPadding = compact ? DesignTokens.spaceXs : DesignTokens.spaceSm;
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(DesignTokens.spaceSm),
+          padding: EdgeInsets.all(iconPadding),
           decoration: ShapeDecoration(
             color: colorScheme.primaryContainer,
             shape: const CircleBorder(),
           ),
-          child: Icon(icon, size: 16, color: colorScheme.onPrimaryContainer),
+          child: Icon(
+            icon,
+            size: compact ? 14 : 16,
+            color: colorScheme.onPrimaryContainer,
+          ),
         ),
-        const SizedBox(width: DesignTokens.spaceMd),
-        Expanded(child: Text(text, style: textTheme.bodyMedium)),
+        SizedBox(width: compact ? DesignTokens.spaceSm : DesignTokens.spaceMd),
+        Expanded(
+          child: Text(
+            text,
+            style: compact ? textTheme.bodySmall : textTheme.bodyMedium,
+          ),
+        ),
       ],
     );
   }
