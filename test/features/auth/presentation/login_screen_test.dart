@@ -10,12 +10,14 @@ import 'package:sigap_netra_app/features/settings/domain/entities/data_source.da
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/precache_logo.dart';
 
 /// Widget test layar masuk baru: hero, validasi, sheet daftar, tamu.
 void main() {
   late FakeAuthDataSource dataSource;
 
+  setUpAll(loadAppFonts);
   setUp(() => dataSource = FakeAuthDataSource());
   tearDown(() => dataSource.dispose());
 
@@ -192,7 +194,10 @@ void main() {
       expect(dataSource.currentUser?.email, isNull);
     });
 
-    testWidgets('light: render aktual', (tester) async {
+    testWidgets('light: render aktual di ponsel 390x844', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await pumpLogin(tester);
       expect(tester.takeException(), isNull);
       await expectLater(

@@ -5,6 +5,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/bento_tile.dart';
@@ -14,7 +15,7 @@ import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../core/widgets/logo_mark.dart';
-import '../../../../core/widgets/settings_gear_button.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -23,6 +24,7 @@ import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
 import '../../monitoring/domain/entities/detection.dart';
 import '../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../../settings/presentation/widgets/settings_avatar_button.dart';
 import '../../settings/presentation/widgets/simulation_badge.dart';
 import '../../validation/presentation/providers/validation_providers.dart';
 
@@ -46,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
         data: (list) => list.isEmpty ? null : list.first.name,
         orElse: () => null,
       ),
-      actions: const [SimulationBadge(), SettingsGearButton()],
+      actions: const [SimulationBadge(), SettingsAvatarButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
@@ -58,7 +60,7 @@ class HomeScreen extends ConsumerWidget {
             return _NoDeviceState(l10n: l10n);
           }
           final device = list.first;
-          final now = DateTime.now();
+          final now = ref.watch(nowProvider)();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -261,6 +263,7 @@ class _HeroStatsStrip extends StatelessWidget {
               icon: pill.icon ?? Icons.circle_rounded,
               iconTone: pill.tone,
               label: pill.label,
+              semanticLabel: pill.label,
               onHero: onHero,
             ),
           ),
@@ -277,6 +280,9 @@ class _HeroStatsStrip extends StatelessWidget {
                   ? Icons.battery_full_rounded
                   : Icons.battery_alert_rounded,
               label: battery == null ? '–' : '$battery%',
+              semanticLabel: battery == null
+                  ? l10n.homeBatteryUnavailable
+                  : '${l10n.homeBatteryLabel} $battery%',
               onHero: onHero,
             ),
           ),
@@ -288,7 +294,11 @@ class _HeroStatsStrip extends StatelessWidget {
           Expanded(
             child: _HeroStatCell(
               icon: Icons.sync_rounded,
-              label: RelativeTime.timeAndDate(device.lastSeen, l10n: l10n),
+              // Strip hanya memuat jam (tanggal lengkap ada di bento) agar
+              // tidak terpotong di lebar 390 dp.
+              label: RelativeTime.timeOnly(device.lastSeen, l10n: l10n),
+              semanticLabel:
+                  '${l10n.homeSyncedLabel} ${RelativeTime.timeOnly(device.lastSeen, l10n: l10n)}',
               onHero: onHero,
             ),
           ),
@@ -303,11 +313,13 @@ class _HeroStatCell extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onHero,
+    required this.semanticLabel,
     this.iconTone,
   });
 
   final IconData icon;
   final String label;
+  final String semanticLabel;
   final Color onHero;
   final AppStatusTone? iconTone;
 
@@ -323,24 +335,28 @@ class _HeroStatCell extends StatelessWidget {
       null => onHero,
     };
     final textTheme = Theme.of(context).textTheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 18, color: iconColor),
-        const SizedBox(width: DesignTokens.spaceXs),
-        Flexible(
-          child: Text(
-            label,
-            style: textTheme.labelLarge?.copyWith(
-              color: onHero,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    return Semantics(
+      label: semanticLabel,
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: iconColor),
+          const SizedBox(width: DesignTokens.spaceXs),
+          Flexible(
+            child: Text(
+              label,
+              style: textTheme.labelLarge?.copyWith(
+                color: onHero,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -554,6 +570,7 @@ class _RecentActivitySection extends ConsumerWidget {
         ? null
         : ref.watch(latestDetectionsProvider((deviceId: deviceId, limit: 100)));
     final items = latest?.value?.take(5).toList() ?? const <Detection>[];
+    final now = ref.watch(nowProvider)();
     final isLoading = latest != null && latest.isLoading && !latest.hasValue;
     final hasError = latest != null && latest.hasError && !latest.hasValue;
 
@@ -584,11 +601,7 @@ class _RecentActivitySection extends ConsumerWidget {
           for (var i = 0; i < items.length; i++) ...[
             _ActivityRow(
               detection: items[i],
-              time: RelativeTime.format(
-                items[i].createdAt,
-                DateTime.now(),
-                l10n: l10n,
-              ),
+              time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
             ),
             if (i < items.length - 1)
               const Divider(

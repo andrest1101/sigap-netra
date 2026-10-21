@@ -5,11 +5,15 @@ import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/core/widgets/photo_viewer.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../helpers/app_fonts.dart';
+
 /// Penampil foto layar penuh: zoom, reset, dan rute tutup.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Uint8List bytes;
+
+  setUpAll(loadAppFonts);
 
   setUpAll(() async {
     final data = await rootBundle.load('assets/images/demo_money_100k.jpg');

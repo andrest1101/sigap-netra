@@ -10,7 +10,11 @@ import 'event_data_source.dart';
 /// Data disimpan in-memory dan hilang saat aplikasi ditutup, sesuai sifat
 /// simulasi.
 class FakeEventDataSource implements EventDataSource {
-  List<DeviceEvent> _items = _sample();
+  /// [now] dapat dipatok test/golden; produksi memakai jam sistem.
+  FakeEventDataSource({DateTime Function()? now})
+    : _items = _sample((now ?? DateTime.now)());
+
+  List<DeviceEvent> _items;
 
   /// Isi saat ini, dipakai test dan demo reset.
   List<DeviceEvent> get itemsForTest => List<DeviceEvent>.unmodifiable(_items);
@@ -77,8 +81,7 @@ class FakeEventDataSource implements EventDataSource {
   }
 }
 
-List<DeviceEvent> _sample() {
-  final now = DateTime.now();
+List<DeviceEvent> _sample(DateTime now) {
   return [
     DeviceEvent(
       id: 'evt-boot',

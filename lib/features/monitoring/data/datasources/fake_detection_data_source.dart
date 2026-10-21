@@ -12,10 +12,14 @@ import 'detection_data_source.dart';
 /// simulasi. Dipakai juga sebagai dasar demo Validasi dan Riwayat sampai
 /// repository production terhubung ke Firestore.
 class FakeDetectionDataSource implements DetectionDataSource {
+  /// [now] dapat dipatok test/golden; produksi memakai jam sistem.
+  FakeDetectionDataSource({DateTime Function()? now})
+    : _items = _sample((now ?? DateTime.now)());
+
   final StreamController<List<Detection>> _controller =
       StreamController<List<Detection>>.broadcast();
 
-  List<Detection> _items = _sample();
+  List<Detection> _items;
 
   /// Isi saat ini, dipakai fake data sources lain yang berbagi penyimpanan
   /// (mis. validasi) dan dipakai test.
@@ -101,8 +105,7 @@ class FakeDetectionDataSource implements DetectionDataSource {
 /// - [_pastDetections]: 27 hari ke belakang dari [_pastDayPattern] supaya
 ///   panel Statistik dan paginasi Riwayat punya data nyata untuk dihitung —
 ///   bukan grafik kosong.
-List<Detection> _sample() {
-  final now = DateTime.now();
+List<Detection> _sample(DateTime now) {
   return [
     Detection(
       id: 'det-money-100k',

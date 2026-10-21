@@ -1030,6 +1030,42 @@ abstract class AppLocalizations {
   /// **'Detail perangkat'**
   String get deviceDetailTitle;
 
+  /// No description provided for @deviceInfoTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Informasi perangkat'**
+  String get deviceInfoTitle;
+
+  /// No description provided for @deviceActionsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Aksi'**
+  String get deviceActionsTitle;
+
+  /// No description provided for @deviceLogActionTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Log koneksi'**
+  String get deviceLogActionTitle;
+
+  /// No description provided for @deviceQrActionBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Hubungkan kacamata ke jaringan lewat QR.'**
+  String get deviceQrActionBody;
+
+  /// No description provided for @deviceControlActionBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Kirim perintah dan atur volume dari jauh.'**
+  String get deviceControlActionBody;
+
+  /// No description provided for @deviceLogActionBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka kejadian koneksi dan riwayat perintah.'**
+  String get deviceLogActionBody;
+
   /// No description provided for @deviceFirmwareLabel.
   ///
   /// In id, this message translates to:
@@ -1203,6 +1239,78 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Kontrol jarak jauh'**
   String get commandsTitle;
+
+  /// No description provided for @commandsQuickActions.
+  ///
+  /// In id, this message translates to:
+  /// **'Aksi cepat'**
+  String get commandsQuickActions;
+
+  /// No description provided for @commandsHistoryTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Riwayat perintah'**
+  String get commandsHistoryTitle;
+
+  /// No description provided for @commandsNoDeviceTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perangkat dipilih'**
+  String get commandsNoDeviceTitle;
+
+  /// No description provided for @commandsNoDeviceBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Pilih perangkat di tab Perangkat sebelum mengirim perintah.'**
+  String get commandsNoDeviceBody;
+
+  /// No description provided for @commandsOpenDevices.
+  ///
+  /// In id, this message translates to:
+  /// **'Buka Perangkat'**
+  String get commandsOpenDevices;
+
+  /// No description provided for @commandsSyncNowBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Sinkronkan pembacaan terbaru.'**
+  String get commandsSyncNowBody;
+
+  /// No description provided for @commandsSpeakTextBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Bacakan teks lewat speaker.'**
+  String get commandsSpeakTextBody;
+
+  /// No description provided for @commandsSetVolumeBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Atur level suara perangkat.'**
+  String get commandsSetVolumeBody;
+
+  /// No description provided for @commandsRestartBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Mulai ulang setelah konfirmasi.'**
+  String get commandsRestartBody;
+
+  /// No description provided for @commandsReprovisionBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Ganti jaringan lewat QR.'**
+  String get commandsReprovisionBody;
+
+  /// No description provided for @commandsEmptyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Belum ada perintah'**
+  String get commandsEmptyTitle;
+
+  /// No description provided for @commandsEmptyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Perintah yang Anda kirim dari aplikasi akan muncul di sini.'**
+  String get commandsEmptyBody;
 
   /// No description provided for @commandsSyncNow.
   ///

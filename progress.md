@@ -1,5 +1,42 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-21 Batch 2 — Satu bahasa header seksi & kartu
+
+Batch kedua poles UI/UX menyatukan bahasa visual layar pengaturan, detail perangkat, dan kontrol jarak jauh. Fokusnya bukan sekadar merapikan jarak, tetapi menghapus header privat dan tumpukan `ListTile` telanjang agar tiga layar terasa berasal dari produk yang sama.
+
+- **Primitif bersama.** `SectionHeader` dipindah dari `bento_tile.dart` ke `lib/core/widgets/section_header.dart` dengan varian halaman/`inset`, aksi kanan opsional, dan `dense`. Header privat `_SectionTitle` di Pengaturan dan panel Statistik serta `_SectionLabel` di Detail perangkat dihapus. `SectionCard` (kartu tonal + hairline, divider inset opsional) dan `ActionTile` (baris aksi 40 dp, judul/keterangan, chevron atau kunci) ditambahkan sebagai primitif Batch 2.
+- **Pengaturan.** Header akun tetap hero `primaryContainer`; Privasi dan data, Lanjutan, serta Tentang menjadi tiga kartu seksi. Teks penjelas panjang (thumbnail, retensi, mode pengembang) pindah ke lebar penuh di bawah saklar, bukan subtitle yang terhimpit switch. Sumber data tetap melaporkan hasil resolusi, bukan niat toggle. Masih terang-saja, tanpa pemilih tema.
+- **Detail perangkat.** Hero + tiga kartu: Informasi perangkat (model, firmware, Wi-Fi, baterai, jumlah boot), Privasi dan data (status thumbnail + catatan read-only), dan Aksi. QR/Kontrol/Log kini `ActionTile`, bukan chip mengambang.
+- **Kontrol jarak jauh.** Kartu **Aksi cepat** berisi lima `ActionTile` dan kartu **Riwayat perintah** berisi `CommandTile.embedded`. Status pindah ke baris judul; waktu/hasil memakai lebar penuh agar tidak terpotong di 360 dp. Tanpa perangkat: notice jelas, tombol Buka Perangkat, dan semua aksi nonaktif dengan ikon kunci serta alasan.
+- **Beranda.** Strip hero memakai `RelativeTime.timeOnly` (`22.15`) sehingga tidak lagi memotong tanggal di 390 dp; tanggal lengkap tetap di Bento. Stat strip diberi label semantik.
+- **l10n & teks.** Kunci Batch 2 ditambahkan, termasuk `deviceLogActionTitle`; keterangan aksi Kontrol dipendekkan agar terbaca penuh pada 360×800 @1,3×.
+- **Test & golden.** +11 test (dari 289): golden Pengaturan/Detail perangkat/Kontrol, test widget Detail perangkat, keadaan tanpa perangkat, 360×800 @1,3× untuk tiga layar, dan test `RelativeTime.timeOnly/timeAndDate`. Golden Beranda diperbarui untuk jam saja dan golden Statistik untuk header 16/SemiBold. Seluruh golden diinspeksi manual.
+- **Verifikasi.** `dart format .` bersih (206 file, 0 berubah); `flutter analyze` No issues; `flutter test` **300 lulus**.
+- **Catatan.** Tanpa paket baru dan tanpa perubahan schema/rules/protokol perangkat/perilaku data. Batch 3 (layar masuk, QR, sheet, gestur) menjadi fokus berikutnya.
+
+## 2026-10-20 Koreksi header — kembali ke app bar rapat
+
+Review produk menemukan header tab akar terlalu turun: Batch 1 sempat memakai large-title 28/Bold dan menaruh deret aksi di baris terpisah di atas judul. Akibatnya judul berada jauh di bawah tepi atas dan konten ikut terdorong.
+
+- **Kembali ke pola sebelumnya.** `LargeTitleScaffold` sekarang memakai `SliverAppBar` rapat: judul 18/SemiBold sebaris dengan aksi (pil simulasi/refresh/menu/avatar) di app bar paling atas, pinned saat scroll.
+- **Subjudul di bawah app bar.** Nama perangkat / progres validasi / jumlah riwayat memakai 14/Regular, berada tepat di bawah toolbar dan ikut tergulir — bukan bagian dari header besar.
+- **Large-title dihapus.** Varian judul 28→18, titik amber, hairline, dan `SliverPersistentHeader` kustom dibuang agar layout tidak turun lagi.
+- **Test & golden.** Test header diubah menjadi kontrak app bar rapat (judul/aksi sebaris, judul di atas, tetap menempel saat scroll, 360×800 @1,3×). Golden Beranda, Riwayat, Statistik, Validasi, dan Perangkat diregenerasi serta diinspeksi.
+- **Verifikasi.** `dart format .` bersih; `flutter analyze` No issues; `flutter test` **289 lulus**.
+
+## 2026-10-20 Batch 1 — Fondasi app bar, avatar Pengaturan, tipografi nyata
+
+Batch pertama poles UI/UX setelah audit. Fokusnya fondasi yang dipakai semua tab: hierarki judul, satu pintu Pengaturan, dan golden yang benar-benar menampilkan font/ikon aplikasi — bukan kotak Ahem.
+
+- **Header tab akar.** Percobaan large-title 28/Bold menyusut dibatalkan setelah review; header akhir adalah app bar rapat yang sudah ada sebelumnya (lihat entri koreksi di atas).
+- **Avatar Pengaturan.** `SettingsAvatarButton` menggantikan gear: inisial nama/email (atau ikon orang), lencana gear 14 dp, target sentuh 48 dp, tooltip "Buka pengaturan". Dipasang di Beranda, Validasi, Riwayat, dan Perangkat. `settings_gear_button.dart` dihapus.
+- **Hierarki judul.** `AppBarTheme.titleTextStyle` layar anak menjadi 18/SemiBold. Plus Jakarta Sans kini diterapkan ke seluruh peran `TextTheme` (sebelumnya `bodySmall` dkk. jatuh ke fallback), tombol, chip, dan label navigation bar.
+- **Golden jujur.** Helper `test/helpers/app_fonts.dart` memuat empat berkas Plus Jakarta Sans + Material Icons dari SDK, sehingga golden 390×844 menampilkan teks/ikon nyata. Golden ponsel dibuat untuk Beranda, Riwayat, Validasi (termasuk geser), Perangkat, dan layar masuk.
+- **Golden deterministik.** `nowProvider` (`lib/core/time/now_provider.dart`) menjadi sumber waktu tampilan; default produksi tetap `DateTime.now`. Golden meng-override-nya dengan `goldenNow` (20 Okt 2026 22.15), dan `FakeAppGraph`/`DemoDeviceRepository` menerima waktu tetap yang sama untuk data demo. Tick sumbu Y teratas grafik Statistik yang sebelumnya terpotong (tampak seperti "~") kini dimulai dari tepi atas.
+- **Test.** 4 test header (judul/aksi sebaris, tetap menempel, tanpa subjudul, 360×800 @1,3×), 3 test kontrak tema (judul anak + font semua peran + tombol/chip/nav), test 360×800 @1,3× untuk empat tab + avatar, dan golden ponsel. Total **289 lulus**.
+- **Verifikasi.** `dart format .` bersih; `flutter analyze` No issues; `flutter test` **289 lulus**. Golden dijalankan ulang setelah jeda >1 menit untuk membuktikan tidak ada drift waktu.
+- **Catatan.** Tanpa paket baru, tanpa perubahan schema/rules/protokol perangkat/perilaku data. Backlog Batch 2–4 + U6 ada di `docs/ui_refinement_backlog.md`. Ditunda: tautan daftar layar masuk 390×844, `Stepper` QR, sheet panjang, label geser Validasi yang terpotong, navigasi layar anak, tablet, dan tanggal strip hero yang terpotong ("22.15 · 2...").
+
 ## 2026-10-20 U4 — Sumber data jujur + penanda mode simulasi
 
 Batch ini menutup kontradiksi yang bisa menyesatkan: `main.dart` memakai `developer_mode ?? true` sementara toggle Pengaturan memakai `?? false`, sehingga instalasi baru menampilkan data demo sambil Pengaturan menulis "Firebase". Sekarang sumber data adalah **hasil resolusi**, bukan niat toggle, dan UI menandainya secara permanen.

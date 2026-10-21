@@ -23,17 +23,20 @@ import 'package:sigap_netra_app/features/validation/presentation/providers/valid
 /// sebagai timer pending saat test selesai. Repository ini selalu menyajikan
 /// perangkat demo ([kDemoDeviceId]) tanpa timer.
 class DemoDeviceRepository implements DeviceRepository {
-  DemoDeviceRepository({this.isOnline = true, this.batteryPct = 82});
+  DemoDeviceRepository({this.isOnline = true, this.batteryPct = 82, this.now});
 
   final bool isOnline;
   final int? batteryPct;
+
+  /// Waktu tetap untuk golden; produksi/test lain memakai jam sistem.
+  final DateTime? now;
 
   Device _device() => Device(
     deviceId: kDemoDeviceId,
     name: kDemoDeviceName,
     model: 'MaixCAM',
     firmwareVersion: 'simulasi-1.0.0',
-    lastSeen: isOnline ? DateTime.now() : DateTime(2026, 1, 1),
+    lastSeen: isOnline ? (now ?? DateTime.now()) : DateTime(2026, 1, 1),
     batteryPct: batteryPct,
     connectivity: isOnline
         ? DeviceConnectivity.online
@@ -58,10 +61,10 @@ class DemoDeviceRepository implements DeviceRepository {
 /// validasi di satu layar langsung terlihat di layar lain. Setiap test
 /// membuat instance baru supaya state tidak bocor antar test.
 class FakeAppGraph {
-  FakeAppGraph({this.historyRepositoryBuilder})
-    : detections = FakeDetectionDataSource(),
-      events = FakeEventDataSource(),
-      commands = FakeCommandDataSource() {
+  FakeAppGraph({this.historyRepositoryBuilder, DateTime? now})
+    : detections = FakeDetectionDataSource(now: _clockOrNull(now)),
+      events = FakeEventDataSource(now: _clockOrNull(now)),
+      commands = FakeCommandDataSource(now: _clockOrNull(now)) {
     media = FakeMediaDataSource(detections);
   }
 
@@ -112,3 +115,6 @@ class FakeAppGraph {
     ),
   ];
 }
+
+DateTime Function()? _clockOrNull(DateTime? now) =>
+    now == null ? null : () => now;

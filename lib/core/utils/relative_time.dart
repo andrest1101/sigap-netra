@@ -16,6 +16,7 @@ abstract final class RelativeTime {
   /// Jam dulu lalu tanggal ("14.32 · 10 Okt"): untuk tile ringkas yang
   /// nilainya waktu terakhir, bukan hitungan mundur relatif.
   static final DateFormat _timeDateFormat = DateFormat('HH.mm · d MMM', 'id');
+  static final DateFormat _timeFormat = DateFormat('HH.mm', 'id');
 
   /// Menampilkan waktu relatif untuk [timestamp].
   ///
@@ -63,5 +64,17 @@ abstract final class RelativeTime {
   }) {
     if (timestamp == null) return l10n.timeNever;
     return _timeDateFormat.format(timestamp);
+  }
+
+  /// Format jam absolut saja untuk strip stat yang sempit.
+  ///
+  /// Tanggal lengkap tetap tersedia di tile bento "Sinkron terakhir" agar
+  /// informasi tidak hilang saat strip Hero hanya memuat jam.
+  static String timeOnly(
+    DateTime? timestamp, {
+    required AppLocalizations l10n,
+  }) {
+    if (timestamp == null) return l10n.timeNever;
+    return _timeFormat.format(timestamp);
   }
 }

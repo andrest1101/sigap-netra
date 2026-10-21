@@ -14,6 +14,7 @@ void main() {
   Future<SharedPreferences> pumpSettings(
     WidgetTester tester, {
     DataSourceSelection selection = const DataSourceSelection.firebase(),
+    double textScale = 1.0,
   }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
@@ -32,7 +33,14 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          home: const SettingsScreen(),
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: const SettingsScreen(),
+            ),
+          ),
         ),
       ),
     );
@@ -148,8 +156,35 @@ void main() {
     ) async {
       await pumpSettings(tester);
 
+      // Tentang berada di bawah lipatan pada viewport default test.
+      await tester.scrollUntilVisible(find.text('1.0.0+1'), 300);
       // Satu sumber versi: `kAppVersionDisplay` di app_constants.dart,
       // dijaga sinkron dengan pubspec (1.0.0+1).
+      expect(find.text('1.0.0+1'), findsOneWidget);
+    });
+  });
+
+  group('Pengaturan — tata letak', () {
+    testWidgets('360x800 @1,3x: kartu seksi muat tanpa overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpSettings(tester, textScale: 1.3);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Privasi dan data'), findsOneWidget);
+
+      await tester.scrollUntilVisible(find.text('Lanjutan'), 300);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Lanjutan'), findsOneWidget);
+
+      await tester.scrollUntilVisible(find.text('Tentang'), 300);
+      expect(tester.takeException(), isNull);
+      expect(find.text('Tentang'), findsOneWidget);
       expect(find.text('1.0.0+1'), findsOneWidget);
     });
   });

@@ -5,14 +5,14 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/battery_ring.dart';
-import '../../../../core/widgets/bento_tile.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
-import '../../../../core/widgets/settings_gear_button.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -23,6 +23,7 @@ import '../../../commands/presentation/widgets/command_presentation.dart';
 import '../../../events/domain/entities/device_event.dart';
 import '../../../events/presentation/providers/events_providers.dart';
 import '../../../events/presentation/widgets/event_presentation.dart';
+import '../../../settings/presentation/widgets/settings_avatar_button.dart';
 import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../../domain/entities/device.dart';
 import '../providers/devices_providers.dart';
@@ -39,7 +40,7 @@ class DeviceListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final devices = ref.watch(myDevicesProvider);
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
 
     return LargeTitleScaffold(
       title: l10n.devicesTitle,
@@ -56,7 +57,7 @@ class DeviceListScreen extends ConsumerWidget {
           icon: const Icon(Icons.refresh_rounded),
           tooltip: l10n.commonRefresh,
         ),
-        const SettingsGearButton(),
+        const SettingsAvatarButton(),
       ],
       body: devices.when(
         loading: () => const _DevicesLoading(),
@@ -495,7 +496,7 @@ class _EventsSection extends ConsumerWidget {
     final items = (async.value ?? const <DeviceEvent>[])
         .take(4)
         .toList(growable: false);
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
 
     final Widget content;
     if (async.isLoading && !async.hasValue) {
@@ -549,7 +550,7 @@ class _CommandsSection extends ConsumerWidget {
     final items = (async.value ?? const <DeviceCommand>[])
         .take(3)
         .toList(growable: false);
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
 
     final Widget content;
     if (async.isLoading && !async.hasValue) {

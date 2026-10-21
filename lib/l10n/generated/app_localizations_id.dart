@@ -502,6 +502,26 @@ class AppLocalizationsId extends AppLocalizations {
   String get deviceDetailTitle => 'Detail perangkat';
 
   @override
+  String get deviceInfoTitle => 'Informasi perangkat';
+
+  @override
+  String get deviceActionsTitle => 'Aksi';
+
+  @override
+  String get deviceLogActionTitle => 'Log koneksi';
+
+  @override
+  String get deviceQrActionBody => 'Hubungkan kacamata ke jaringan lewat QR.';
+
+  @override
+  String get deviceControlActionBody =>
+      'Kirim perintah dan atur volume dari jauh.';
+
+  @override
+  String get deviceLogActionBody =>
+      'Buka kejadian koneksi dan riwayat perintah.';
+
+  @override
   String get deviceFirmwareLabel => 'Versi firmware';
 
   @override
@@ -594,6 +614,44 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get commandsTitle => 'Kontrol jarak jauh';
+
+  @override
+  String get commandsQuickActions => 'Aksi cepat';
+
+  @override
+  String get commandsHistoryTitle => 'Riwayat perintah';
+
+  @override
+  String get commandsNoDeviceTitle => 'Belum ada perangkat dipilih';
+
+  @override
+  String get commandsNoDeviceBody =>
+      'Pilih perangkat di tab Perangkat sebelum mengirim perintah.';
+
+  @override
+  String get commandsOpenDevices => 'Buka Perangkat';
+
+  @override
+  String get commandsSyncNowBody => 'Sinkronkan pembacaan terbaru.';
+
+  @override
+  String get commandsSpeakTextBody => 'Bacakan teks lewat speaker.';
+
+  @override
+  String get commandsSetVolumeBody => 'Atur level suara perangkat.';
+
+  @override
+  String get commandsRestartBody => 'Mulai ulang setelah konfirmasi.';
+
+  @override
+  String get commandsReprovisionBody => 'Ganti jaringan lewat QR.';
+
+  @override
+  String get commandsEmptyTitle => 'Belum ada perintah';
+
+  @override
+  String get commandsEmptyBody =>
+      'Perintah yang Anda kirim dari aplikasi akan muncul di sini.';
 
   @override
   String get commandsSyncNow => 'Sinkronkan sekarang';

@@ -2,32 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/time/now_provider.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/golden_clock.dart';
 
 /// Golden segmen Statistik Riwayat (terang-saja).
 ///
-/// Jendela 7 hari dipilih karena angkanya **selalu sama**: sampel demo
-/// dibangkitkan relatif ke hari ini, jadi total/akurasi tidak berubah
-/// antartanggal — hanya urutan nama hari yang berotasi, dan font test
-/// merender setiap huruf sebagai kotak berukuran sama sehingga gambar tetap
-/// stabil. (Jendela 4 minggu memakai label tanggal "1 Okt"/"22 Sep" yang
-/// panjangnya berubah, jadi tidak dijadikan golden.)
+/// Jendela 7 hari dipilih karena angkanya **selalu sama** saat jam dipatok ke
+/// [goldenNow]: sampel demo dan batas jendela memakai waktu tetap yang sama,
+/// jadi total, akurasi, dan urutan nama hari tidak berubah antartanggal. Font
+/// aplikasi dimuat agar label, lebar batang, dan line break diuji apa adanya.
+/// (Jendela 4 minggu memakai label tanggal "1 Okt"/"22 Sep" yang panjangnya
+/// berubah, jadi tidak dijadikan golden.)
 void main() {
+  setUpAll(loadAppFonts);
+
   Future<void> pumpStats(WidgetTester tester) async {
-    final graph = FakeAppGraph();
+    final graph = FakeAppGraph(now: goldenNow);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          nowProvider.overrideWithValue(() => goldenNow),
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
-          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+          deviceRepositoryProvider.overrideWithValue(
+            DemoDeviceRepository(now: goldenNow),
+          ),
           ...graph.overrides,
         ],
         child: MaterialApp(
