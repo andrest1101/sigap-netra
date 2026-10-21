@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../theme/design_tokens.dart';
 
+/// Batas tinggi sheet agar tetap terasa seperti bottom sheet, bukan layar
+/// penuh. Isi yang panjang digulir; baris aksi tidak pernah ikut tergulir.
+const double _maxSheetHeightFactor = 0.85;
+
 /// Bottom sheet konfirmasi destruktif dengan gaya v3.
 ///
 /// Judul menyebut objek yang dikenai aksi. Tombol destruktif tidak otomatis
@@ -33,6 +37,11 @@ class ConfirmSheet extends StatelessWidget {
   }) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * _maxSheetHeightFactor,
+      ),
       builder: (context) => ConfirmSheet(
         title: title,
         message: message,
@@ -48,67 +57,39 @@ class ConfirmSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          DesignTokens.spacePage,
-          DesignTokens.spaceMd,
-          DesignTokens.spacePage,
-          DesignTokens.spacePage,
+    return _SheetFrame(
+      title: title,
+      message: message,
+      icon: Container(
+        padding: const EdgeInsets.all(DesignTokens.spaceSm),
+        decoration: ShapeDecoration(
+          color: colorScheme.errorContainer,
+          shape: const StadiumBorder(),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(DesignTokens.spaceSm),
-                  decoration: ShapeDecoration(
-                    color: colorScheme.errorContainer,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Icon(icon, color: colorScheme.onErrorContainer),
-                ),
-                const SizedBox(width: DesignTokens.spaceMd),
-                Expanded(child: Text(title, style: textTheme.titleLarge)),
-              ],
+        child: Icon(icon, color: colorScheme.onErrorContainer),
+      ),
+      actions: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              autofocus: true,
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.commonCancel),
             ),
-            const SizedBox(height: DesignTokens.spaceMd),
-            Text(
-              message,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: DesignTokens.spaceMd),
+          Expanded(
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
               ),
+              onPressed: onConfirm ?? () => Navigator.of(context).pop(true),
+              child: Text(confirmLabel),
             ),
-            const SizedBox(height: DesignTokens.spaceSection),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    autofocus: true,
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(l10n.commonCancel),
-                  ),
-                ),
-                const SizedBox(width: DesignTokens.spaceMd),
-                Expanded(
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: colorScheme.onError,
-                    ),
-                    onPressed:
-                        onConfirm ?? () => Navigator.of(context).pop(true),
-                    child: Text(confirmLabel),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -141,6 +122,11 @@ class ConsentSheet extends StatelessWidget {
   }) async {
     final result = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * _maxSheetHeightFactor,
+      ),
       builder: (context) => ConsentSheet(
         title: title,
         message: message,
@@ -154,62 +140,109 @@ class ConsentSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+
+    return _SheetFrame(
+      title: title,
+      message: message,
+      icon: Container(
+        padding: const EdgeInsets.all(DesignTokens.spaceSm),
+        decoration: ShapeDecoration(
+          color: colorScheme.tertiaryContainer,
+          shape: const StadiumBorder(),
+        ),
+        child: Icon(icon, color: colorScheme.onTertiaryContainer),
+      ),
+      actions: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              autofocus: true,
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.commonCancel),
+            ),
+          ),
+          const SizedBox(width: DesignTokens.spaceMd),
+          Expanded(
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(acceptLabel),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kerangka bersama ConfirmSheet/ConsentSheet.
+///
+/// Isi (ikon + judul + pesan) berada di dalam [Flexible] +
+/// [SingleChildScrollView], sedangkan baris aksi dipaku di bawah dan hanya
+/// ikut SafeArea. Dengan begitu teks panjang pada layar 360x640 + 1,3x
+/// menggulir di tengah, tetapi tombol Batal/aksi tidak pernah hilang.
+class _SheetFrame extends StatelessWidget {
+  const _SheetFrame({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.actions,
+  });
+
+  final Widget icon;
+  final String title;
+  final String message;
+  final Widget actions;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          DesignTokens.spacePage,
-          DesignTokens.spaceMd,
-          DesignTokens.spacePage,
-          DesignTokens.spacePage,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(DesignTokens.spaceSm),
-                  decoration: ShapeDecoration(
-                    color: colorScheme.tertiaryContainer,
-                    shape: const StadiumBorder(),
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                DesignTokens.spacePage,
+                0,
+                DesignTokens.spacePage,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      icon,
+                      const SizedBox(width: DesignTokens.spaceMd),
+                      Expanded(child: Text(title, style: textTheme.titleLarge)),
+                    ],
                   ),
-                  child: Icon(icon, color: colorScheme.onTertiaryContainer),
-                ),
-                const SizedBox(width: DesignTokens.spaceMd),
-                Expanded(child: Text(title, style: textTheme.titleLarge)),
-              ],
-            ),
-            const SizedBox(height: DesignTokens.spaceMd),
-            Text(
-              message,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                  const SizedBox(height: DesignTokens.spaceMd),
+                  Text(
+                    message,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: DesignTokens.spaceSection),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    autofocus: true,
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(l10n.commonCancel),
-                  ),
-                ),
-                const SizedBox(width: DesignTokens.spaceMd),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(acceptLabel),
-                  ),
-                ),
-              ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              DesignTokens.spacePage,
+              DesignTokens.spaceLg,
+              DesignTokens.spacePage,
+              DesignTokens.spacePage,
             ),
-          ],
-        ),
+            child: actions,
+          ),
+        ],
       ),
     );
   }
