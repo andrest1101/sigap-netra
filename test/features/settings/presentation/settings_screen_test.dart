@@ -15,6 +15,7 @@ void main() {
     WidgetTester tester, {
     DataSourceSelection selection = const DataSourceSelection.firebase(),
     double textScale = 1.0,
+    double bottomInset = 0,
   }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
@@ -34,12 +35,19 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
           home: Builder(
-            builder: (context) => MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(textScale)),
-              child: const SettingsScreen(),
-            ),
+            builder: (context) {
+              final media = MediaQuery.of(context);
+              return MediaQuery(
+                data: media.copyWith(
+                  textScaler: TextScaler.linear(textScale),
+                  // Meniru navigation bar Android (edge-to-edge) pada
+                  // pengujian layout bawah.
+                  padding: media.padding.copyWith(bottom: bottomInset),
+                  viewPadding: media.viewPadding.copyWith(bottom: bottomInset),
+                ),
+                child: const SettingsScreen(),
+              );
+            },
           ),
         ),
       ),
@@ -187,5 +195,34 @@ void main() {
       expect(find.text('Tentang'), findsOneWidget);
       expect(find.text('1.0.0+1'), findsOneWidget);
     });
+
+    testWidgets(
+      '360x800 @1,3x + navigation bar: versi Tentang tetap terlihat penuh',
+      (tester) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+
+        // Android edge-to-edge: navigation bar 48 dp menutupi bagian bawah
+        // Scaffold bila body tidak memakai SafeArea.
+        await pumpSettings(tester, textScale: 1.3, bottomInset: 48);
+        await tester.pump();
+
+        await tester.scrollUntilVisible(find.text('1.0.0+1'), 300);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        final versionRect = tester.getRect(find.text('1.0.0+1'));
+        expect(
+          versionRect.bottom,
+          lessThanOrEqualTo(800 - 48),
+          reason: 'baris versi tidak boleh masuk area navigation bar',
+        );
+        // Masih ada ruang gulir setelah kartu Tentang, bukan berhenti tepat
+        // di tepi inset.
+        final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+        expect(scaffold.body, isA<SafeArea>());
+      },
+    );
   });
 }

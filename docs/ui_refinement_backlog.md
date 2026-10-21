@@ -103,25 +103,27 @@ diperiksa. Tanpa perubahan schema/rules/device atau package.
 
 ## Batch 3 — Alur masuk, QR, sheet, dan gestur
 
-- [ ] **Layar masuk 390×844 / 360×640:** tautan "Belum punya akun? Daftar"
+- [x] **Layar masuk 390×844 / 360×640:** tautan "Belum punya akun? Daftar"
       menempel di tepi bawah. Jadikan form scrollable dengan bottom safe padding,
       ringkas hero pada tinggi pendek, dan pastikan CTA + link daftar terlihat
       tanpa terpotong pada 1,3×.
-- [ ] **QR provisioning:** `Stepper` bawaan Material terlalu tinggi dan
+- [x] **QR provisioning:** `Stepper` bawaan Material terlalu tinggi dan
       menyisakan ruang kosong; ganti dengan header langkah kustom (3 langkah,
       progres, satu langkah aktif) yang scrollable. **Jangan ubah payload QR,
       nama field, atau urutan langkah.**
-- [ ] **ConfirmSheet / ConsentSheet:** `Column(mainAxisSize.min)` bisa overflow
+- [x] **ConfirmSheet / ConsentSheet:** `Column(mainAxisSize.min)` bisa overflow
       saat teks panjang + tinggi pendek + 1,3×. Bungkus isi dalam
       `SingleChildScrollView`, batasi tinggi ±85% layar, pertahankan tombol di
       bawah dan fokus aman pada Batal.
-- [ ] **Petunjuk geser Validasi:** label "Tidak cocok"/"Cocok" di latar
-      terpotong kartu sehingga hanya terlihat sebagian. Posisikan label di area
-      yang benar-benar terbuka saat kartu bergeser, atau gunakan ikon + label
-      pendek yang tetap terbaca.
-- [ ] Periksa state kosong/error layar masuk, Validasi, Riwayat, Perangkat pada
+- [x] **Petunjuk geser Validasi:** label "Tidak cocok"/"Cocok" di latar
+      terpotong kartu sehingga hanya terlihat sebagian. Label kini menjadi pil
+      mengambang di atas kartu; latar status hanya ikon.
+- [x] Periksa state kosong/error layar masuk, Validasi, Riwayat, Perangkat pada
       360 dp: CTA tidak boleh di bawah lipatan tanpa scroll.
-- [ ] Test 360×640 dan 390×844 pada 1,3× untuk sheet dan login.
+- [x] Test 360×640 dan 390×844 pada 1,3× untuk sheet dan login.
+- [x] **Pengaturan / navigation bar Android:** baris Tentang/versi tertutup
+      navigation bar meski sudah digulir. Body dibungkus `SafeArea` bawah +
+      padding minimum, dan diuji pada 360×800 @1,3× dengan inset 48 dp.
 
 **Definition of done:** tidak ada overflow; alur QR tetap mengirim payload yang
 sama; test 1,3× lulus.

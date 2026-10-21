@@ -120,6 +120,29 @@ void main() {
       expect(find.text('Belum ada pembacaan'), findsNothing);
     });
 
+    testWidgets('360x640 @1,3x tanpa perangkat: CTA tetap dapat dicapai', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await pumpHistory(
+        tester,
+        deviceRepository: const _EmptyDeviceRepository(),
+      );
+      await pumpFrames(tester);
+
+      expect(tester.takeException(), isNull);
+      final cta = find.text('Buka Perangkat');
+      expect(cta, findsOneWidget);
+      await tester.ensureVisible(cta);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(tester.getRect(cta).bottom, lessThanOrEqualTo(640));
+    });
+
     testWidgets('subjudul jujur: jumlah yang dimuat', (tester) async {
       await pumpHistory(tester);
       await pumpFrames(tester);

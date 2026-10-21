@@ -50,7 +50,10 @@ void main() {
   setUp(() => repository = _FakeDeviceRepository());
   tearDown(() => repository.close());
 
-  Future<void> pumpScreen(WidgetTester tester) async {
+  Future<void> pumpScreen(WidgetTester tester, {double textScale = 1.0}) async {
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [deviceRepositoryProvider.overrideWithValue(repository)],
@@ -117,6 +120,71 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  testWidgets('header 3 langkah kustom hanya membangun isi langkah aktif', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+
+    // Header selalu menyebut ketiga langkah, tanpa Stepper Material.
+    expect(find.text('Jaringan'), findsOneWidget);
+    expect(find.text('Tampilkan QR'), findsOneWidget);
+    expect(find.text('Menunggu alat'), findsOneWidget);
+    expect(find.byType(Stepper), findsNothing);
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(find.byType(QrImageView), findsNothing);
+
+    await tester.enterText(find.byType(TextFormField).first, 'Hotspot-Andre');
+    await tester.enterText(find.byType(TextFormField).last, 'rahasia123');
+    await tester.tap(find.text('Lanjut'));
+    await tester.pumpAndSettle();
+
+    // Isi Jaringan dilepas; hanya panel QR aktif yang hidup di tree.
+    expect(find.byType(TextFormField), findsNothing);
+    expect(find.byType(QrImageView), findsOneWidget);
+
+    // Langkah selesai bisa diketuk untuk kembali.
+    await tester.tap(find.text('Jaringan'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextFormField), findsNWidgets(2));
+    expect(find.byType(QrImageView), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('360x640 @1,3x: tiga langkah dapat diselesaikan tanpa overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await pumpScreen(tester, textScale: 1.3);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Jaringan'), findsOneWidget);
+    expect(find.text('Tampilkan QR'), findsOneWidget);
+    expect(find.text('Menunggu alat'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).first, 'Hotspot-Andre');
+    await tester.enterText(find.byType(TextFormField).last, 'rahasia123');
+    final nextFromNetwork = find.text('Lanjut');
+    await tester.ensureVisible(nextFromNetwork);
+    await tester.pump();
+    await tester.tap(nextFromNetwork);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(QrImageView), findsOneWidget);
+    final nextFromQr = find.text('Lanjut');
+    await tester.ensureVisible(nextFromQr);
+    await tester.pump();
+    await tester.tap(nextFromQr);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('120'), findsOneWidget);
+    expect(find.textContaining('Menunggu 120 dtk'), findsOneWidget);
   });
 
   testWidgets('detak baru setelah QR dipindai menampilkan "terhubung"', (
