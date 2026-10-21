@@ -6,6 +6,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
@@ -162,7 +163,7 @@ class HistoryDetailScreen extends ConsumerWidget {
                 icon: Icons.schedule_rounded,
                 label: RelativeTime.format(
                   detection.createdAt,
-                  DateTime.now(),
+                  ref.watch(nowProvider)(),
                   l10n: l10n,
                 ),
               ),
@@ -264,7 +265,11 @@ class HistoryDetailScreen extends ConsumerWidget {
       title: l10n.sharingShareText,
       lines: [
         detection.displayLabel,
-        RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n),
+        RelativeTime.format(
+          detection.createdAt,
+          ref.read(nowProvider)(),
+          l10n: l10n,
+        ),
         switch (detection.validationStatus) {
           ValidationStatus.pending => l10n.statusPending,
           ValidationStatus.match => l10n.statusMatch,

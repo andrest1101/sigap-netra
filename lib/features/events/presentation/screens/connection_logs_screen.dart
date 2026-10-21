@@ -8,6 +8,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
@@ -131,7 +132,7 @@ class _ConnectionLogsScreenState extends ConsumerState<ConnectionLogsScreen>
     final commandsAsync = ref.watch(commandsProvider(deviceId));
     final realtimeEvents = eventsAsync?.value ?? const <DeviceEvent>[];
     final commands = commandsAsync.value ?? const <DeviceCommand>[];
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
     final showLatestNote =
         deviceId != null && _severity == null && realtimeEvents.isNotEmpty;
 

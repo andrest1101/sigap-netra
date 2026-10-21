@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/retry_policy.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../data/device_name_cache.dart';
@@ -74,7 +75,7 @@ final myDevicesProvider = Provider.autoDispose<AsyncValue<List<Device>>>((ref) {
   final raw = ref.watch(rawDevicesProvider);
   ref.watch(tickProvider);
 
-  final now = DateTime.now();
+  final now = ref.watch(nowProvider)();
   return raw.whenData(
     (devices) => [for (final device in devices) device.withConnectivity(now)],
   );
@@ -86,7 +87,7 @@ final deviceProvider = Provider.autoDispose.family<AsyncValue<Device?>, String>(
     final raw = ref.watch(rawDeviceProvider(deviceId));
     ref.watch(tickProvider);
 
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
     return raw.whenData((device) => device?.withConnectivity(now));
   },
 );

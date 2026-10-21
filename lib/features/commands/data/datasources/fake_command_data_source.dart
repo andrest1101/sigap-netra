@@ -13,10 +13,18 @@ import 'command_data_source.dart';
 /// lalu otomatis maju ke `done` supaya UI status bisa diuji end-to-end
 /// tanpa hardware.
 class FakeCommandDataSource implements CommandDataSource {
+  /// [now] dapat dipatok test/golden; produksi memakai jam sistem.
+  FakeCommandDataSource({DateTime Function()? now})
+    : _now = now ?? DateTime.now {
+    _items = _sample(_now());
+  }
+
   final StreamController<List<DeviceCommand>> _controller =
       StreamController<List<DeviceCommand>>.broadcast();
 
-  List<DeviceCommand> _items = _sample();
+  final DateTime Function() _now;
+
+  late List<DeviceCommand> _items;
 
   int _counter = 0;
 
@@ -87,7 +95,7 @@ class FakeCommandDataSource implements CommandDataSource {
         deviceId: deviceId,
         type: type,
         status: CommandStatus.pending,
-        createdAt: DateTime.now(),
+        createdAt: _now(),
         payload: payload,
         requestedBy: requestedBy,
       ),
@@ -113,8 +121,7 @@ class FakeCommandDataSource implements CommandDataSource {
   }
 }
 
-List<DeviceCommand> _sample() {
-  final now = DateTime.now();
+List<DeviceCommand> _sample(DateTime now) {
   return [
     DeviceCommand(
       id: 'cmd-sync-1',

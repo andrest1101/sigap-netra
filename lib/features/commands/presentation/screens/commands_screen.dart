@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
@@ -34,7 +35,7 @@ class CommandsScreen extends ConsumerWidget {
     final resolvedId = deviceId ?? ref.watch(primaryDeviceIdProvider);
     final commandsAsync = ref.watch(commandsProvider(resolvedId));
     final items = commandsAsync.value ?? const <DeviceCommand>[];
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
 
     return Scaffold(
       appBar: BackAppBar(

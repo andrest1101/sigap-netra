@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/retry_policy.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../domain/entities/detection_filter.dart';
@@ -102,7 +103,8 @@ class HistoryInsightsKey extends Equatable {
 
 /// Ringkasan agregat panel Statistik (Riwayat → segmen Statistik).
 ///
-/// Batas jendela dihitung dari `DateTime.now()` saat provider pertama dibaca;
+/// Batas jendela dihitung dari `nowProvider` (default `DateTime.now`) saat
+/// provider pertama dibaca;
 /// angka ikut disegarkan ketika halaman invalidate provider ini (hapus baris,
 /// reset validasi) — bukan timer, supaya tidak ada hitungan yang menganggur.
 final historyInsightsProvider = FutureProvider.autoDispose
@@ -112,6 +114,6 @@ final historyInsightsProvider = FutureProvider.autoDispose
           .call(
             deviceId: key.deviceId,
             window: key.window,
-            now: DateTime.now(),
+            now: ref.watch(nowProvider)(),
           );
     }, retry: noRetry);

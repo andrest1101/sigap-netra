@@ -6,6 +6,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/empty_view.dart';
@@ -32,7 +33,7 @@ class DeviceDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final device = ref.watch(deviceProvider(deviceId));
-    final now = DateTime.now();
+    final now = ref.watch(nowProvider)();
 
     return Scaffold(
       appBar: BackAppBar(
