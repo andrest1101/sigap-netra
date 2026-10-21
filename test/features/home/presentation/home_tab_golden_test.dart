@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/time/now_provider.dart';
 import 'package:sigap_netra_app/core/widgets/lens_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
@@ -14,7 +15,9 @@ import 'package:sigap_netra_app/features/devices/presentation/providers/devices_
 import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/golden_clock.dart';
 import '../../../helpers/precache_logo.dart';
 
 /// Repository tiruan: satu perangkat online, baterai 82.
@@ -49,16 +52,22 @@ class _FakeDeviceRepository implements DeviceRepository {
 void main() {
   late _FakeDeviceRepository repository;
 
+  setUpAll(loadAppFonts);
   setUp(() => repository = _FakeDeviceRepository());
   tearDown(() => repository.close());
 
   Future<void> pumpHome(WidgetTester tester) async {
+    // Golden ponsel: 390x844 adalah ukuran acuan Android, bukan kanvas
+    // 800x600 yang menyembunyikan masalah kepadatan.
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
     await precacheLogoMark(tester);
-    final graph = FakeAppGraph();
+    final graph = FakeAppGraph(now: goldenNow);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          nowProvider.overrideWithValue(() => goldenNow),
           deviceRepositoryProvider.overrideWithValue(repository),
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
@@ -87,7 +96,7 @@ void main() {
     deviceId: kDemoDeviceId,
     name: 'Kacamata Cerdas',
     connectivity: DeviceConnectivity.online,
-    lastSeen: DateTime.now(),
+    lastSeen: goldenNow,
     batteryPct: 82,
   );
 

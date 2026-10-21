@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/time/now_provider.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/golden_clock.dart';
 
 /// Golden tab Validasi (terang-saja).
 ///
@@ -18,12 +21,20 @@ import '../../../helpers/fake_app_graph.dart';
 /// `MetricChip`. Warna/palet dari `StatusColors` theme extension ikut
 /// terverifikasi lewat PNG — bukan hanya "tidak error".
 void main() {
+  setUpAll(loadAppFonts);
+
   Future<FakeAppGraph> pumpValidation(WidgetTester tester) async {
-    final graph = FakeAppGraph();
+    // Golden ponsel 390x844: kartu 4:3 + dua tombol aksi harus tetap utuh.
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final graph = FakeAppGraph(now: goldenNow);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+          nowProvider.overrideWithValue(() => goldenNow),
+          deviceRepositoryProvider.overrideWithValue(
+            DemoDeviceRepository(now: goldenNow),
+          ),
           // Antrean butuh UID pengguna (filter keanggotaan), jadi test
           // mem-pump sebagai pengguna yang sudah masuk.
           currentUserProvider.overrideWithValue(
@@ -113,10 +124,9 @@ void main() {
       await pumpFrames(tester);
       await settleThumbnails(tester, graph, find.byType(ValidationScreen));
 
-      // Kartu kini memuat foto 4:3: teks nominal jatuh di luar viewport
-      // 800x600 sehingga tidak bisa jadi titik gesture. Mulai dari area atas
-      // kartu (foto, selalu on-screen). Dua langkah: pertama untuk touch slop,
-      // kedua menggeser.
+      // Kartu memuat foto 4:3. Mulai dari area foto yang selalu on-screen agar
+      // gesture tidak bergantung pada teks nominal. Dua langkah: pertama untuk
+      // touch slop, kedua menggeser.
       final gesture = await tester.startGesture(
         tester.getTopLeft(find.byType(Dismissible).first) +
             const Offset(200, 100),
@@ -125,11 +135,9 @@ void main() {
       await gesture.moveBy(const Offset(80, 0));
       await tester.pump();
 
-      // Label "Tidak cocok" kini muncul dua kali: di tombol DAN di latar
-      // geseran — bukti petunjuk benar-benar terlihat. `skipOffstage: false`
-      // karena kartu berfoto 4:3 mendorong tombol bawah keluar viewport
-      // test 800x600 (tombol offstage, hint onstage).
-      expect(find.text('Tidak cocok', skipOffstage: false), findsNWidgets(2));
+      // Label "Tidak cocok" muncul dua kali: di tombol DAN di latar geseran —
+      // bukti petunjuk benar-benar terlihat di viewport ponsel.
+      expect(find.text('Tidak cocok'), findsNWidgets(2));
 
       await expectLater(
         find.byType(ValidationScreen),

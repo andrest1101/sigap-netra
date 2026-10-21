@@ -2,26 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/time/now_provider.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:sigap_netra_app/features/devices/presentation/providers/devices_providers.dart';
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/golden_clock.dart';
 
 /// Golden tab Riwayat (terang): membuktikan label chip berwarna gelap
 /// terbaca di atas daftar terang — bukan putih yang menyatu dengan latar.
 void main() {
+  setUpAll(loadAppFonts);
+
   Future<FakeAppGraph> pumpHistory(WidgetTester tester) async {
-    final graph = FakeAppGraph();
+    // Golden ponsel 390x844: baris riwayat diuji pada lebar nyata.
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final graph = FakeAppGraph(now: goldenNow);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          nowProvider.overrideWithValue(() => goldenNow),
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
-          deviceRepositoryProvider.overrideWithValue(DemoDeviceRepository()),
+          deviceRepositoryProvider.overrideWithValue(
+            DemoDeviceRepository(now: goldenNow),
+          ),
           ...graph.overrides,
         ],
         child: MaterialApp(

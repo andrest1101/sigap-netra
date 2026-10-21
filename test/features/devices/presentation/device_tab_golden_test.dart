@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigap_netra_app/core/constants/demo_ids.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
+import 'package:sigap_netra_app/core/time/now_provider.dart';
 import 'package:sigap_netra_app/core/widgets/battery_ring.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
@@ -16,7 +17,9 @@ import 'package:sigap_netra_app/features/devices/presentation/providers/devices_
 import 'package:sigap_netra_app/features/devices/presentation/screens/device_list_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
+import '../../../helpers/app_fonts.dart';
 import '../../../helpers/fake_app_graph.dart';
+import '../../../helpers/golden_clock.dart';
 
 /// Repository tiruan: satu perangkat online + baterai 82.
 class _FakeDeviceRepository implements DeviceRepository {
@@ -50,18 +53,23 @@ class _FakeDeviceRepository implements DeviceRepository {
 void main() {
   late _FakeDeviceRepository repository;
 
+  setUpAll(loadAppFonts);
   setUp(() => repository = _FakeDeviceRepository());
   tearDown(() => repository.close());
 
-  Future<FakeAppGraph> pumpDevices(WidgetTester tester) async {
-    final graph = FakeAppGraph();
-    // Tinggi 1400 px supaya seluruh halaman (Kontrol + dua seksi timeline)
-    // ikut terekam golden, bukan hanya bagian atas viewport.
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
+  Future<FakeAppGraph> pumpDevices(
+    WidgetTester tester, {
+    Size surface = const Size(800, 1400),
+  }) async {
+    final graph = FakeAppGraph(now: goldenNow);
+    // Tinggi 1400 px untuk golden halaman penuh; golden ponsel memakai
+    // 390x844 agar kepadatan nyata ikut terbukti.
+    await tester.binding.setSurfaceSize(surface);
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          nowProvider.overrideWithValue(() => goldenNow),
           deviceRepositoryProvider.overrideWithValue(repository),
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
@@ -91,7 +99,7 @@ void main() {
     deviceId: kDemoDeviceId,
     name: 'Kacamata Cerdas',
     connectivity: DeviceConnectivity.online,
-    lastSeen: DateTime.now(),
+    lastSeen: goldenNow,
     model: 'MaixCAM',
     firmwareVersion: 'simulasi-1.0.0',
     batteryPct: 82,
@@ -112,6 +120,21 @@ void main() {
       await expectLater(
         find.byType(DeviceListScreen),
         matchesGoldenFile('../goldens/device_tab_light.png'),
+      );
+    });
+
+    testWidgets('light: ponsel 390x844', (tester) async {
+      await pumpDevices(tester, surface: const Size(390, 844));
+      repository.emit([device()]);
+      await settle(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Kacamata Cerdas'), findsOneWidget);
+      expect(find.byType(BatteryRing), findsOneWidget);
+
+      await expectLater(
+        find.byType(DeviceListScreen),
+        matchesGoldenFile('../goldens/device_tab_phone_light.png'),
       );
     });
 

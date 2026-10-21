@@ -15,12 +15,12 @@ import 'package:sigap_netra_app/features/devices/presentation/providers/devices_
 import 'package:sigap_netra_app/features/devices/presentation/screens/device_list_screen.dart';
 import 'package:sigap_netra_app/features/events/presentation/screens/connection_logs_screen.dart';
 import 'package:sigap_netra_app/features/provisioning/presentation/screens/wifi_provisioning_screen.dart';
-import 'package:sigap_netra_app/core/widgets/settings_gear_button.dart';
 import 'package:sigap_netra_app/features/history/presentation/screens/history_screen.dart';
 import 'package:sigap_netra_app/features/home/presentation/home_screen.dart';
 import 'package:sigap_netra_app/features/settings/domain/entities/data_source.dart';
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
+import 'package:sigap_netra_app/features/settings/presentation/widgets/settings_avatar_button.dart';
 import 'package:sigap_netra_app/features/validation/presentation/screens/validation_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
 
@@ -75,6 +75,7 @@ void main() {
     WidgetTester tester,
     Widget screen, {
     DataSourceSelection selection = const DataSourceSelection.firebase(),
+    double textScale = 1.0,
   }) async {
     final graph = FakeAppGraph();
     await tester.pumpWidget(
@@ -91,6 +92,12 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(textScale)),
+            child: child!,
+          ),
           home: screen,
         ),
       ),
@@ -157,17 +164,19 @@ void main() {
     });
   });
 
-  group('Pintu Pengaturan tunggal via gear', () {
+  group('Pintu Pengaturan tunggal via avatar', () {
     for (final entry in <(String, Widget)>[
       ('Beranda', const HomeScreen()),
       ('Validasi', const ValidationScreen()),
       ('Riwayat', const HistoryScreen()),
       ('Perangkat', const DeviceListScreen()),
     ]) {
-      testWidgets('tab ${entry.$1} punya ikon gear Pengaturan', (tester) async {
+      testWidgets('tab ${entry.$1} punya avatar Pengaturan', (tester) async {
         await pumpScreen(tester, entry.$2);
         expect(tester.takeException(), isNull);
-        expect(find.byType(SettingsGearButton), findsOneWidget);
+        expect(find.byType(SettingsAvatarButton), findsOneWidget);
+        // Inisial email pengguna (user@example.com → U) tampil di avatar.
+        expect(find.text('U'), findsOneWidget);
       });
     }
 
@@ -175,9 +184,11 @@ void main() {
       await pumpScreen(tester, const DeviceListScreen());
       expect(tester.takeException(), isNull);
       // Tombol pil "Pengaturan" milik kartu lama harus hilang; yang ada
-      // hanyalah gear di app bar.
-      expect(find.byType(SettingsGearButton), findsOneWidget);
-      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      // hanyalah avatar Pengaturan di app bar (lencana gear kecilnya adalah
+      // penanda, bukan tombol terpisah).
+      expect(find.byType(SettingsAvatarButton), findsOneWidget);
+      expect(find.byIcon(Icons.settings_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsNothing);
     });
 
     testWidgets('Pengaturan menampilkan header akun + tombol kembali', (
@@ -216,10 +227,10 @@ void main() {
       expect(find.text('SIMULASI'), findsNothing);
     });
 
-    testWidgets('pil muat di 360 dp bersama gear + menu Riwayat', (
+    testWidgets('pil muat di 360 dp bersama avatar + menu Riwayat', (
       tester,
     ) async {
-      // Riwayat adalah app bar terpadat (pil + gear + menu). 360 dp adalah
+      // Riwayat adalah app bar terpadat (pil + avatar + menu). 360 dp adalah
       // lebar ponsel terkecil yang didukung; overflow akan menjadi exception.
       tester.view.physicalSize = const Size(360, 800);
       tester.view.devicePixelRatio = 1;
@@ -236,6 +247,34 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('SIMULASI'), findsOneWidget);
     });
+
+    for (final entry in <(String, Widget)>[
+      ('Beranda', const HomeScreen()),
+      ('Validasi', const ValidationScreen()),
+      ('Riwayat', const HistoryScreen()),
+      ('Perangkat', const DeviceListScreen()),
+    ]) {
+      testWidgets('tab ${entry.$1} muat di 360 dp dengan teks 1,3x', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(360, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+
+        await pumpScreen(
+          tester,
+          entry.$2,
+          selection: const DataSourceSelection.simulation(
+            SimulationReason.developerMode,
+          ),
+          textScale: 1.3,
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('SIMULASI'), findsOneWidget);
+        expect(find.byType(SettingsAvatarButton), findsOneWidget);
+      });
+    }
   });
 
   group('Detail perangkat terjangkau', () {
