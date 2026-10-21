@@ -32,22 +32,31 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(l10n.settingsTitle),
         fallbackRoute: AppRoutes.home,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          DesignTokens.spacePage,
-          DesignTokens.spaceMd,
-          DesignTokens.spacePage,
-          DesignTokens.spaceSection,
+      // SafeArea bawah wajib: pada Android edge-to-edge, body Scaffold dapat
+      // berada di belakang navigation bar sistem. Tanpa inset ini baris
+      // "Tentang / versi" tertutup meski sudah digulir sampai bawah. Padding
+      // 24 dp di ListView tetap dipertahankan agar ada ruang napas setelah
+      // kartu terakhir, bukan sekadar menempel di tepi inset.
+      body: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: DesignTokens.spaceLg),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            DesignTokens.spacePage,
+            DesignTokens.spaceMd,
+            DesignTokens.spacePage,
+            DesignTokens.spaceSection,
+          ),
+          children: [
+            const _AccountHeader(),
+            SectionHeader.inset(title: l10n.settingsPrivacyTitle),
+            const _PrivacySection(),
+            SectionHeader.inset(title: l10n.settingsAdvancedTitle),
+            const _AdvancedSection(),
+            SectionHeader.inset(title: l10n.settingsAboutTitle),
+            const _AboutSection(),
+          ],
         ),
-        children: [
-          const _AccountHeader(),
-          SectionHeader.inset(title: l10n.settingsPrivacyTitle),
-          const _PrivacySection(),
-          SectionHeader.inset(title: l10n.settingsAdvancedTitle),
-          const _AdvancedSection(),
-          SectionHeader.inset(title: l10n.settingsAboutTitle),
-          const _AboutSection(),
-        ],
       ),
     );
   }
