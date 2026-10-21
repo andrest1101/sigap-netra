@@ -49,11 +49,14 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
+        // Header tab akar dan layar anak sama-sama memakai 18/SemiBold.
+        // Header akar sengaja rapat agar konten tidak terdorong ke bawah;
+        // hierarki navigasi dibedakan oleh tombol kembali dan isi layar.
         titleTextStyle: TextStyle(
           fontFamily: fontFamily,
           color: colorScheme.onSurface,
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
         ),
       ),
       // Kartu tonal v3: tanpa shadow, dengan hairline `outlineVariant` agar
@@ -79,7 +82,10 @@ abstract final class AppTheme {
             horizontal: DesignTokens.spaceXl,
             vertical: DesignTokens.spaceMd,
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -94,7 +100,10 @@ abstract final class AppTheme {
             horizontal: DesignTokens.spaceXl,
             vertical: DesignTokens.spaceMd,
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -104,7 +113,10 @@ abstract final class AppTheme {
             DesignTokens.minTouchTarget,
           ),
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: fontFamily,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
@@ -158,6 +170,7 @@ abstract final class AppTheme {
         side: BorderSide(color: colorScheme.outlineVariant),
         shape: const StadiumBorder(),
         labelStyle: TextStyle(
+          fontFamily: fontFamily,
           color: WidgetStateColor.resolveWith((states) {
             if (states.contains(WidgetState.disabled)) {
               return colorScheme.onSurface.withValues(alpha: 0.38);
@@ -195,7 +208,11 @@ abstract final class AppTheme {
         height: 80,
         backgroundColor: colorScheme.surfaceContainer,
         labelTextStyle: WidgetStatePropertyAll(
-          const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+          const TextStyle(
+            fontFamily: fontFamily,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
         ),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
@@ -220,35 +237,44 @@ abstract final class AppTheme {
 
   /// Tipografi v3: large-title 28/Bold, title 18/SemiBold, body 14,
   /// label/chip 12/SemiBold, angka besar 32-40/Bold tabular.
+  ///
+  /// `TextTheme.apply` penting: seluruh peran (termasuk `bodySmall` dan
+  /// headline yang tidak di-override) wajib memakai Plus Jakarta Sans. Bila
+  /// hanya sebagian di-`copyWith`, peran yang terlewat jatuh ke font fallback
+  /// platform — terlihat jelas sebagai glyph kotak di golden test.
   static TextTheme _textTheme(TextTheme base) {
-    TextStyle? withFamily(TextStyle? style) =>
-        style?.copyWith(fontFamily: fontFamily);
-    return base.copyWith(
-      displayLarge: withFamily(
-        base.displayLarge?.copyWith(fontWeight: FontWeight.w700),
+    final themed = base.apply(fontFamily: fontFamily);
+    return themed.copyWith(
+      displayLarge: themed.displayLarge?.copyWith(fontWeight: FontWeight.w700),
+      headlineSmall: themed.headlineSmall?.copyWith(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
       ),
-      headlineSmall: withFamily(
-        base.headlineSmall?.copyWith(fontSize: 28, fontWeight: FontWeight.w700),
+      titleLarge: themed.titleLarge?.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
       ),
-      titleLarge: withFamily(
-        base.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+      titleMedium: themed.titleMedium?.copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
-      titleMedium: withFamily(
-        base.titleMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
+      titleSmall: themed.titleSmall?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
       ),
-      titleSmall: withFamily(
-        base.titleSmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w600),
+      bodyLarge: themed.bodyLarge?.copyWith(fontSize: 16),
+      bodyMedium: themed.bodyMedium?.copyWith(fontSize: 14),
+      labelLarge: themed.labelLarge?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
       ),
-      bodyLarge: withFamily(base.bodyLarge?.copyWith(fontSize: 16)),
-      bodyMedium: withFamily(base.bodyMedium?.copyWith(fontSize: 14)),
-      labelLarge: withFamily(
-        base.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w600),
+      labelMedium: themed.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
       ),
-      labelMedium: withFamily(
-        base.labelMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
-      ),
-      labelSmall: withFamily(
-        base.labelSmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+      labelSmall: themed.labelSmall?.copyWith(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
       ),
     );
   }

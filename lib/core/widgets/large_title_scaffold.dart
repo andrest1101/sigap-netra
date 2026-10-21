@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
 
-/// Scaffold app bar standar M3 yang rapat + opsional judul-besar.
+/// Scaffold app bar rapat untuk empat tab akar.
 ///
-/// Mode default (rapat): `SliverAppBar` biasa tinggi ±64 dengan judul
-/// 20/SemiBold — konten naik ~90px dibanding large-title. Mode large-title
-/// tetap tersedia lewat [LargeTitleScaffold.large] bila suatu layar
-/// menginginkannya.
+/// Nama class dipertahankan agar pemanggil tidak berubah, tetapi header ini
+/// sengaja **bukan** large-title: judul 18/SemiBold duduk sebaris dengan aksi
+/// di app bar paling atas, sehingga konten tidak terdorong ke bawah. Subjudul
+/// kontekstual (nama perangkat, progres validasi, jumlah riwayat) berada tepat
+/// di bawah app bar dan ikut tergulir.
 ///
-/// Pengaturan dibuka lewat [SettingsGearButton] di app bar tiap tab —
-/// satu pintu yang konsisten, bukan kartu di dalam body.
+/// Layar anak memakai [BackAppBar] dengan judul 18/SemiBold agar hierarki
+/// navigasi tetap terbaca.
 class LargeTitleScaffold extends StatelessWidget {
   const LargeTitleScaffold({
     required this.title,
@@ -21,20 +22,7 @@ class LargeTitleScaffold extends StatelessWidget {
     this.bottom,
     this.floatingActionButton,
     this.fillRemaining = false,
-    this.compact = true,
   });
-
-  /// Varian judul-besar 28/Bold yang menyusut saat scroll (identitas v3).
-  const LargeTitleScaffold.large({
-    required this.title,
-    required this.body,
-    super.key,
-    this.subtitle,
-    this.actions = const [],
-    this.bottom,
-    this.floatingActionButton,
-    this.fillRemaining = false,
-  }) : compact = false;
 
   final String title;
   final String? subtitle;
@@ -51,50 +39,41 @@ class LargeTitleScaffold extends StatelessWidget {
   /// tinggi sehingga melempar layout exception dan layar gagal render total.
   final bool fillRemaining;
 
-  /// Bila true (default), app bar rapat ±64. Bila false, large-title 28/Bold.
-  final bool compact;
-
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       floatingActionButton: floatingActionButton,
       body: CustomScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
-          if (compact)
-            SliverAppBar(
-              title: Text(
-                title,
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+          SliverAppBar(
+            title: Text(
+              title,
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
               ),
-              centerTitle: false,
-              pinned: true,
-              actions: actions,
-              bottom: bottom,
-            )
-          else
-            SliverAppBar.large(
-              title: Text(title),
-              centerTitle: false,
-              pinned: true,
-              actions: actions,
-              bottom: bottom,
             ),
+            centerTitle: false,
+            pinned: true,
+            actions: actions,
+            bottom: bottom,
+          ),
           if (subtitle != null)
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   DesignTokens.spacePage,
                   0,
                   DesignTokens.spacePage,
-                  compact ? DesignTokens.spaceSm : DesignTokens.spaceMd,
+                  DesignTokens.spaceSm,
                 ),
                 child: Text(
                   subtitle!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),

@@ -5,6 +5,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/bento_tile.dart';
@@ -14,7 +15,6 @@ import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
 import '../../../../core/widgets/lens_ring.dart';
 import '../../../../core/widgets/logo_mark.dart';
-import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -23,6 +23,7 @@ import '../../devices/presentation/providers/devices_providers.dart';
 import '../../devices/presentation/widgets/device_connectivity_display.dart';
 import '../../monitoring/domain/entities/detection.dart';
 import '../../monitoring/presentation/providers/monitoring_providers.dart';
+import '../../settings/presentation/widgets/settings_avatar_button.dart';
 import '../../settings/presentation/widgets/simulation_badge.dart';
 import '../../validation/presentation/providers/validation_providers.dart';
 
@@ -46,7 +47,7 @@ class HomeScreen extends ConsumerWidget {
         data: (list) => list.isEmpty ? null : list.first.name,
         orElse: () => null,
       ),
-      actions: const [SimulationBadge(), SettingsGearButton()],
+      actions: const [SimulationBadge(), SettingsAvatarButton()],
       body: devices.when(
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
@@ -58,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
             return _NoDeviceState(l10n: l10n);
           }
           final device = list.first;
-          final now = DateTime.now();
+          final now = ref.watch(nowProvider)();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -554,6 +555,7 @@ class _RecentActivitySection extends ConsumerWidget {
         ? null
         : ref.watch(latestDetectionsProvider((deviceId: deviceId, limit: 100)));
     final items = latest?.value?.take(5).toList() ?? const <Detection>[];
+    final now = ref.watch(nowProvider)();
     final isLoading = latest != null && latest.isLoading && !latest.hasValue;
     final hasError = latest != null && latest.hasError && !latest.hasValue;
 
@@ -584,11 +586,7 @@ class _RecentActivitySection extends ConsumerWidget {
           for (var i = 0; i < items.length; i++) ...[
             _ActivityRow(
               detection: items[i],
-              time: RelativeTime.format(
-                items[i].createdAt,
-                DateTime.now(),
-                l10n: l10n,
-              ),
+              time: RelativeTime.format(items[i].createdAt, now, l10n: l10n),
             ),
             if (i < items.length - 1)
               const Divider(

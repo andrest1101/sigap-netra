@@ -8,6 +8,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
@@ -15,7 +16,6 @@ import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
-import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/skeleton.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../core/widgets/thumbnail_tile.dart';
@@ -24,6 +24,7 @@ import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../media/presentation/providers/media_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
+import '../../../settings/presentation/widgets/settings_avatar_button.dart';
 import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../../../sharing/domain/entities/share_report.dart';
 import '../../../sharing/presentation/providers/sharing_providers.dart';
@@ -85,7 +86,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       subtitle: subtitle,
       actions: [
         const SimulationBadge(),
-        const SettingsGearButton(),
+        const SettingsAvatarButton(),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert_rounded),
           onSelected: (value) => _onMenu(value),
@@ -311,7 +312,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             content: buildDetectionsCsv(page.items),
             fileName:
                 'sigap-netra-riwayat-'
-                '${_csvFileNameFormat.format(DateTime.now())}.csv',
+                '${_csvFileNameFormat.format(ref.read(nowProvider)())}.csv',
           );
       // Diberitahukan setelah share sheet ditutup: selama sheet terbuka
       // snackbar tidak terlihat, jadi jangan menumpuk pesan di belakangnya.
@@ -514,6 +515,7 @@ class _DayGroupedList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final now = ref.watch(nowProvider)();
     final groups = _groupByDay(items);
     // Nomor urut global (bukan per hari): cocok dengan subjudul "#N".
     var number = 0;
@@ -526,7 +528,7 @@ class _DayGroupedList extends ConsumerWidget {
             // Kunci per tanggal: elemen dipakai ulang dengan tepat saat "Muat
             // lagi" menambah baris ke grup hari yang sudah tampil.
             key: ValueKey('day-${groups[i].day.toIso8601String()}'),
-            label: _dayLabel(groups[i].day, l10n),
+            label: _dayLabel(groups[i].day, now, l10n),
             count: groups[i].items.length,
             money: groups[i].money,
             text: groups[i].text,
@@ -579,8 +581,7 @@ class _DayGroupedList extends ConsumerWidget {
     ];
   }
 
-  String _dayLabel(DateTime day, AppLocalizations l10n) {
-    final now = DateTime.now();
+  String _dayLabel(DateTime day, DateTime now, AppLocalizations l10n) {
     final today = DateTime(now.year, now.month, now.day);
     if (day == today) return l10n.historyToday;
     if (day == today.subtract(const Duration(days: 1))) {
@@ -886,8 +887,10 @@ class _RowThumb extends ConsumerWidget {
     final placeholderIcon = isMoney
         ? Icons.payments_rounded
         : Icons.document_scanner_rounded;
+    final now = ref.watch(nowProvider)();
     final semantics =
-        '${detection.displayLabel}, ${RelativeTime.format(detection.createdAt, DateTime.now(), l10n: l10n)}';
+        '${detection.displayLabel}, '
+        '${RelativeTime.format(detection.createdAt, now, l10n: l10n)}';
     final id = detection.thumbnailId;
 
     Widget thumb;
