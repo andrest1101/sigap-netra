@@ -24,6 +24,8 @@ void main() {
   Future<void> pumpLogin(
     WidgetTester tester, {
     DataSourceSelection selection = const DataSourceSelection.firebase(),
+    double textScale = 1.0,
+    double bottomInset = 0,
   }) async {
     // Hero memuat mark merek (aset) — precache agar golden menampilkan logo.
     await precacheLogoMark(tester);
@@ -40,7 +42,19 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: AppTheme.light(),
-          home: const LoginScreen(),
+          home: Builder(
+            builder: (context) {
+              final media = MediaQuery.of(context);
+              return MediaQuery(
+                data: media.copyWith(
+                  textScaler: TextScaler.linear(textScale),
+                  padding: media.padding.copyWith(bottom: bottomInset),
+                  viewPadding: media.viewPadding.copyWith(bottom: bottomInset),
+                ),
+                child: const LoginScreen(),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -192,6 +206,47 @@ void main() {
 
       expect(dataSource.currentUser, isNotNull);
       expect(dataSource.currentUser?.email, isNull);
+    });
+
+    testWidgets('360x640 @1,3x: CTA dan Daftar tetap dapat dicapai', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpLogin(tester, textScale: 1.3, bottomInset: 24);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Masuk dengan email'), findsOneWidget);
+
+      final signUp = find.text('Daftar');
+      await tester.ensureVisible(signUp);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // SafeArea 24 dp + padding bawah 32 dp: tautan berhenti di atas area
+      // navigation bar, bukan terpotong olehnya.
+      expect(tester.getRect(signUp).bottom, lessThanOrEqualTo(640 - 24));
+
+      await tester.tap(signUp);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Buat akun'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('390x844 @1,3x: tautan daftar tidak terpotong', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await pumpLogin(tester, textScale: 1.3);
+
+      expect(tester.takeException(), isNull);
+      final signUp = find.text('Daftar');
+      await tester.ensureVisible(signUp);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.getRect(signUp).bottom, lessThanOrEqualTo(844));
+      expect(find.byType(LoginScreen), findsOneWidget);
     });
 
     testWidgets('light: render aktual di ponsel 390x844', (tester) async {
