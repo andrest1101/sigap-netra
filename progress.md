@@ -1,5 +1,28 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-20 Koreksi header — kembali ke app bar rapat
+
+Review produk menemukan header tab akar terlalu turun: Batch 1 sempat memakai large-title 28/Bold dan menaruh deret aksi di baris terpisah di atas judul. Akibatnya judul berada jauh di bawah tepi atas dan konten ikut terdorong.
+
+- **Kembali ke pola sebelumnya.** `LargeTitleScaffold` sekarang memakai `SliverAppBar` rapat: judul 18/SemiBold sebaris dengan aksi (pil simulasi/refresh/menu/avatar) di app bar paling atas, pinned saat scroll.
+- **Subjudul di bawah app bar.** Nama perangkat / progres validasi / jumlah riwayat memakai 14/Regular, berada tepat di bawah toolbar dan ikut tergulir — bukan bagian dari header besar.
+- **Large-title dihapus.** Varian judul 28→18, titik amber, hairline, dan `SliverPersistentHeader` kustom dibuang agar layout tidak turun lagi.
+- **Test & golden.** Test header diubah menjadi kontrak app bar rapat (judul/aksi sebaris, judul di atas, tetap menempel saat scroll, 360×800 @1,3×). Golden Beranda, Riwayat, Statistik, Validasi, dan Perangkat diregenerasi serta diinspeksi.
+- **Verifikasi.** `dart format .` bersih; `flutter analyze` No issues; `flutter test` **289 lulus**.
+
+## 2026-10-20 Batch 1 — Fondasi app bar, avatar Pengaturan, tipografi nyata
+
+Batch pertama poles UI/UX setelah audit. Fokusnya fondasi yang dipakai semua tab: hierarki judul, satu pintu Pengaturan, dan golden yang benar-benar menampilkan font/ikon aplikasi — bukan kotak Ahem.
+
+- **Header tab akar.** Percobaan large-title 28/Bold menyusut dibatalkan setelah review; header akhir adalah app bar rapat yang sudah ada sebelumnya (lihat entri koreksi di atas).
+- **Avatar Pengaturan.** `SettingsAvatarButton` menggantikan gear: inisial nama/email (atau ikon orang), lencana gear 14 dp, target sentuh 48 dp, tooltip "Buka pengaturan". Dipasang di Beranda, Validasi, Riwayat, dan Perangkat. `settings_gear_button.dart` dihapus.
+- **Hierarki judul.** `AppBarTheme.titleTextStyle` layar anak menjadi 18/SemiBold. Plus Jakarta Sans kini diterapkan ke seluruh peran `TextTheme` (sebelumnya `bodySmall` dkk. jatuh ke fallback), tombol, chip, dan label navigation bar.
+- **Golden jujur.** Helper `test/helpers/app_fonts.dart` memuat empat berkas Plus Jakarta Sans + Material Icons dari SDK, sehingga golden 390×844 menampilkan teks/ikon nyata. Golden ponsel dibuat untuk Beranda, Riwayat, Validasi (termasuk geser), Perangkat, dan layar masuk.
+- **Golden deterministik.** `nowProvider` (`lib/core/time/now_provider.dart`) menjadi sumber waktu tampilan; default produksi tetap `DateTime.now`. Golden meng-override-nya dengan `goldenNow` (20 Okt 2026 22.15), dan `FakeAppGraph`/`DemoDeviceRepository` menerima waktu tetap yang sama untuk data demo. Tick sumbu Y teratas grafik Statistik yang sebelumnya terpotong (tampak seperti "~") kini dimulai dari tepi atas.
+- **Test.** 4 test header (judul/aksi sebaris, tetap menempel, tanpa subjudul, 360×800 @1,3×), 3 test kontrak tema (judul anak + font semua peran + tombol/chip/nav), test 360×800 @1,3× untuk empat tab + avatar, dan golden ponsel. Total **289 lulus**.
+- **Verifikasi.** `dart format .` bersih; `flutter analyze` No issues; `flutter test` **289 lulus**. Golden dijalankan ulang setelah jeda >1 menit untuk membuktikan tidak ada drift waktu.
+- **Catatan.** Tanpa paket baru, tanpa perubahan schema/rules/protokol perangkat/perilaku data. Backlog Batch 2–4 + U6 ada di `docs/ui_refinement_backlog.md`. Ditunda: tautan daftar layar masuk 390×844, `Stepper` QR, sheet panjang, label geser Validasi yang terpotong, navigasi layar anak, tablet, dan tanggal strip hero yang terpotong ("22.15 · 2...").
+
 ## 2026-10-20 U4 — Sumber data jujur + penanda mode simulasi
 
 Batch ini menutup kontradiksi yang bisa menyesatkan: `main.dart` memakai `developer_mode ?? true` sementara toggle Pengaturan memakai `?? false`, sehingga instalasi baru menampilkan data demo sambil Pengaturan menulis "Firebase". Sekarang sumber data adalah **hasil resolusi**, bukan niat toggle, dan UI menandainya secara permanen.

@@ -6,6 +6,7 @@ import '../../../../core/errors/app_failure.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../../../core/time/now_provider.dart';
 import '../../../../core/utils/number_format_id.dart';
 import '../../../../core/utils/relative_time.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
@@ -13,12 +14,12 @@ import '../../../../core/widgets/empty_view.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/failure_message.dart';
 import '../../../../core/widgets/large_title_scaffold.dart';
-import '../../../../core/widgets/settings_gear_button.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../devices/presentation/providers/devices_providers.dart';
 import '../../../monitoring/domain/entities/detection.dart';
+import '../../../settings/presentation/widgets/settings_avatar_button.dart';
 import '../../../settings/presentation/widgets/simulation_badge.dart';
 import '../providers/validation_providers.dart';
 import '../widgets/validation_photo.dart';
@@ -67,7 +68,7 @@ class _ValidationScreenState extends ConsumerState<ValidationScreen> {
       subtitle: !hasData || filtered.isEmpty
           ? null
           : l10n.validationProgressValue(clamped + 1, filtered.length),
-      actions: const [SimulationBadge(), SettingsGearButton()],
+      actions: const [SimulationBadge(), SettingsAvatarButton()],
       // Body memakai `Expanded` (tumpukan kartu mengisi sisa layar), jadi
       // wajib `fillRemaining` agar constraint vertikal terbatas.
       fillRemaining: true,
@@ -487,17 +488,18 @@ class _GhostCard extends StatelessWidget {
   }
 }
 
-class _ValidationCard extends StatelessWidget {
+class _ValidationCard extends ConsumerWidget {
   const _ValidationCard({required this.detection});
 
   final Detection detection;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isMoney = detection.type == DetectionType.money;
+    final now = ref.watch(nowProvider)();
 
     return Semantics(
       label: '${detection.displayLabel}, ${l10n.statusPending}',
@@ -588,7 +590,7 @@ class _ValidationCard extends StatelessWidget {
                         icon: Icons.schedule_rounded,
                         label: RelativeTime.format(
                           detection.createdAt,
-                          DateTime.now(),
+                          now,
                           l10n: l10n,
                         ),
                       ),

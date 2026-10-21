@@ -15,7 +15,7 @@ SIGAP-NETRA = mata/lensa untuk pengguna. Identitas visual berangkat dari **lensa
 Elemen khas (signature):
 
 - **Lens Ring** — cincin lensa dengan dua bahasa bentuk: **nilai** (kecocokan, baterai) = track penuh + busur progres **kontinu** di atasnya dengan ujung membulat — terbaca "timbul keluar" (pola donut); **menunggu alat** = 24 segmen diafragma + cincin "fokus" berdenyut. Widget: `core/widgets/lens_ring.dart` (`CustomPainter`).
-- **Large-title app bar** yang menyusut saat scroll (tanpa gradien, tanpa foto header).
+- **App bar rapat yang menempel saat scroll** (tanpa gradien, tanpa foto header), dengan judul sebaris aksi, subjudul kontekstual di bawahnya, dan avatar Pengaturan.
 - **Bento grid** untuk ringkasan angka (bukan baris 3 statistik).
 - **Kartu tonal** (warna permukaan M3 bertingkat), bukan kartu putih bershadow.
 
@@ -44,7 +44,8 @@ Satu keluarga: **Plus Jakarta Sans** (di-_bundle_ sebagai asset di `assets/fonts
 
 | Peran                             | Gaya                  |
 | --------------------------------- | --------------------- |
-| Large title (app bar)             | 28 / Bold             |
+| Judul tab akar (app bar)          | 18 / SemiBold         |
+| Judul layar anak (app bar)        | 18 / SemiBold         |
 | Title                             | 18 / SemiBold         |
 | Body                              | 14 / Regular          |
 | Label / chip                      | 12 / SemiBold         |
@@ -57,6 +58,13 @@ Satu keluarga: **Plus Jakarta Sans** (di-_bundle_ sebagai asset di `assets/fonts
 - Elevasi: **tonal**, bukan shadow. Daftar memakai garis 1 px `outlineVariant` bila perlu pemisah.
 - Ikon: set **rounded** (`Icons.*_rounded`), ukuran 24; ikon status 20.
 - Tap target ≥ 48 dp. Dukungan _text scale_ hingga 1,3× tanpa overflow.
+
+### App bar
+
+- **Empat tab akar** memakai `LargeTitleScaffold` dengan app bar **rapat** 18/SemiBold dan aksi sebaris di kanan (pil `SIMULASI`, refresh, menu, avatar). App bar menempel di atas saat konten digulir.
+- **Subjudul kontekstual** (nama perangkat, progres validasi, atau jumlah riwayat) memakai 14/Regular dan berada tepat di bawah app bar, ikut tergulir. Jangan memakai large-title 28 di tab akar: judul besar dan baris aksi terpisah mendorong konten ke bawah (koreksi review produk 20 Okt 2026). Nama class `LargeTitleScaffold` adalah historis.
+- **Avatar Pengaturan** adalah satu-satunya pintu Pengaturan di tab akar: lingkaran 34 dp berisi inisial nama/email (atau ikon orang), lencana gear 14 dp, target sentuh 48 dp, tooltip "Buka pengaturan". Tidak ada tombol gear terpisah.
+- **Layar anak** memakai `BackAppBar` dengan judul 18/SemiBold — tidak mengulang judul tab akar. Tombol kembali eksplisit dengan fallback route saat deep-link.
 
 ### Gerak
 
@@ -72,7 +80,7 @@ Data simulasi **tidak boleh** bisa tertukar dengan perangkat nyata. Sumber keben
 | Mode pengembang mati, Firebase gagal | Simulasi     | "Firebase belum tersedia…"         |
 | Mode pengembang aktif                | Simulasi     | "Mode pengembang dinyalakan…"      |
 
-- **Pil `SIMULASI`** (bentuk stadium, tone `warn`, ikon `science_rounded`, huruf kecil tebal ber-tracking) tampil di deret aksi app bar **keempat tab**, sebelum gear Pengaturan. Saat data live pil berukuran nol sehingga app bar dan golden test tidak bergeser. Satu label semantik utuh: "Mode simulasi: data demo, bukan perangkat nyata."
+- **Pil `SIMULASI`** (bentuk stadium, tone `warn`, ikon `science_rounded`, huruf kecil tebal ber-tracking) tampil di deret aksi app bar **keempat tab**, sebelum avatar Pengaturan. Saat data live pil berukuran nol sehingga app bar dan golden test tidak bergeser. Satu label semantik utuh: "Mode simulasi: data demo, bukan perangkat nyata."
 - **Layar masuk** menampilkan blok keterangan yang sama sebelum form: data demo, tidak ada koneksi cloud, akun apa pun hanya tersimpan di perangkat, plus alasan aktifnya.
 - **Pengaturan → Lanjutan → Sumber data** membaca hasil resolusi nyata (bukan niat toggle) dan menyebut alasannya. Ini yang membuat build tanpa Firebase tidak lagi menulis "Firebase" saat data yang tampil sebenarnya simulasi.
 - Penanda **tidak** mengubah query, skema, atau izin: ia hanya menyatakan kenyataan. Jangan menambahkan tombol tutup permanen pada penanda ini.
@@ -117,7 +125,7 @@ Setiap fungsi aplikasi lama **harus** ada. Centang saat selesai (lihat `progress
 
 ### 5.1 Beranda
 
-1. **App bar large-title:** judul "Beranda", subjudul nama perangkat (mis. `SGP-NETRA-0007`), avatar → Pengaturan.
+1. **App bar rapat:** judul "Beranda", subjudul nama perangkat (mis. `SGP-NETRA-0007`) di bawahnya, avatar → Pengaturan.
 2. **Hero perangkat** (kartu tonal `primaryContainer`, radius 28):
    - Baris identitas: lingkaran ikon kacamata dengan **titik status** (ok/bad); nama perangkat; chevron → detail.
    - **Strip 3 stat** (satu baris, pemisah hairline): status koneksi ("Terhubung"/"Terputus"), baterai ringkas (ikon + persen; "–" bila tidak tersedia), sinkron terakhir (jam absolut). Ring baterai besar **bukan** di Hero — satu-satunya ring besar di Beranda adalah ring kecocokan di bento.
@@ -212,7 +220,7 @@ Loading (skeleton) · kosong · error + coba lagi · data dari cache ("data mung
 - ❌ Baris tiga statistik berdampingan di kartu perangkat
 - ❌ Tab filter gaya "putih aktif" di atas daftar
 - ❌ Tombol "Reset Status Validasi" lebar penuh di bawah daftar
-- ✅ Large-title, tonal, Lens Ring, bento, daftar per hari, tumpukan kartu, 4 tab standar M3, pil
+- ✅ App bar rapat, tonal, Lens Ring, bento, daftar per hari, tumpukan kartu, 4 tab standar M3, pil
 
 ## 10. Fitur Rencana (dari spesifikasi lama) dan Statusnya
 
