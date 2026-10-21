@@ -7,6 +7,8 @@ import '../../../../core/theme/design_tokens.dart';
 import '../../../../core/utils/mask_email.dart';
 import '../../../../core/widgets/back_app_bar.dart';
 import '../../../../core/widgets/confirm_sheet.dart';
+import '../../../../core/widgets/section_card.dart';
+import '../../../../core/widgets/section_header.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/data_source.dart';
@@ -14,10 +16,10 @@ import '../providers/settings_providers.dart';
 
 /// Layar Pengaturan — identitas visual v3.
 ///
-/// Dibuka lewat avatar (bukan tab). Seksi: Privasi & data (consent
-/// eksplisit), Lanjutan (mode pengembang + sumber data), Akun, Tentang
-/// (versi dinamis). Tidak ada pemilih tema: aplikasi terang-saja (keputusan
-/// produk 2026-10-18).
+/// Dibuka lewat avatar (bukan tab). Header akun tetap hero `primaryContainer`;
+/// Privasi, Lanjutan, dan Tentang dikelompokkan menjadi kartu tonal dengan
+/// divider inset agar tidak lagi terlihat seperti daftar `ListTile` polos.
+/// Tidak ada pemilih tema: aplikasi terang-saja (keputusan produk 2026-10-18).
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -37,45 +39,81 @@ class SettingsScreen extends ConsumerWidget {
           DesignTokens.spacePage,
           DesignTokens.spaceSection,
         ),
-        children: const [
-          _AccountHeader(),
-          _PrivacySection(),
-          _AdvancedSection(),
-          _AboutSection(),
+        children: [
+          const _AccountHeader(),
+          SectionHeader.inset(title: l10n.settingsPrivacyTitle),
+          const _PrivacySection(),
+          SectionHeader.inset(title: l10n.settingsAdvancedTitle),
+          const _AdvancedSection(),
+          SectionHeader.inset(title: l10n.settingsAboutTitle),
+          const _AboutSection(),
         ],
       ),
     );
   }
 }
 
-/// Judul seksi kecil dengan gaya v3.
+/// Ikon leading berwarna tonal untuk baris Pengaturan.
 ///
-/// [isFirst]: seksi pertama setelah header akun — tanpa jarak atas agar
-/// tidak dobel dengan padding ListView.
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text, {this.isFirst = false});
+/// Kotak 36 dp dengan radius 12 dp (bukan lingkaran generik) memberi bobot
+/// visual yang sama dengan ikon aksi di Detail perangkat dan Kontrol.
+class _SettingsLeading extends StatelessWidget {
+  const _SettingsLeading({required this.icon});
 
-  final String text;
-  final bool isFirst;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        0,
-        isFirst ? DesignTokens.spaceMd : DesignTokens.spaceSection,
-        0,
-        DesignTokens.spaceSm,
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(DesignTokens.spaceMd),
       ),
-      child: Semantics(
-        header: true,
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
+      child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+    );
+  }
+}
+
+const EdgeInsets _settingsTilePadding = EdgeInsets.symmetric(
+  horizontal: DesignTokens.spaceLg,
+  vertical: DesignTokens.spaceXs,
+);
+
+/// Catatan penjelas di dalam kartu seksi.
+///
+/// Sengaja bukan `ListTile` dan bukan subtitle saklar: teks penjelas panjang
+/// mendapat lebar penuh agar tidak terhimpit oleh switch di kanan.
+class _SettingsNoteLine extends StatelessWidget {
+  const _SettingsNoteLine({required this.text, this.icon});
+
+  final String text;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: DesignTokens.spaceSm),
+        ],
+        Expanded(
+          child: Text(
+            text,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -86,18 +124,16 @@ class _PrivacySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
     final uploads = ref.watch(uploadThumbnailsPrivacyProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SectionCard(
+      divide: true,
+      dividerIndent: DesignTokens.spaceLg,
       children: [
-        _SectionTitle(l10n.settingsPrivacyTitle, isFirst: true),
         SwitchListTile(
-          contentPadding: EdgeInsets.zero,
+          contentPadding: _settingsTilePadding,
+          secondary: const _SettingsLeading(icon: Icons.photo_library_outlined),
           title: Text(l10n.settingsUploadThumbnails),
-          subtitle: Text(l10n.settingsUploadThumbnailsBody),
           value: uploads,
           onChanged: (value) async {
             if (value) {
@@ -119,10 +155,23 @@ class _PrivacySection extends ConsumerWidget {
             }
           },
         ),
-        Text(
-          l10n.settingsRetentionBody,
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurfaceVariant,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignTokens.spaceLg,
+            DesignTokens.spaceMd,
+            DesignTokens.spaceLg,
+            DesignTokens.spaceLg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SettingsNoteLine(text: l10n.settingsUploadThumbnailsBody),
+              const SizedBox(height: DesignTokens.spaceMd),
+              _SettingsNoteLine(
+                icon: Icons.schedule_rounded,
+                text: l10n.settingsRetentionBody,
+              ),
+            ],
           ),
         ),
       ],
@@ -141,26 +190,35 @@ class _AdvancedSection extends ConsumerWidget {
     // dari toggle: build tanpa Firebase tetap simulasi walau toggle mati.
     final selection = ref.watch(dataSourceSelectionProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SectionCard(
+      divide: true,
+      dividerIndent: DesignTokens.spaceLg,
       children: [
-        _SectionTitle(l10n.settingsAdvancedTitle),
         SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          secondary: const Icon(Icons.science_outlined),
+          contentPadding: _settingsTilePadding,
+          secondary: const _SettingsLeading(icon: Icons.science_outlined),
           title: Text(l10n.settingsDeveloperMode),
-          // Satu baris alir (bukan '\n' paksa): tinggi baris mengikuti
-          // konten, tidak memaksa 3 baris kosong.
-          subtitle: Text(
-            '${l10n.settingsDeveloperModeBody} · ${l10n.settingsAppliesAfterRestart}',
-          ),
           value: developerMode,
           onChanged: (_) => ref.read(developerModeProvider.notifier).toggle(),
         ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignTokens.spaceLg,
+            DesignTokens.spaceMd,
+            DesignTokens.spaceLg,
+            DesignTokens.spaceLg,
+          ),
+          child: _SettingsNoteLine(
+            icon: Icons.restart_alt_rounded,
+            text:
+                '${l10n.settingsDeveloperModeBody} · '
+                '${l10n.settingsAppliesAfterRestart}',
+          ),
+        ),
         ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(
-            selection.isSimulation
+          contentPadding: _settingsTilePadding,
+          leading: _SettingsLeading(
+            icon: selection.isSimulation
                 ? Icons.science_outlined
                 : Icons.cloud_done_outlined,
           ),
@@ -178,11 +236,11 @@ class _AdvancedSection extends ConsumerWidget {
   }
 }
 
-/// Header akun di puncak Pengaturan: avatar inisial + email tersamar +
-/// tombol Keluar.
+/// Header akun di puncak Pengaturan: avatar inisial + identitas + tombol Keluar.
 ///
 /// Satu-satunya tempat info akun tampil — menggantikan kartu akun yang dulu
-/// disebar di 3 tab. Tidak memakai judul seksi agar tidak dobel spasi atas.
+/// disebar di 3 tab. Tombol Keluar diletakkan di baris terpisah agar identitas
+/// panjang dan text scale 1,3x tidak saling menghimpit.
 class _AccountHeader extends ConsumerWidget {
   const _AccountHeader();
 
@@ -203,10 +261,14 @@ class _AccountHeader extends ConsumerWidget {
         : email.isNotEmpty
         ? maskEmail(email)
         : currentUser.uid;
+    final secondary = displayName.isNotEmpty && email.isNotEmpty
+        ? maskEmail(email)
+        : null;
     final initialSource = displayName.isNotEmpty ? displayName : email;
     final initial = initialSource.isNotEmpty
         ? initialSource[0].toUpperCase()
         : '?';
+    final onHero = colorScheme.onPrimaryContainer;
 
     return Container(
       padding: const EdgeInsets.all(DesignTokens.spaceLg),
@@ -215,57 +277,78 @@ class _AccountHeader extends ConsumerWidget {
         borderRadius: BorderRadius.circular(DesignTokens.radiusCard),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: colorScheme.surface,
-            child: Text(
-              initial,
-              style: textTheme.titleLarge?.copyWith(
-                color: colorScheme.onSurface,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: colorScheme.surface,
+                child: Text(
+                  initial,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: DesignTokens.spaceMd),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.settingsAccountTitle,
-                  style: textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                  ),
+              const SizedBox(width: DesignTokens.spaceMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.settingsAccountTitle,
+                      style: textTheme.labelMedium?.copyWith(color: onHero),
+                    ),
+                    const SizedBox(height: DesignTokens.spaceXs),
+                    Text(
+                      identity,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: onHero,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (secondary != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        secondary,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: onHero.withValues(alpha: 0.78),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: DesignTokens.spaceXs),
-                Text(
-                  identity,
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           if (currentUser != null) ...[
-            const SizedBox(width: DesignTokens.spaceSm),
-            TextButton(
-              onPressed: () async {
-                final confirmed = await ConfirmSheet.show(
-                  context,
-                  title: l10n.settingsSignOutConfirmTitle,
-                  message: l10n.settingsSignOutConfirmBody,
-                  confirmLabel: l10n.loginSignOut,
-                );
-                if (confirmed && context.mounted) {
-                  await ref.read(signOutProvider).call();
-                }
-              },
-              child: Text(l10n.loginSignOut),
+            const SizedBox(height: DesignTokens.spaceMd),
+            Divider(height: 1, color: onHero.withValues(alpha: 0.18)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () async {
+                  final confirmed = await ConfirmSheet.show(
+                    context,
+                    title: l10n.settingsSignOutConfirmTitle,
+                    message: l10n.settingsSignOutConfirmBody,
+                    confirmLabel: l10n.loginSignOut,
+                  );
+                  if (confirmed && context.mounted) {
+                    await ref.read(signOutProvider).call();
+                  }
+                },
+                style: TextButton.styleFrom(foregroundColor: onHero),
+                icon: const Icon(Icons.logout_rounded, size: 18),
+                label: Text(l10n.loginSignOut),
+              ),
             ),
           ],
         ],
@@ -281,13 +364,11 @@ class _AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return SectionCard(
       children: [
-        _SectionTitle(l10n.settingsAboutTitle),
         ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.info_outline_rounded),
+          contentPadding: _settingsTilePadding,
+          leading: const _SettingsLeading(icon: Icons.info_outline_rounded),
           title: Text(l10n.settingsVersion),
           // Satu-satunya sumber versi tampil. Disarankan `package_info_plus`
           // agar selalu sinkron dengan pubspec (perlu persetujuan penambahan
