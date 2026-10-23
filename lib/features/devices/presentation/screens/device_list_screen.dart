@@ -53,7 +53,7 @@ class DeviceListScreen extends ConsumerWidget {
       actions: [
         const SimulationBadge(),
         IconButton(
-          onPressed: () => ref.invalidate(myDevicesProvider),
+          onPressed: () => ref.invalidate(rawDevicesProvider),
           icon: const Icon(Icons.refresh_rounded),
           tooltip: l10n.commonRefresh,
         ),
@@ -63,7 +63,7 @@ class DeviceListScreen extends ConsumerWidget {
         loading: () => const _DevicesLoading(),
         error: (error, _) => ErrorView(
           message: error is AppFailure ? failureMessage(error, l10n) : null,
-          onRetry: () => ref.invalidate(myDevicesProvider),
+          onRetry: () => ref.invalidate(rawDevicesProvider),
         ),
         data: (list) {
           if (list.isEmpty) {

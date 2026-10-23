@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'app_failure.dart';
@@ -55,5 +57,37 @@ extension FirebaseAuthErrorMapper on FirebaseAuthException {
       default:
         return const UnknownFailure();
     }
+  }
+}
+
+/// Memetakan error Firebase yang dipancarkan setelah stream dibuat.
+///
+/// `try/catch` di sekitar pembuatan stream Firestore tidak menangkap error
+/// listener (mis. `permission-denied` atau `unavailable` yang datang beberapa
+/// detik kemudian). Transformer ini memastikan presentation selalu menerima
+/// [AppFailure], bukan `FirebaseException` mentah.
+Stream<T> mapFirebaseStreamErrors<T>(Stream<T> stream) {
+  return stream.transform(
+    StreamTransformer<T, T>.fromHandlers(
+      handleError: (Object error, StackTrace stackTrace, EventSink<T> sink) {
+        if (error is FirebaseException) {
+          sink.addError(error.toAppFailure(), stackTrace);
+        } else {
+          sink.addError(error, stackTrace);
+        }
+      },
+    ),
+  );
+}
+
+/// Memetakan error Firebase dari operasi satu kali menjadi [AppFailure].
+///
+/// Dipakai data source Firestore untuk query, update, delete, dan agregasi
+/// yang gagal sebelum/selama Future selesai.
+Future<T> mapFirebaseFutureErrors<T>(Future<T> future) async {
+  try {
+    return await future;
+  } on FirebaseException catch (error) {
+    throw error.toAppFailure();
   }
 }

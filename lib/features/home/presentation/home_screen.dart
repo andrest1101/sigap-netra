@@ -53,7 +53,9 @@ class HomeScreen extends ConsumerWidget {
         loading: () => const _HomeLoading(),
         error: (error, _) => ErrorView(
           message: _messageFor(context, error),
-          onRetry: () => ref.invalidate(myDevicesProvider),
+          // Stream mentah yang harus dibuat ulang. Meng-invalidate provider
+          // turunan saja akan memakai kembali error/subscription lama.
+          onRetry: () => ref.invalidate(rawDevicesProvider),
         ),
         data: (list) {
           if (list.isEmpty) {

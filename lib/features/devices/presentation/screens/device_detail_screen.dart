@@ -56,7 +56,7 @@ class DeviceDetailScreen extends ConsumerWidget {
         ),
         error: (error, _) => ErrorView(
           message: error is AppFailure ? failureMessage(error, l10n) : null,
-          onRetry: () => ref.invalidate(deviceProvider(deviceId)),
+          onRetry: () => ref.invalidate(rawDeviceProvider(deviceId)),
         ),
         data: (device) {
           if (device == null) {

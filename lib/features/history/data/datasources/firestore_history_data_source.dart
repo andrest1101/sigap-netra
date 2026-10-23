@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_paths.dart';
+import '../../../../core/errors/firebase_error_mapper.dart';
 import '../../../monitoring/data/models/detection_model.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../domain/entities/detection_filter.dart';
@@ -98,10 +99,9 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
     DetectionPageCursor? startAfter,
   }) async {
     final deviceId = filter.deviceId!;
-    final snapshot = await _query(
-      filter,
-      startAfter: startAfter,
-    ).limit(limit + 1).get();
+    final snapshot = await mapFirebaseFutureErrors(
+      _query(filter, startAfter: startAfter).limit(limit + 1).get(),
+    );
     final docs = snapshot.docs;
     // Ambil satu ekstra untuk tahu apakah masih ada halaman berikut,
     // tanpa query tambahan (hemat 1 baca per halaman).
@@ -133,9 +133,11 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
     // urutan: query jadi identik dengan daftar sehingga dijamin dilayani
     // indeks composite #2-#5 (`docs/firestore_schema.md` §8) tanpa indeks
     // tambahan. Agregat tetap dihitung di server — tidak ada dokumen diunduh.
-    final snapshot = await _filteredQuery(
-      filter,
-    ).orderBy(DetectionFields.createdAt, descending: true).count().get();
+    final snapshot = await mapFirebaseFutureErrors(
+      _filteredQuery(
+        filter,
+      ).orderBy(DetectionFields.createdAt, descending: true).count().get(),
+    );
     return snapshot.count ?? 0;
   }
 
@@ -153,7 +155,7 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
     if (mediaId != null && mediaId.isNotEmpty) {
       batch.delete(_firestore.doc(mediaDocPath(deviceId, mediaId)));
     }
-    await batch.commit();
+    await mapFirebaseFutureErrors(batch.commit());
   }
 
   @override
@@ -164,14 +166,16 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
   }) async {
     // Memakai semantik undo yang sama: status kembali `pending` dengan jejak
     // `validatedBy`/`validatedAt` tetap terisi (skema bagian 4.2).
-    await _firestore
-        .doc(detectionDocPath(deviceId, detectionId))
-        .update(
-          DetectionModel.validationUpdate(
-            status: ValidationStatus.pending,
-            validatedBy: validatedBy,
+    await mapFirebaseFutureErrors(
+      _firestore
+          .doc(detectionDocPath(deviceId, detectionId))
+          .update(
+            DetectionModel.validationUpdate(
+              status: ValidationStatus.pending,
+              validatedBy: validatedBy,
+            ),
           ),
-        );
+    );
   }
 
   @override
@@ -202,7 +206,7 @@ class FirestoreHistoryDataSource implements HistoryDataSource {
           ),
         );
       }
-      await batch.commit();
+      await mapFirebaseFutureErrors(batch.commit());
       cursor = page.nextCursor;
       if (cursor == null) return;
     }

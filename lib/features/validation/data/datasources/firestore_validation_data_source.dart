@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_paths.dart';
+import '../../../../core/errors/firebase_error_mapper.dart';
 import '../../../monitoring/data/models/detection_model.dart';
 import '../../../monitoring/domain/entities/detection.dart';
 import '../../domain/repositories/validation_summary.dart';
@@ -28,25 +29,25 @@ class FirestoreValidationDataSource implements ValidationDataSource {
     required String deviceName,
     int limit = 20,
   }) {
-    return _detections(deviceId)
+    final snapshots = _detections(deviceId)
         .where(
           DetectionFields.validationStatus,
           isEqualTo: DetectionFields.statusPending,
         )
         .orderBy(DetectionFields.createdAt, descending: true)
         .limit(limit)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => DetectionModel.fromDocument(
-                  doc,
-                  deviceId: deviceId,
-                  deviceName: deviceName,
-                ),
-              )
-              .toList(growable: false),
-        );
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map(
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => DetectionModel.fromDocument(
+              doc,
+              deviceId: deviceId,
+              deviceName: deviceName,
+            ),
+          )
+          .toList(growable: false),
+    );
   }
 
   @override
@@ -54,29 +55,31 @@ class FirestoreValidationDataSource implements ValidationDataSource {
     required String deviceId,
   }) async {
     final base = _detections(deviceId);
-    final results = await Future.wait([
-      base
-          .where(
-            DetectionFields.validationStatus,
-            isEqualTo: DetectionFields.statusMatch,
-          )
-          .count()
-          .get(),
-      base
-          .where(
-            DetectionFields.validationStatus,
-            isEqualTo: DetectionFields.statusMismatch,
-          )
-          .count()
-          .get(),
-      base
-          .where(
-            DetectionFields.validationStatus,
-            isEqualTo: DetectionFields.statusPending,
-          )
-          .count()
-          .get(),
-    ]);
+    final results = await mapFirebaseFutureErrors(
+      Future.wait([
+        base
+            .where(
+              DetectionFields.validationStatus,
+              isEqualTo: DetectionFields.statusMatch,
+            )
+            .count()
+            .get(),
+        base
+            .where(
+              DetectionFields.validationStatus,
+              isEqualTo: DetectionFields.statusMismatch,
+            )
+            .count()
+            .get(),
+        base
+            .where(
+              DetectionFields.validationStatus,
+              isEqualTo: DetectionFields.statusPending,
+            )
+            .count()
+            .get(),
+      ]),
+    );
     return ValidationSummary(
       matches: results[0].count ?? 0,
       mismatches: results[1].count ?? 0,
@@ -95,14 +98,16 @@ class FirestoreValidationDataSource implements ValidationDataSource {
       status == ValidationStatus.match || status == ValidationStatus.mismatch,
       'submitValidation hanya untuk match/mismatch; pending memakai undoValidation.',
     );
-    await _firestore
-        .doc(detectionDocPath(deviceId, detectionId))
-        .update(
-          DetectionModel.validationUpdate(
-            status: status,
-            validatedBy: validatedBy,
+    await mapFirebaseFutureErrors(
+      _firestore
+          .doc(detectionDocPath(deviceId, detectionId))
+          .update(
+            DetectionModel.validationUpdate(
+              status: status,
+              validatedBy: validatedBy,
+            ),
           ),
-        );
+    );
   }
 
   @override
@@ -113,13 +118,15 @@ class FirestoreValidationDataSource implements ValidationDataSource {
   }) async {
     // validatedBy tetap disimpan sebagai jejak pembatalan; tidak boleh
     // dikosongkan (skema bagian 4.2).
-    await _firestore
-        .doc(detectionDocPath(deviceId, detectionId))
-        .update(
-          DetectionModel.validationUpdate(
-            status: ValidationStatus.pending,
-            validatedBy: validatedBy,
+    await mapFirebaseFutureErrors(
+      _firestore
+          .doc(detectionDocPath(deviceId, detectionId))
+          .update(
+            DetectionModel.validationUpdate(
+              status: ValidationStatus.pending,
+              validatedBy: validatedBy,
+            ),
           ),
-        );
+    );
   }
 }
