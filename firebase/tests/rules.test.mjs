@@ -16,12 +16,16 @@ import {
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 const PROJECT_ID = 'demo-sigap-netra';
@@ -162,6 +166,29 @@ describe('devices/{deviceId}', () => {
     await assertSucceeds(getDoc(doc(memberFirestore(), devicePath)));
     await assertFails(getDoc(doc(outsiderFirestore(), devicePath)));
     await assertFails(getDoc(doc(anonymousFirestore(), devicePath)));
+  });
+
+  test('anggota boleh query daftar perangkat dengan filter members', async () => {
+    // Regresi 2026-10-22: app Beranda memakai query koleksi
+    // `where('members.<uid>', isNull: false)`. Aturan read tidak boleh
+    // bergantung pada get() per dokumen untuk query ber-wildcard ini.
+    await seed(devicePath, deviceData());
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(memberFirestore(), 'devices'),
+          where(`members.${MEMBER_UID}`, '!=', null),
+        ),
+      ),
+    );
+    await assertFails(
+      getDocs(
+        query(
+          collection(outsiderFirestore(), 'devices'),
+          where(`members.${MEMBER_UID}`, '!=', null),
+        ),
+      ),
+    );
   });
 
   test('regresi 2026-10-18: device self-bootstrap create boleh', async () => {
@@ -335,6 +362,16 @@ describe('detections', () => {
     await assertFails(getDoc(doc(outsiderFirestore(), detectionPath)));
     await assertSucceeds(deleteDoc(doc(memberFirestore(), detectionPath)));
   });
+
+  test('anggota boleh query daftar deteksi; outsider ditolak', async () => {
+    await seed(detectionPath, detectionData());
+    await assertSucceeds(
+      getDocs(collection(memberFirestore(), `${devicePath}/detections`)),
+    );
+    await assertFails(
+      getDocs(collection(outsiderFirestore(), `${devicePath}/detections`)),
+    );
+  });
 });
 
 // ---------- media ----------
@@ -437,6 +474,16 @@ describe('events', () => {
       updateDoc(doc(memberFirestore(), eventPath), { message: 'diubah' }),
     );
     await assertFails(deleteDoc(doc(memberFirestore(), eventPath)));
+  });
+
+  test('anggota boleh query daftar event; outsider ditolak', async () => {
+    await seed(eventPath, eventData());
+    await assertSucceeds(
+      getDocs(collection(memberFirestore(), `${devicePath}/events`)),
+    );
+    await assertFails(
+      getDocs(collection(outsiderFirestore(), `${devicePath}/events`)),
+    );
   });
 });
 
@@ -548,6 +595,16 @@ describe('commands', () => {
     );
     await assertFails(deleteDoc(doc(deviceFirestore(), commandPath)));
     await assertFails(deleteDoc(doc(memberFirestore(), commandPath)));
+  });
+
+  test('anggota boleh query daftar command; outsider ditolak', async () => {
+    await seed(commandPath, storedCommand());
+    await assertSucceeds(
+      getDocs(collection(memberFirestore(), `${devicePath}/commands`)),
+    );
+    await assertFails(
+      getDocs(collection(outsiderFirestore(), `${devicePath}/commands`)),
+    );
   });
 });
 
