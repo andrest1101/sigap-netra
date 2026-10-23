@@ -436,12 +436,6 @@ abstract class AppLocalizations {
   /// **'Wajib diisi.'**
   String get loginRequiredField;
 
-  /// No description provided for @loginWelcomeBack.
-  ///
-  /// In id, this message translates to:
-  /// **'Selamat datang kembali'**
-  String get loginWelcomeBack;
-
   /// No description provided for @loginWelcomeSubtitle.
   ///
   /// In id, this message translates to:

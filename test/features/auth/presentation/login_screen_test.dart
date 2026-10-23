@@ -76,7 +76,7 @@ void main() {
       await pumpLogin(tester);
 
       expect(find.text('SIGAP-NETRA'), findsOneWidget);
-      expect(find.text('Selamat datang kembali'), findsOneWidget);
+      expect(find.text('Selamat datang kembali'), findsNothing);
       expect(find.text('Email'), findsOneWidget);
       expect(find.text('Kata sandi'), findsOneWidget);
       expect(find.text('Masuk dengan email'), findsOneWidget);

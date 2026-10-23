@@ -178,20 +178,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           margin: EdgeInsets.only(top: DesignTokens.spaceLg),
                           showLoginHint: true,
                         ),
-                        SizedBox(
-                          height: compact
-                              ? DesignTokens.spaceLg
-                              : DesignTokens.spaceXl,
-                        ),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            l10n.loginWelcomeBack,
-                            style: textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
                         const SizedBox(height: DesignTokens.spaceLg),
                         AuthTextField(
                           controller: _emailController,

@@ -1,5 +1,11 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-23 Login lebih ringkas
+
+- Menghapus sapaan "Selamat datang kembali" yang terasa generik; hero brand tetap menjadi pengenal layar masuk.
+- Merapatkan jarak antara blok mode simulasi dan field email, menghapus kunci l10n yang tidak lagi dipakai, serta memperbarui regresi dan golden login.
+- **Verifikasi.** `dart format` bersih; golden login diperbarui; test login lulus; `flutter analyze` bersih; `flutter test` **321 lulus**.
+
 ## 2026-10-22 Koneksi live MaixCAM — query perangkat, rules, dan retry
 
 Aplikasi kini membaca data asli dari `devices/sigap-maixcam-01`; tidak ada lagi error `PERMISSION_DENIED` di Beranda/Perangkat setelah rules baru dideploy.

@@ -185,9 +185,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginRequiredField => 'Wajib diisi.';
 
   @override
-  String get loginWelcomeBack => 'Selamat datang kembali';
-
-  @override
   String get loginWelcomeSubtitle =>
       'Masuk untuk memantau perangkat SIGAP-NETRA.';
 
