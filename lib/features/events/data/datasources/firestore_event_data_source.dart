@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_paths.dart';
+import '../../../../core/errors/firebase_error_mapper.dart';
 import '../../domain/entities/device_event.dart';
 import '../../domain/entities/event_page.dart';
 import '../models/device_event_model.dart';
@@ -22,18 +23,16 @@ class FirestoreEventDataSource implements EventDataSource {
     if (deviceId == null || deviceId.isEmpty) {
       return Stream<List<DeviceEvent>>.value(const <DeviceEvent>[]);
     }
-    return _firestore
+    final snapshots = _firestore
         .collection(eventsCollectionPath(deviceId))
         .orderBy(DeviceEventFields.createdAt, descending: true)
         .limit(limit)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => DeviceEventModel.fromDocument(doc, deviceId: deviceId),
-              )
-              .toList(growable: false),
-        );
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map(
+      (snapshot) => snapshot.docs
+          .map((doc) => DeviceEventModel.fromDocument(doc, deviceId: deviceId))
+          .toList(growable: false),
+    );
   }
 
   @override
@@ -62,7 +61,9 @@ class FirestoreEventDataSource implements EventDataSource {
     if (startAfter != null) {
       query = query.startAfter([Timestamp.fromDate(startAfter.createdAt)]);
     }
-    final snapshot = await query.limit(limit + 1).get();
+    final snapshot = await mapFirebaseFutureErrors(
+      query.limit(limit + 1).get(),
+    );
     final docs = snapshot.docs;
     final hasMore = docs.length > limit;
     final pageDocs = hasMore ? docs.sublist(0, limit) : docs;

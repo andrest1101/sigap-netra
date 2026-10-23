@@ -3,8 +3,9 @@ rules_version = '2';
 // Security Rules SIGAP-NETRA App — deny-by-default.
 // Sumber kebenaran: `docs/firestore_schema.md` bagian 9 (inventaris rules).
 //
-// Status: v0.3 (2026-10-18) — `create` device diperbaiki memakai self-bootstrap
-// (tanpa `get()` pada dokumen yang belum ada) dan seluruh aturan diuji di
+// Status: v0.4 (2026-10-22) - baca daftar perangkat memakai `resource.data`
+// (bukan `get()` ber-wildcard) agar query koleksi Beranda tidak ditolak;
+// `create` device tetap memakai self-bootstrap. Seluruh aturan diuji di
 // emulator lewat `firebase/tests/rules.test.mjs`.
 // Bila skema berubah, file ini, `firestore.indexes.json`, model Dart beserta
 // test, dan `docs/device_protocol.md` wajib diubah dalam satu changeset.
@@ -39,6 +40,17 @@ service cloud.firestore {
 
     function isMember(deviceId) {
       return isSignedIn() && memberRole(deviceId) != null;
+    }
+
+    // Varian untuk dokumen devices itu sendiri. Query koleksi `devices`
+    // (Beranda) memakai `where('members.<uid>', isNull: false)`; aturan list
+    // tidak bisa memanggil get() dengan deviceId wildcard karena path-nya
+    // belum terikat per dokumen (emulator: "Null value error"). `resource`
+    // sudah berisi dokumen yang sedang dievaluasi, jadi pemeriksaan ini
+    // setara dengan isMember() untuk read dokumen tunggal dan lebih hemat.
+    function isMemberOfResource() {
+      return isSignedIn()
+        && resource.data.members[request.auth.uid] != null;
     }
 
     function isOwner(deviceId) {
@@ -116,8 +128,9 @@ service cloud.firestore {
     // ---------- devices/{deviceId} ----------
 
     match /devices/{deviceId} {
-      // Baca hanya anggota (skema bagian 9 aturan 2).
-      allow read: if isMember(deviceId);
+      // Baca hanya anggota (skema bagian 9 aturan 2). Memakai resource, bukan
+      // get(), supaya query koleksi Beranda dapat dievaluasi per dokumen.
+      allow read: if isMemberOfResource();
 
       // Tulis telemetri hanya device pemilik dokumen (authUid terikat).
       // `create` dan `update` dipisah karena `resource` tidak ada saat create.

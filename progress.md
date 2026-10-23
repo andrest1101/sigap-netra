@@ -1,5 +1,15 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-22 Koneksi live MaixCAM — query perangkat, rules, dan retry
+
+Aplikasi kini membaca data asli dari `devices/sigap-maixcam-01`; tidak ada lagi error `PERMISSION_DENIED` di Beranda/Perangkat setelah rules baru dideploy.
+
+- **Akar masalah.** Query Beranda `where('members.<uid>', isNull: false)` dievaluasi terhadap aturan `devices/{deviceId}` yang memanggil `get()` dengan `deviceId` wildcard. Emulator menolaknya dengan `Null value error ... for 'list'`; produksi menerjemahkannya menjadi `Missing or insufficient permissions`. Keanggotaan perangkat sendiri sudah benar.
+- **Rules.** `devices/{deviceId}` sekarang memakai `isMemberOfResource()` (`resource.data.members[request.auth.uid] != null`), setara untuk read dokumen tunggal, bisa dievaluasi untuk query list, dan tidak menambah biaya `get()`. Subkoleksi tetap memakai `isMember(deviceId)` karena parent path-nya terikat. Regresi ditutup test list query untuk `devices`, `detections`, `events`, dan `commands`.
+- **Error & retry.** `mapFirebaseStreamErrors`/`mapFirebaseFutureErrors` memetakan error Firebase dari stream dan operasi satu kali menjadi `AppFailure` di seluruh data source Firestore. Tombol Coba lagi di Beranda, Perangkat, dan Detail perangkat sekarang meng-invalidate provider stream mentah (`rawDevicesProvider`/`rawDeviceProvider`), bukan hanya provider turunan.
+- **Verifikasi.** Firebase emulator **29/29 lulus**; rules dideploy ke `sigap-netra`; `flutter analyze` bersih; `flutter test` **321 lulus**. APK debug dipasang ulang di A15 tanpa menghapus sesi. Logcat setelah restart tidak memuat `PERMISSION_DENIED`. Widget tree runtime (VM service) menampilkan **Kacamata Cerdas 01**, Sinkron terakhir 21.03, bacaan asli Rp 20.000/Rp 1.000 dengan jarak 18/21/207 cm, dan 9 validasi menunggu — bukan data simulasi.
+- **Catatan.** Sesi aplikasi saat verifikasi masih memakai akun perangkat; monitoring dan validasi berjalan, tetapi kontrol jarak jauh tetap memerlukan akun owner karena rules menolak `commands` dari UID device. Tanpa perubahan schema, indeks, paket, atau kode perangkat. Belum ada commit/push.
+
 ## 2026-10-21 Batch 3 — Alur masuk, QR, sheet, dan gestur
 
 Batch ketiga menutup kasus layar pendek dan teks besar yang masih memotong CTA atau petunjuk. Fokusnya aksesibilitas alur masuk, QR provisioning, sheet konfirmasi, gestur Validasi, state kosong/error, dan batas bawah Pengaturan di Android edge-to-edge.

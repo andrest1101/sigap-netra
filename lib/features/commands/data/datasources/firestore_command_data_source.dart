@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_paths.dart';
+import '../../../../core/errors/firebase_error_mapper.dart';
 import '../../domain/entities/device_command.dart';
 import '../models/device_command_model.dart';
 import 'command_data_source.dart';
@@ -20,19 +21,18 @@ class FirestoreCommandDataSource implements CommandDataSource {
     required String deviceId,
     int limit = 20,
   }) {
-    return _firestore
+    final snapshots = _firestore
         .collection(commandsCollectionPath(deviceId))
         .orderBy(DeviceCommandFields.createdAt, descending: true)
         .limit(limit)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) =>
-                    DeviceCommandModel.fromDocument(doc, deviceId: deviceId),
-              )
-              .toList(growable: false),
-        );
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map(
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => DeviceCommandModel.fromDocument(doc, deviceId: deviceId),
+          )
+          .toList(growable: false),
+    );
   }
 
   @override
@@ -40,9 +40,10 @@ class FirestoreCommandDataSource implements CommandDataSource {
     required String deviceId,
     required String commandId,
   }) {
-    return _firestore.doc(commandDocPath(deviceId, commandId)).snapshots().map((
-      snapshot,
-    ) {
+    final snapshots = _firestore
+        .doc(commandDocPath(deviceId, commandId))
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map((snapshot) {
       if (!snapshot.exists) return null;
       return DeviceCommandModel.fromDocument(snapshot, deviceId: deviceId);
     });
@@ -55,15 +56,17 @@ class FirestoreCommandDataSource implements CommandDataSource {
     required Map<String, Object?> payload,
     required String? requestedBy,
   }) async {
-    final ref = await _firestore
-        .collection(commandsCollectionPath(deviceId))
-        .add(
-          DeviceCommandModel.createDocument(
-            type: type,
-            payload: payload,
-            requestedBy: requestedBy,
+    final ref = await mapFirebaseFutureErrors(
+      _firestore
+          .collection(commandsCollectionPath(deviceId))
+          .add(
+            DeviceCommandModel.createDocument(
+              type: type,
+              payload: payload,
+              requestedBy: requestedBy,
+            ),
           ),
-        );
+    );
     return ref.id;
   }
 }

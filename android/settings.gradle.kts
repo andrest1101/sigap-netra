@@ -19,6 +19,9 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.7.3" apply false
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services") version("4.4.4") apply false
+    // END: FlutterFire Configuration
     // 2.3.0 = dibutuhkan firebase-auth 24.2.0 (metadata Kotlin 2.3.0);
     // template Flutter 2.1.0 tidak bisa membacanya.
     id("org.jetbrains.kotlin.android") version "2.3.0" apply false

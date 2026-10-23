@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/constants/firestore_paths.dart';
+import '../../../../core/errors/firebase_error_mapper.dart';
 import '../models/detection_model.dart';
 import 'detection_data_source.dart';
 import '../../domain/entities/detection.dart';
@@ -22,22 +23,22 @@ class FirestoreDetectionDataSource implements DetectionDataSource {
     required String deviceName,
     int limit = 10,
   }) {
-    return _firestore
+    final snapshots = _firestore
         .collection(detectionsCollectionPath(deviceId))
         .orderBy(DetectionFields.createdAt, descending: true)
         .limit(limit)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => DetectionModel.fromDocument(
-                  doc,
-                  deviceId: deviceId,
-                  deviceName: deviceName,
-                ),
-              )
-              .toList(growable: false),
-        );
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map(
+      (snapshot) => snapshot.docs
+          .map(
+            (doc) => DetectionModel.fromDocument(
+              doc,
+              deviceId: deviceId,
+              deviceName: deviceName,
+            ),
+          )
+          .toList(growable: false),
+    );
   }
 
   @override
@@ -47,17 +48,17 @@ class FirestoreDetectionDataSource implements DetectionDataSource {
     required String detectionId,
   }) {
     // Satu dokumen saja: biaya baca 1 + perubahan, bukan seluruh halaman.
-    return _firestore
+    final snapshots = _firestore
         .doc(detectionDocPath(deviceId, detectionId))
-        .snapshots()
-        .map(
-          (doc) => doc.exists
-              ? DetectionModel.fromDocument(
-                  doc,
-                  deviceId: deviceId,
-                  deviceName: deviceName,
-                )
-              : null,
-        );
+        .snapshots();
+    return mapFirebaseStreamErrors(snapshots).map(
+      (doc) => doc.exists
+          ? DetectionModel.fromDocument(
+              doc,
+              deviceId: deviceId,
+              deviceName: deviceName,
+            )
+          : null,
+    );
   }
 }

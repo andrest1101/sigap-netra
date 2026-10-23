@@ -470,5 +470,54 @@ void main() {
       expect(find.text('Menunggu'), findsWidgets);
       expect(find.text('#1'), findsNothing);
     });
+
+    testWidgets('permission-denied menampilkan pesan akses, bukan error umum', (
+      tester,
+    ) async {
+      repository.errorToEmit = const PermissionDeniedFailure();
+      await pumpHome(tester);
+      await pumpFrames(tester);
+
+      expect(
+        find.text('Anda tidak memiliki akses ke data ini.'),
+        findsOneWidget,
+      );
+      expect(find.text('Coba lagi'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Coba lagi membuat ulang stream perangkat, bukan provider turunan',
+      (tester) async {
+        repository.errorToEmit = const NetworkUnavailableFailure();
+        await pumpHome(tester);
+        await pumpFrames(tester);
+        expect(
+          find.text('Layanan tidak dapat dihubungi saat ini.'),
+          findsOneWidget,
+        );
+
+        // Error dihapus sebelum stream baru dibuat; emit setelah tap agar event
+        // tidak hilang sebelum subscription baru terpasang.
+        repository.errorToEmit = null;
+        await tester.tap(find.text('Coba lagi'));
+        await tester.pump();
+        repository.emit([
+          Device(
+            deviceId: kDemoDeviceId,
+            name: 'Kacamata Cerdas',
+            connectivity: DeviceConnectivity.online,
+            lastSeen: DateTime.now(),
+            batteryPct: 82,
+          ),
+        ]);
+        await pumpFrames(tester);
+
+        expect(find.text('Kacamata Cerdas'), findsWidgets);
+        expect(
+          find.text('Layanan tidak dapat dihubungi saat ini.'),
+          findsNothing,
+        );
+      },
+    );
   });
 }

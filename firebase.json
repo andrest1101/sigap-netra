@@ -1,17 +1,1 @@
-{
-  "firestore": {
-    "rules": "firebase/firestore.rules",
-    "indexes": "firebase/firestore.indexes.json"
-  },
-  "emulators": {
-    "firestore": {
-      "host": "127.0.0.1",
-      "port": 8080
-    },
-    "ui": {
-      "enabled": false
-    },
-    "singleProjectMode": true
-  },
-  "comment": "Belum ada project Firebase terhubung (firebase_options.dart belum ada). File ini menyiapkan deploy rules + indexes setelah `flutterfire configure` dijalankan. Blok `emulators` dipakai `firebase emulators:exec` untuk uji rules di `firebase/tests/`."
-}
+{"firestore":{"rules":"firebase/firestore.rules","indexes":"firebase/firestore.indexes.json"},"emulators":{"firestore":{"host":"127.0.0.1","port":8080},"ui":{"enabled":false},"singleProjectMode":true},"comment":"Belum ada project Firebase terhubung (firebase_options.dart belum ada). File ini menyiapkan deploy rules + indexes setelah `flutterfire configure` dijalankan. Blok `emulators` dipakai `firebase emulators:exec` untuk uji rules di `firebase/tests/`.","flutter":{"platforms":{"android":{"default":{"projectId":"sigap-netra","appId":"1:409661614037:android:ae9fa5e58858e2e2837f5c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"sigap-netra","configurations":{"android":"1:409661614037:android:ae9fa5e58858e2e2837f5c"}}}}}}

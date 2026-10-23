@@ -298,7 +298,7 @@ Helper (nama final boleh berbeda, cakupannya wajib ada):
 | --- | --- |
 | signed in | `request.auth` tidak null |
 | device doc | reference ke `devices/{deviceId}` |
-| is member / is owner / is editor | membaca `members` pada dokumen perangkat |
+| is member / is owner / is editor | membaca `members` pada dokumen perangkat. Untuk read koleksi `devices`, aturan memakai `resource.data.members[request.auth.uid]` (bukan `get()`), karena query Beranda memakai `deviceId` wildcard dan `get()` tidak dapat dievaluasi untuk list. |
 | is device | Skema berbasis data: `request.auth.uid` dibandingkan dengan field `authUid` pada dokumen perangkat. **DIPUTUSKAN 2026-10-13** (lihat bagian 11 A1). |
 | valid enum | validasi nilai enum (tipe deteksi, severity, status command, peran) |
 | valid thumbnail | `mime == 'image/jpeg'`, `size <= 60000`, panjang `bytes <= 81920` |
@@ -324,6 +324,7 @@ Aturan yang harus ada:
 Kasus uji emulator yang wajib ada (dari `AGENTS.md` bagian 11, ditambah turunan dari aturan di atas):
 
 - anggota bisa read semua koleksi di perangkatnya;
+- anggota bisa query koleksi `devices` dengan filter `members.<uid>`, serta query daftar `detections`, `events`, dan `commands`; non-anggota ditolak;
 - non-anggota ditolak saat read;
 - device hanya bisa menulis key yang diizinkan; mencoba menulis `members` ditolak;
 - anggota tidak bisa membuat deteksi;
@@ -339,6 +340,8 @@ Kasus uji emulator yang wajib ada (dari `AGENTS.md` bagian 11, ditambah turunan 
 Catatan penting (2026-10-18): aturan `create` device **tidak boleh** memakai helper `isDevice()` (yang memanggil `get()` dokumen sendiri) — saat `create` dokumen belum ada, `get()` mengembalikan null, pembacaan `.data` gagal, dan aturan selalu ditolak. Bootstrap mandiri yang benar: `isSignedIn() && request.resource.data.authUid == request.auth.uid` + allow-list key + validasi `settings`. Aturan `update` tetap memakai `isDevice()` karena dokumen sudah ada.
 
 Temuan kedua dari emulator (2026-10-18): aturan `create` deteksi yang lama gagal evaluasi saat `ocrText` dikirim **null eksplisit** (`.size()` pada null), padahal skema bagian 4.2 mengizinkan null. Aturan sekarang: `!('ocrText' in data) || data.ocrText == null || (data.ocrText is string && data.ocrText.size() <= 500)`; tambahan pemeriksaan `is string` sekaligus menutup celah tipe non-string (mis. map yang punya `.size()`).
+
+Temuan ketiga dari emulator (2026-10-22): query koleksi `devices` dari Beranda (`where('members.<uid>', isNull: false)`) ditolak `PERMISSION_DENIED` karena `allow read: if isMember(deviceId)` memanggil `get()` dengan `deviceId` wildcard. Emulator melaporkan `Null value error ... for 'list'`. Aturan `devices/{deviceId}` sekarang memakai `isMemberOfResource()` yang membaca `resource.data.members[request.auth.uid]`; ini setara untuk read dokumen tunggal, dapat dievaluasi untuk query list, dan tidak menambah biaya `get()`. Aturan subkoleksi tetap memakai `isMember(deviceId)` karena parent path-nya sudah terikat. Regresi ditutup oleh test query `devices`, `detections`, `events`, dan `commands` di `firebase/tests/rules.test.mjs`.
 
 ## 10. Checklist security dan privacy
 
