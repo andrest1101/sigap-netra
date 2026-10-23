@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "409661614037",
+    "project_id": "sigap-netra",
+    "storage_bucket": "sigap-netra.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:409661614037:android:ae9fa5e58858e2e2837f5c",
+        "android_client_info": {
+          "package_name": "com.example.sigap_netra_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "409661614037-qn7rsduuhlf9cudgralu1tprrdml07j3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDeor_DStJ9_x9N4nGjhMSl38BgSXnUP0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "409661614037-qn7rsduuhlf9cudgralu1tprrdml07j3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,9 +15,9 @@ import 'features/commands/data/datasources/firestore_command_data_source.dart';
 import 'features/commands/data/repositories/command_repository_impl.dart';
 import 'features/commands/domain/repositories/command_repository.dart';
 import 'features/commands/presentation/providers/commands_providers.dart';
-import 'features/devices/data/device_name_cache.dart';
 import 'features/devices/data/datasources/fake_device_data_source.dart';
 import 'features/devices/data/datasources/firestore_device_data_source.dart';
+import 'features/devices/data/device_name_cache.dart';
 import 'features/devices/data/repositories/device_repository_impl.dart';
 import 'features/devices/domain/repositories/device_repository.dart';
 import 'features/devices/presentation/providers/devices_providers.dart';
@@ -49,8 +49,9 @@ import 'features/validation/data/datasources/firestore_validation_data_source.da
 import 'features/validation/data/repositories/validation_repository_impl.dart';
 import 'features/validation/domain/repositories/validation_repository.dart';
 import 'features/validation/presentation/providers/validation_providers.dart';
-// Stub `lib/firebase_options.dart` ditimpa `flutterfire configure` (Fase 3).
-// Selama masih stub, getter-nya melempar dan `main` jatuh ke simulasi.
+// Konfigurasi Android sudah dihasilkan `flutterfire configure` untuk project
+// `sigap-netra`. Bila inisialisasi tetap gagal (mis. config tidak lengkap),
+// `main` jatuh ke simulasi dengan penanda jelas, bukan diam-diam.
 import 'firebase_options.dart';
 
 Future<void> main() async {
