@@ -386,13 +386,13 @@ describe('media', () => {
     await assertSucceeds(
       setDoc(doc(deviceFirestore(), mediaPath), {
         mime: 'image/jpeg',
-        size: 60000,
-        bytes: 'A'.repeat(81920),
+        size: 200000,
+        bytes: 'A'.repeat(273000),
       }),
     );
   });
 
-  test('opt-in mati, size lebih, mime salah, bytes terlalu panjang ditolak', async () => {
+  test('opt-in mati, size > 200 KB, mime salah, bytes > 273000 ditolak', async () => {
     await seed(devicePath, deviceData());
     await assertFails(
       setDoc(doc(deviceFirestore(), mediaPath), {
@@ -406,7 +406,7 @@ describe('media', () => {
     await assertFails(
       setDoc(doc(deviceFirestore(), mediaPath), {
         mime: 'image/jpeg',
-        size: 60001,
+        size: 200001,
         bytes: 'A'.repeat(10),
       }),
     );
@@ -421,7 +421,7 @@ describe('media', () => {
       setDoc(doc(deviceFirestore(), mediaPath), {
         mime: 'image/jpeg',
         size: 1000,
-        bytes: 'A'.repeat(81921),
+        bytes: 'A'.repeat(273001),
       }),
     );
   });
