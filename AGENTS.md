@@ -23,7 +23,7 @@ If these files conflict with each other or with a request, **stop and ask the us
 ## 3. Non-Negotiable Product Principles
 
 - **Safety first, cloud second.** The device's core function (detect → speak) MUST work with zero internet. The cloud is telemetry + monitoring only. No feature may make the device depend on the cloud to keep the user safe.
-- **Privacy by design.** NEVER upload video, audio, GPS/location, or full-resolution images. The ONLY image data allowed is a small JPEG thumbnail (≤ 60 KB) of a money/text reading, and ONLY when `settings.uploadThumbnails` is true (opt-in with an explicit consent dialog, default off). OCR text may contain personal info: cap at 500 chars, warn before sharing. Sharing requires an explicit consent dialog.
+- **Privacy by design.** NEVER upload video, audio, GPS/location, or full-resolution images. The ONLY image data allowed is a small JPEG thumbnail (≤ 200 KB) of a money/text reading, and ONLY when `settings.uploadThumbnails` is true (opt-in with an explicit consent dialog, default off). OCR text may contain personal info: cap at 500 chars, warn before sharing. Sharing requires an explicit consent dialog.
 - **Backward compatibility with the existing device.** Do NOT invent or change the Wi-Fi QR payload format, class names, or any device behaviour. They must be extracted from the legacy Kotlin app/firmware (see `PRD.md` §14). If not available yet, ask — don't guess.
 - **Validation integrity.** `match / (match + mismatch)` counts human validations only. Never auto-mark readings as validated without a separate status.
 - **Free-tier first.** Target Firebase **Spark (free)** plan. Do not introduce anything that requires Blaze (Cloud Functions, FCM sending server, etc.) without asking the user. Respect the write/read budget in `PRD.md` §9.
@@ -156,7 +156,7 @@ One feature/task per turn. Don't refactor unrelated code. Don't add packages or 
 - Data: model mapping + repository tests with `fake_cloud_firestore` (include missing/null fields, e.g. `distanceCm: null`).
 - Presentation: widget tests for Beranda, Validasi (including undo and no-image state), and Riwayat using provider overrides (loading, empty, error, data, offline).
 - Pure functions: `buildWifiQrPayload` (golden tests against the payload format extracted from the legacy app), `deriveConnectivity`, accuracy calculation.
-- Firestore Rules: test in the emulator for: member can read, non-member cannot, device can write only allowed keys, member can change ONLY validation fields on detections (and cannot create detections), thumbnails > 60 KB rejected.
+- Firestore Rules: test in the emulator for: member can read, non-member cannot, device can write only allowed keys, member can change ONLY validation fields on detections (and cannot create detections), thumbnails > 200 KB rejected.
 
 ## 12. Git & Commit Policy (MANUAL oleh user — wajib dipatuhi)
 

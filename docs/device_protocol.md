@@ -336,7 +336,7 @@ tipe angka secara buta. Tulis parser dan unit test-nya di
 
 Batas ukuran `bytesValue` pada Standard edition, dari discovery document: nilai
 tidak boleh melebihi **1 MiB - 89 byte**. Batas aplikasi kita lebih ketat
-(thumbnail maksimal 60 KB), jadi aman.
+(thumbnail maksimal 200 KB), jadi aman.
 
 ### 4.4 Bentuk dokumen per collection
 
@@ -417,9 +417,9 @@ Aturan:
 | Field | Tipe | Penulis | Keterangan dari sisi device |
 | --- | --- | --- | --- |
 | `mediaId` | string (ID dokumen) | Device | Saran skema: sama dengan `detectionId`. [PERLU KONFIRMASI] |
-| `bytes` | string (base64) | Device | Data JPEG. Batas keras panjang string **81.920 karakter**. |
+| `bytes` | string (base64) | Device | Data JPEG. Batas keras panjang string **273.000 karakter**. |
 | `mime` | string | Device | Hanya `image/jpeg`; nilai lain ditolak rules. |
-| `size` | integer | Device | Ukuran JPEG **sebelum** base64, dalam byte. Wajib `<= 60000`. |
+| `size` | integer | Device | Ukuran JPEG **sebelum** base64, dalam byte. Wajib `<= 200000`. |
 | `createdAt` | timestamp (server) | Device | |
 
 Aturan:
@@ -427,7 +427,7 @@ Aturan:
 - **Hanya boleh dibuat bila `settings.uploadThumbnails` bernilai `true`.**
   Default `false`.
 - Device harus resize sendiri sebelum menulis. Firestore tidak memotong.
-- Batas 60 KB **wajib ditegakkan rules**, bukan hanya kode device. Rules
+- Batas 200 KB **wajib ditegakkan rules**, bukan hanya kode device. Rules
   memeriksa `size`, panjang `bytes`, dan `mime`, tapi tidak bisa memverifikasi
   bahwa `bytes` benar-benar JPEG yang valid.
 - Tidak boleh ada video, audio, atau frame mentah.
@@ -613,7 +613,7 @@ Semua nilai di bagian ini **perlu konfirmasi** dan tidak boleh dianggap final.
 | Encoding | UTF-8 | [PERLU KONFIRMASI] dukungan SSID non-ASCII |
 | Kapitalisasi | SSID case-sensitive | [PERLU KONFIRMASI] ada atau tidaknya normalisasi |
 | Panjang maksimum payload QR | bergantung pada versi QR dan tingkat koreksi galat yang dipakai | [PERLU KONFIRMASI] jangan asumsikan |
-| Ukuran thumbnail | 60 KB maksimal (kebijakan produk) | Pasti dari AGENTS.md bagian 3 |
+| Ukuran thumbnail | 200 KB maksimal (kebijakan produk; bukan target ukuran) | Pasti dari AGENTS.md bagian 3 |
 | Batas nilai Firestore | bytesValue maksimal 1 MiB - 89 byte | Pasti dari discovery document |
 | Panjang `ocrText` | dipotong 500 karakter | Pasti dari AGENTS.md bagian 3 |
 | Panjang pesan event | dipotong, batas belum ditetapkan | [PERLU KONFIRMASI] |
@@ -772,7 +772,7 @@ hardware. [PERLU KONFIRMASI]
   [PERLU KONFIRMASI] apakah device diizinkan menghapus `detections` dan `media`
   miliknya, dan dengan aturan apa.
 - [PERLU KONFIRMASI] kebijakan retensi per perangkat, jumlah hari atau jumlah
-  maksimum dokumen. Dengan thumbnail 60.000 byte, 1 GiB habis oleh sekitar 17.000
+  maksimum dokumen. Dengan thumbnail maksimum 200.000 byte, 1 GiB habis oleh sekitar 5.300
   thumbnail, sehingga tanpa retensi kuota penyimpanan akan habis pada perangkat
   yang aktif lama.
 
@@ -907,7 +907,7 @@ jawaban ini ditulis.
 | 17 | Events | Panjang maksimum `message`, dan apakah perlu multibahasa | Write quota | BELUM |
 | 18 | Commands | Apakah `sent` dan `acked` dua tahap nyata di firmware | Alur remote control | BELUM |
 | 19 | Commands | Batas panjang `speak_text` dan skala volume audio yang didukung | Alur remote control | SISI APP SUDAH: teks 1–200 karakter, volume 0–100 (draft rules); skala audio firmware [PERLU KONFIRMASI] |
-| 20 | Rules | Aturan rules apa yang menegakkan `size <= 60000`, `mime`, dan panjang `bytes` | Keamanan data | DITULIS di `firebase/firestore.rules`; diuji emulator di `firebase/tests/` |
+| 20 | Rules | Aturan rules apa yang menegakkan `size <= 200000`, `mime`, dan panjang `bytes` | Keamanan data | DITULIS di `firebase/firestore.rules`; diuji emulator di `firebase/tests/` |
 | 21 | Otorisasi | Bagaimana rules mengenali identitas device dan mengikatnya ke `deviceId` yang benar | Otorisasi lintas perangkat | DIPUTUSKAN 2026-10-13 (skema `authUid`, §3); aturan `create` device diperbaiki 2026-10-18 |
 | 22 | Otorisasi | Siapa menulis `members`, dan apakah owner boleh mengubahnya? | Keanggotaan perangkat | BELUM |
 | 23 | Otorisasi | Batas anggota per perangkat, dan model map versus array | Beban baca dan aturan | BELUM |

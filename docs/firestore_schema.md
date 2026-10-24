@@ -26,7 +26,7 @@ Dokumen ini adalah **satu-satunya definisi** koleksi, field, dan tipe data Cloud
    - menghapus dokumen `detections` beserta dokumen `media` yang terkait.
    Apapun di luar itu adalah bug dan harus ditolak Security Rules.
 3. **Status online tidak pernah disimpan sebagai sumber kebenaran.** Online dihitung client-side: `now - lastSeen < 90 detik` (heartbeat device 30 detik). Tidak ada field `isOnline` atau `status` yang dipercaya.
-4. **Privasi.** Tidak pernah ada video, audio, GPS/lokasi, alamat IP, MAC address, kredensial Wi-Fi, atau gambar resolusi penuh. Satu-satunya data gambar yang diizinkan adalah thumbnail JPEG dengan ukuran dasar **<= 60.000 byte**, dan hanya jika `settings.uploadThumbnails == true` (opt-in, default `false`). `ocrText` dipotong maksimal 500 karakter.
+4. **Privasi.** Tidak pernah ada video, audio, GPS/lokasi, alamat IP, MAC address, kredensial Wi-Fi, atau gambar resolusi penuh. Satu-satunya data gambar yang diizinkan adalah thumbnail JPEG dengan ukuran dasar **<= 200.000 byte**, dan hanya jika `settings.uploadThumbnails == true` (opt-in, default `false`). `ocrText` dipotong maksimal 500 karakter.
 5. **Waktu.** Semua field waktu yang dipakai untuk urutan adalah `timestamp` server. Jam device tidak boleh menjadi sumber pengurutan.
 6. **Integritas validasi.** `match / (match + mismatch)` hanya menghitung validasi manusia. `pending` tidak pernah dihitung dan tidak pernah diisi otomatis oleh sistem.
 7. **Free tier dulu.** Setiap query yang dirancang di sini harus tetap muat dalam kuota Spark (lihat bagian 7). Query tanpa `limit()` di UI yang sering dibuka dianggap bug.
@@ -122,12 +122,12 @@ Thumbnail opsional. Koleksi ini tidak pernah di-query dengan filter atau `orderB
 | Field | Tipe | Sumber | Wajib | Deskripsi |
 | --- | --- | --- | --- | --- |
 | `mediaId` | string (ID dokumen) | Device | Ya | Lihat catatan di atas. |
-| `bytes` | string (base64) | Device | Ya | Data JPEG sebagai base64. Batas keras: panjang string maksimal 81.920 karakter, karena 60.000 byte menjadi sekitar 80.000 karakter setelah base64. |
+| `bytes` | string (base64) | Device | Ya | Data JPEG sebagai base64. Batas keras: panjang string maksimal 273.000 karakter, untuk thumbnail sampai 200.000 byte setelah base64. |
 | `mime` | string | Device | Ya | Hanya `image/jpeg` yang diizinkan; nilai lain ditolak rules. |
-| `size` | int | Device | Ya | Ukuran file JPEG **sebelum** base64, dalam byte. Wajib `<= 60000`; rules memeriksa field ini dan panjang `bytes`. |
+| `size` | int | Device | Ya | Ukuran file JPEG **sebelum** base64, dalam byte. Wajib `<= 200000`; rules memeriksa field ini dan panjang `bytes`. |
 | `createdAt` | timestamp (server) | Device | Ya | Waktu dokumen dibuat. |
 
-Catatan: yang tersimpan di `bytes` adalah data biner dalam bentuk teks base64, bukan gambar yang diunggah ke layanan lain. Batas dokumen 1 MiB jauh lebih besar dari 60 KB, sehingga batas 60 KB **wajib ditegakkan oleh rules**, bukan hanya oleh kode device. Rules tidak bisa memverifikasi bahwa `bytes` benar-benar JPEG yang valid; rules hanya memeriksa panjang, `mime`, dan `size`.
+Catatan: yang tersimpan di `bytes` adalah data biner dalam bentuk teks base64, bukan gambar yang diunggah ke layanan lain. Batas dokumen Firestore 1 MiB lebih besar dari 200 KB beserta Base64, sehingga batas 200 KB **wajib ditegakkan oleh rules**, bukan hanya oleh kode device. Rules tidak bisa memverifikasi bahwa `bytes` benar-benar JPEG yang valid; rules hanya memeriksa panjang, `mime`, dan `size`. Batas 200 KB adalah maksimum, bukan target kompresi: 300 thumbnail/hari × 200 KB × 30 hari dapat melebihi kuota penyimpanan Spark 1 GiB. Pantau ukuran/retensi aktual.
 
 ### 4.4 `devices/{deviceId}/events/{eventId}`
 
@@ -249,7 +249,7 @@ Rekomendasi: **tulis `lastSeen` tidak lebih cepat dari 60 detik** (tetap di bawa
 
 ### 7.4 Penyimpanan dan retensi
 
-1 GiB itu kecil. Dengan asumsi thumbnail 60.000 byte, 1 GiB habis oleh sekitar 17.000 thumbnail. Karena TTL policy **tidak didukung** di Spark, tidak ada auto-delete; opsi yang ada:
+1 GiB itu kecil. Dengan asumsi thumbnail maksimum 200.000 byte, 1 GiB habis oleh sekitar 5.300 thumbnail (lebih sedikit setelah overhead dokumen dan encoding). Karena TTL policy **tidak didukung** di Spark, tidak ada auto-delete; opsi yang ada:
 
 - device menghapus deteksi lamanya sendiri (device boleh menghapus dokumen miliknya sendiri) - [PERLU KONFIRMASI] apakah device diizinkan menghapus `detections` dan `media` miliknya, dan dengan aturan apa;
 - atau aplikasi menghapus manual dari Riwayat (use case `DeleteDetection` sudah direncanakan).
@@ -301,7 +301,7 @@ Helper (nama final boleh berbeda, cakupannya wajib ada):
 | is member / is owner / is editor | membaca `members` pada dokumen perangkat. Untuk read koleksi `devices`, aturan memakai `resource.data.members[request.auth.uid]` (bukan `get()`), karena query Beranda memakai `deviceId` wildcard dan `get()` tidak dapat dievaluasi untuk list. |
 | is device | Skema berbasis data: `request.auth.uid` dibandingkan dengan field `authUid` pada dokumen perangkat. **DIPUTUSKAN 2026-10-13** (lihat bagian 11 A1). |
 | valid enum | validasi nilai enum (tipe deteksi, severity, status command, peran) |
-| valid thumbnail | `mime == 'image/jpeg'`, `size <= 60000`, panjang `bytes <= 81920` |
+| valid thumbnail | `mime == 'image/jpeg'`, `size <= 200000`, panjang `bytes <= 273000` |
 | only keys changed | `affectedKeys().hasOnly([...])` untuk membatasi update |
 
 Aturan yang harus ada:
@@ -330,7 +330,7 @@ Kasus uji emulator yang wajib ada (dari `AGENTS.md` bagian 11, ditambah turunan 
 - anggota tidak bisa membuat deteksi;
 - anggota tidak bisa mengubah `label`, `amount`, atau `ocrText`;
 - anggota tidak bisa menghapus `devices` atau `events`;
-- `media` dengan `size` lebih dari 60.000 atau `mime` bukan `image/jpeg` ditolak;
+- `media` dengan `size` lebih dari 200.000 atau `mime` bukan `image/jpeg` ditolak;
 - `media` ditolak saat `settings.uploadThumbnails` bernilai `false`;
 - `ocrText` lebih dari 500 karakter ditolak;
 - transisi status `commands` yang mundur ditolak;
@@ -349,7 +349,7 @@ Sebelum rilis, setiap item harus bisa dibuktikan lewat test emulator, review rul
 
 - [ ] Tidak ada field lokasi atau GPS di dokumen mana pun.
 - [ ] Tidak ada video, audio, atau gambar resolusi penuh di Firestore.
-- [ ] Thumbnail hanya JPEG, `size` maksimal 60.000 byte, hanya saat opt-in aktif.
+- [ ] Thumbnail hanya JPEG, `size` maksimal 200.000 byte, hanya saat opt-in aktif.
 - [ ] `ocrText` dipotong 500 karakter sebelum ditulis; UI share menampilkan peringatan data pribadi sebelum share.
 - [ ] Kredensial Wi-Fi hanya lewat QR lokal; tidak pernah masuk `commands.payload`, `events.message`, atau log aplikasi.
 - [ ] Tidak ada token, refresh token, atau email penuh di log aplikasi; `firebase_options.dart` diperlakukan sebagai identifier, bukan rahasia.
