@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 ///
 /// Mengikuti `docs/firestore_schema.md` bagian 4.3: hanya lookup satu dokumen
 /// `media/{thumbnailId}`, tidak pernah query daftar. Bytes selalu JPEG kecil
-/// (<= 60 KB sebelum base64) dan disimpan di memori sesi saja.
+/// (<= 200 KB sebelum base64) dan disimpan di memori sesi saja.
 class MediaThumbnail extends Equatable {
   const MediaThumbnail({
     required this.deviceId,

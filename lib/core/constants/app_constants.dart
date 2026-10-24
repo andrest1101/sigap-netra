@@ -17,13 +17,13 @@ const int kDeviceHeartbeatIntervalSeconds = 30;
 ///
 /// Hard limit dari kebijakan privasi. Gambar yang lebih besar harus ditolak di
 /// sisi device sebelum dikirim, dan ditolak juga oleh Security Rules.
-const int kMaxThumbnailBytes = 60 * 1000;
+const int kMaxThumbnailBytes = 200 * 1000;
 
 /// Panjang maksimum string base64 dokumen `media.bytes`.
 ///
-/// 60.000 byte menjadi ~80.000 karakter setelah base64; batas 81.920 mengikuti
-/// `docs/firestore_schema.md` bagian 4.3 dan `firebase/firestore.rules`.
-const int kMaxThumbnailBase64Length = 81920;
+/// 200.000 byte menjadi sekitar 266.668 karakter setelah base64; batas 273.000
+/// memberi ruang kecil dan mengikuti schema serta Firestore Rules.
+const int kMaxThumbnailBase64Length = 273000;
 
 /// Batas jumlah karakter teks OCR yang disimpan dan ditampilkan.
 const int kMaxOcrTextLength = 500;

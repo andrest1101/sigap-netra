@@ -31,6 +31,18 @@ void main() {
       expect(thumbnail.imageBytes, bytes);
     });
 
+    test('thumbnail hingga 200 KB diterima', () {
+      final bytes = List<int>.filled(kMaxThumbnailBytes, 7);
+      final thumbnail = MediaModel.fromData(
+        data: doc(bytes),
+        deviceId: deviceId,
+        mediaId: mediaId,
+      );
+
+      expect(thumbnail, isNotNull);
+      expect(thumbnail!.imageBytes.length, kMaxThumbnailBytes);
+    });
+
     test('data null menjadi null (tanpa gambar)', () {
       expect(
         MediaModel.fromData(data: null, deviceId: deviceId, mediaId: mediaId),
@@ -48,7 +60,7 @@ void main() {
       );
     });
 
-    test('size nol atau lewat 60 KB menjadi null', () {
+    test('size nol atau lewat 200 KB menjadi null', () {
       final bytes = List<int>.filled(16, 1);
       final zero = doc(bytes)..[MediaFields.size] = 0;
       final over = doc(bytes)..[MediaFields.size] = kMaxThumbnailBytes + 1;
@@ -77,13 +89,13 @@ void main() {
       }
     });
 
-    test('hasil decode kosong atau lewat 60 KB menjadi null', () {
+    test('hasil decode kosong atau lewat 200 KB menjadi null', () {
       final emptyDoc = {
         MediaFields.mime: MediaFields.mimeJpeg,
         MediaFields.size: 10,
         MediaFields.bytes: encode(const <int>[]),
       };
-      // Size tercatat kecil tapi bytes asli > 60 KB: tetap ditolak.
+      // Size tercatat kecil tapi bytes asli > 200 KB: tetap ditolak.
       final bigBytes = List<int>.filled(kMaxThumbnailBytes + 1, 7);
       final bigDoc = {
         MediaFields.mime: MediaFields.mimeJpeg,

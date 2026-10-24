@@ -297,7 +297,7 @@
 
   "settingsTitle": "Pengaturan",
   "settingsUploadThumbnails": "Kirim thumbnail pembacaan",
-  "settingsUploadThumbnailsBody": "Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.",
+  "settingsUploadThumbnailsBody": "Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.",
   "settingsDeviceUploadsReadOnly": "Nilai ini hanya informasi perangkat.",
   "settingsUploadThumbnailsConsentTitle": "Izinkan pengiriman thumbnail?",
   "settingsUploadThumbnailsConsentBody": "Thumbnail berisi Potongan gambar pembacaan dan dapat memuat informasi pribadi. Video, audio, dan lokasi tidak pernah dikirim.",

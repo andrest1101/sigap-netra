@@ -11,7 +11,7 @@ void main() {
   }
 
   group('FakeMediaDataSource', () {
-    test('dua dummy aset uang di bawah 60 KB dan bytes berbeda', () async {
+    test('dua dummy aset uang di bawah 200 KB dan bytes berbeda', () async {
       final media = graph();
       final money100k = await media.getThumbnail(
         deviceId: kDemoDeviceId,

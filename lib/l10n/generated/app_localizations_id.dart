@@ -765,7 +765,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsUploadThumbnailsBody =>
-      'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.';
+      'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.';
 
   @override
   String get settingsDeviceUploadsReadOnly =>
