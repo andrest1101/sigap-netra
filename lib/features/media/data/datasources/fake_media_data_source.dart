@@ -11,7 +11,7 @@ import 'media_data_source.dart';
 /// Hanya dua pecahan uang yang punya foto demo; item lain sengaja tanpa
 /// thumbnail agar panel "tanpa gambar" tetap teruji dan tidak ada gambar
 /// prosedural yang mudah terbaca sebagai gambar rusak. Masing-masing JPEG
-/// ≤ 60 KB — di bawah batas privasi.
+/// ≤ 200 KB — di bawah batas privasi.
 const String kDemoMoney100kAsset = 'assets/images/demo_money_100k.jpg';
 const String kDemoMoney50kAsset = 'assets/images/demo_money_50k.jpg';
 

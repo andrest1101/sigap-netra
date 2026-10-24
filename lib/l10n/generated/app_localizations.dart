@@ -436,12 +436,6 @@ abstract class AppLocalizations {
   /// **'Wajib diisi.'**
   String get loginRequiredField;
 
-  /// No description provided for @loginWelcomeBack.
-  ///
-  /// In id, this message translates to:
-  /// **'Selamat datang kembali'**
-  String get loginWelcomeBack;
-
   /// No description provided for @loginWelcomeSubtitle.
   ///
   /// In id, this message translates to:
@@ -1519,7 +1513,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsUploadThumbnailsBody.
   ///
   /// In id, this message translates to:
-  /// **'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 60 KB dan tidak menyertakan video atau audio.'**
+  /// **'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.'**
   String get settingsUploadThumbnailsBody;
 
   /// No description provided for @settingsDeviceUploadsReadOnly.

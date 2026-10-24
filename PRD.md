@@ -70,7 +70,7 @@ Rilis ini membangun ulang aplikasi dengan **Flutter** dan menambah kemampuan lin
 | D3  | Alat login sebagai **akun Firebase Auth khusus perangkat**                                               | Tanpa Cloud Functions; akses dibatasi Rules                                                                 | Perangkat banyak → alur provisioning                                                 |
 | D4  | Command via **polling 10 dtk**                                                                           | REST tidak punya listener sederhana                                                                         | Lihat D2                                                                             |
 | D5  | Aplikasi **menulis hanya**: `commands` (buat), status validasi pada `detections`, hapus pembacaan/gambar | Satu penulis per field; Rules membatasi key                                                                 | —                                                                                    |
-| D6  | **Thumbnail JPEG ≤ 60 KB di Firestore** (koleksi `media`, opt-in)                                        | Validasi butuh gambar; Firebase Storage umumnya butuh Blaze ⚠️; volume rendah (pembacaan dipicu pengguna)   | Volume naik / pindah Blaze → Storage                                                 |
+| D6  | **Thumbnail JPEG ≤ 200 KB di Firestore** (koleksi `media`, opt-in)                                        | Validasi butuh gambar lebih jelas; Firebase Storage umumnya butuh Blaze ⚠️; opt-in tetap membatasi volume  | Volume naik / pindah Blaze → Storage                                                 |
 | D7  | Suara tetap **di sisi alat**                                                                             | Alat mandiri tanpa internet                                                                                 | —                                                                                    |
 | D8  | **QR Wi-Fi dipertahankan** sebagai satu-satunya cara memberi tahu Wi-Fi ke alat tanpa keyboard           | Fungsi lama; kini juga untuk Wi-Fi rumah                                                                    | Alat dapat BLE provisioning                                                          |
 | D9  | "Tarik Rekaman" diganti **sinkron otomatis + tombol Sinkronkan sekarang** (`sync_now`)                   | Lintas jaringan; tidak perlu satu LAN                                                                       | Perlu gambar resolusi penuh → Mode Lokal (P2)                                        |
@@ -118,7 +118,7 @@ Notifikasi lokal · multi-perangkat penuh · TTS di aplikasi (`flutter_tts`) · 
 | --- | ------------------- | ------------------------------------------------------------------------------------------------------------ |
 | DV1 | Heartbeat 30 dtk    | `lastSeen`, `state`, baterai, versi ter-update                                                               |
 | DV2 | Upload pembacaan    | Uang/teks: kirim semua dengan `seq`, `category`, `value`, `processingMs`; objek kontinu (bila ada): throttle |
-| DV3 | Upload thumbnail    | Hanya bila `uploadThumbnails = true`; JPEG ≤ 60 KB; satu `commit` atomik dengan pembacaan                    |
+| DV3 | Upload thumbnail    | Hanya bila `uploadThumbnails = true`; JPEG ≤ 200 KB; satu `commit` atomik dengan pembacaan                    |
 | DV4 | Event               | Kode baku; tanpa SSID/password                                                                               |
 | DV5 | Poll command 10 dtk | Ack → eksekusi → hasil; termasuk `sync_now`                                                                  |
 | DV6 | Tahan offline       | Tanpa internet: baca + suara normal; antrean maks 200; sinkron saat online; tanpa crash                      |
@@ -141,7 +141,7 @@ Notifikasi lokal · multi-perangkat penuh · TTS di aplikasi (`flutter_tts`) · 
 | Antrean validasi / riwayat (25 dokumen + 25 media tiap halaman) | ≈ 50 baca per muat halaman               |
 | Panel Statistik Riwayat (hanya `count()` agregat)               | 17 baca (7 hari) / 11 baca (4 minggu)   |
 
-Penyimpanan thumbnail: ~300 pembacaan × ≤ 60 KB × 30 hari ≈ ≤ 540 MB bila penuh (jauh di bawah itu pada praktiknya); pantau, dan turunkan kualitas/ukuran bila perlu.
+Penyimpanan thumbnail: ~300 pembacaan × ≤ 200 KB × 30 hari ≈ ≤ 1,8 GB bila penuh, melebihi kuota Firestore Spark 1 GiB. Karena itu 200 KB adalah batas atas, bukan target ukuran; ukur penggunaan aktual dan hapus data lama secara berkala. Jika volume mendekati kuota, turunkan target kompresi atau jumlah thumbnail yang disimpan.
 
 Aturan turunan: tidak menulis per frame; semua query pakai `limit`; badge/ringkasan pakai `count()`; listener `autoDispose`; gambar kartu dimuat lazy dan di-cache di memori.
 

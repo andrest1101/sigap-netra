@@ -1,5 +1,19 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-23 Selaraskan batas thumbnail 200 KB
+
+- Berdasarkan persetujuan owner, batas maksimum JPEG dinaikkan dari 60.000 menjadi 200.000 byte; panjang Base64 maksimum menjadi 273.000 karakter. Batas berlaku di konstanta/model Flutter, Firestore Rules, dan dokumentasi PRD/skema/protokol/UI.
+- Flutter sebelumnya mengubah media yang lebih besar dari 60 KB menjadi `null`, sehingga thumbnail yang diizinkan Rules dapat tampil seolah-olah tidak diunggah. Tambah tes penerimaan tepat 200 KB; tes emulator memverifikasi batas maksimum dan penolakan di atasnya.
+- **Risiko kuota:** 200 KB adalah batas, bukan target. Pada asumsi 300 gambar/hari selama 30 hari, ukuran maksimum teoretis sekitar 1,8 GB (melampaui penyimpanan Spark 1 GiB); pantau ukuran aktual dan retensi.
+- **Verifikasi.** Test media lulus; Firebase Rules emulator **29/29 lulus**; `flutter analyze` bersih; `flutter test` **322 lulus**. Golden Pengaturan diperbarui karena teks persetujuan kini menyebut batas 200 KB.
+- **Operasional.** Rules belum dideploy. Jangan unggah firmware 200 KB ke produksi sampai Rules versi baru dideploy dan aplikasi dengan batas baru tersedia.
+
+## 2026-10-23 Login lebih ringkas
+
+- Menghapus sapaan "Selamat datang kembali" yang terasa generik; hero brand tetap menjadi pengenal layar masuk.
+- Merapatkan jarak antara blok mode simulasi dan field email, menghapus kunci l10n yang tidak lagi dipakai, serta memperbarui regresi dan golden login.
+- **Verifikasi.** `dart format` bersih; golden login diperbarui; test login lulus; `flutter analyze` bersih; `flutter test` **321 lulus**.
+
 ## 2026-10-22 Koneksi live MaixCAM — query perangkat, rules, dan retry
 
 Aplikasi kini membaca data asli dari `devices/sigap-maixcam-01`; tidak ada lagi error `PERMISSION_DENIED` di Beranda/Perangkat setelah rules baru dideploy.

@@ -203,14 +203,14 @@ service cloud.firestore {
         allow read: if isMember(deviceId);
 
         // Hanya device, hanya saat opt-in aktif, dan penuhi batas thumbnail
-        // (aturan 11): mime JPEG, size <= 60000, bytes <= 81920.
+        // (aturan 11): mime JPEG, size <= 200000, bytes <= 273000.
         allow create: if isDevice(deviceId)
           && deviceDoc(deviceId).data.settings.uploadThumbnails == true
           && request.resource.data.mime == 'image/jpeg'
           && request.resource.data.size is int
-          && request.resource.data.size <= 60000
+          && request.resource.data.size <= 200000
           && request.resource.data.bytes is string
-          && request.resource.data.bytes.size() <= 81920;
+          && request.resource.data.bytes.size() <= 273000;
 
         // Anggota boleh menghapus (bersama deteksi); update tidak pernah.
         allow update: if false;
