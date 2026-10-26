@@ -6,6 +6,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/design_tokens.dart';
 import 'features/devices/presentation/providers/devices_providers.dart';
+import 'features/notifications/presentation/widgets/detection_notification_coordinator.dart';
 import 'l10n/generated/app_localizations.dart';
 
 /// Root widget aplikasi.
@@ -52,7 +53,9 @@ class App extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
         value: overlayStyle,
-        child: child ?? const SizedBox.shrink(),
+        child: DetectionNotificationCoordinator(
+          child: child ?? const SizedBox.shrink(),
+        ),
       ),
       routerConfig: ref.watch(appRouterProvider),
     );

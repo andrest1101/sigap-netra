@@ -66,6 +66,33 @@ class UploadThumbnailsPrivacyController extends Notifier<bool> {
   Future<void> toggle() => set(!state);
 }
 
+/// Notifikasi pembacaan di ponsel.
+///
+/// Default mati. Menyalakannya lewat Pengaturan selalu meminta izin OS lebih
+/// dulu; preferensi ini hanya menyimpan keputusan pengguna, bukan status izin.
+final detectionNotificationsEnabledProvider =
+    NotifierProvider<DetectionNotificationsEnabledController, bool>(
+      DetectionNotificationsEnabledController.new,
+    );
+
+class DetectionNotificationsEnabledController extends Notifier<bool> {
+  static const String storageKey = 'detection_notifications_enabled';
+
+  @override
+  bool build() {
+    final preferences = ref.watch(sharedPreferencesProvider);
+    return preferences.getBool(storageKey) ?? false;
+  }
+
+  Future<void> set(bool value) async {
+    if (state == value) return;
+    state = value;
+    await ref.read(sharedPreferencesProvider).setBool(storageKey, value);
+  }
+
+  Future<void> toggle() => set(!state);
+}
+
 class DeveloperModeController extends Notifier<bool> {
   static const String _storageKey = 'developer_mode';
 

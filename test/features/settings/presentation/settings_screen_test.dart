@@ -5,10 +5,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigap_netra_app/core/theme/app_theme.dart';
 import 'package:sigap_netra_app/features/auth/domain/entities/app_user.dart';
 import 'package:sigap_netra_app/features/auth/presentation/providers/auth_providers.dart';
+import 'package:sigap_netra_app/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:sigap_netra_app/features/settings/domain/entities/data_source.dart';
 import 'package:sigap_netra_app/features/settings/presentation/providers/settings_providers.dart';
 import 'package:sigap_netra_app/features/settings/presentation/screens/settings_screen.dart';
 import 'package:sigap_netra_app/l10n/generated/app_localizations.dart';
+
+import '../../../helpers/fake_notification_gateway.dart';
 
 void main() {
   Future<SharedPreferences> pumpSettings(
@@ -16,9 +19,11 @@ void main() {
     DataSourceSelection selection = const DataSourceSelection.firebase(),
     double textScale = 1.0,
     double bottomInset = 0,
+    FakeNotificationGateway? notificationGateway,
   }) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
+    final gateway = notificationGateway ?? FakeNotificationGateway();
 
     await tester.pumpWidget(
       ProviderScope(
@@ -28,6 +33,7 @@ void main() {
           currentUserProvider.overrideWithValue(
             const AppUser(uid: 'user-1', email: 'user@example.com'),
           ),
+          notificationGatewayProvider.overrideWithValue(gateway),
         ],
         child: MaterialApp(
           locale: const Locale('id'),
@@ -118,10 +124,55 @@ void main() {
     });
   });
 
+  group('Pengaturan — notifikasi', () {
+    testWidgets('default mati; menyalakan meminta izin lalu menyimpan', (
+      tester,
+    ) async {
+      final gateway = FakeNotificationGateway();
+      final preferences = await pumpSettings(
+        tester,
+        notificationGateway: gateway,
+      );
+
+      expect(switchTileOf(tester, 'Notifikasi pembacaan').value, isFalse);
+
+      await tester.tap(find.text('Notifikasi pembacaan'));
+      await tester.pumpAndSettle();
+
+      expect(switchTileOf(tester, 'Notifikasi pembacaan').value, isTrue);
+      expect(preferences.getBool('detection_notifications_enabled'), isTrue);
+      expect(gateway.permissionRequests, 1);
+    });
+
+    testWidgets('izin ditolak: saklar tetap mati dan pengguna diberi tahu', (
+      tester,
+    ) async {
+      final gateway = FakeNotificationGateway(permissionGranted: false);
+      final preferences = await pumpSettings(
+        tester,
+        notificationGateway: gateway,
+      );
+
+      await tester.tap(find.text('Notifikasi pembacaan'));
+      await tester.pumpAndSettle();
+
+      expect(switchTileOf(tester, 'Notifikasi pembacaan').value, isFalse);
+      expect(
+        preferences.getBool('detection_notifications_enabled'),
+        isNot(true),
+      );
+      expect(find.textContaining('Izin notifikasi ditolak'), findsOneWidget);
+      expect(gateway.permissionRequests, 1);
+    });
+  });
+
   group('Pengaturan — lanjutan & tentang', () {
     testWidgets('mode pengembang menulis preferensi', (tester) async {
       final preferences = await pumpSettings(tester);
 
+      // Kartu Lanjutan kini berada di bawah lipatan karena ada seksi
+      // Notifikasi di antaranya.
+      await tester.scrollUntilVisible(find.text('Mode pengembang'), 300);
       expect(switchTileOf(tester, 'Mode pengembang').value, isFalse);
 
       await tester.tap(find.text('Mode pengembang'));
@@ -142,8 +193,13 @@ void main() {
       );
 
       // Toggle memang mati (pengguna tidak memilih simulasi) …
+      await tester.scrollUntilVisible(find.text('Mode pengembang'), 300);
       expect(switchTileOf(tester, 'Mode pengembang').value, isFalse);
       // … tetapi aplikasi tetap harus jujur bahwa datanya simulasi.
+      await tester.scrollUntilVisible(
+        find.text('Simulasi — Firebase belum tersedia pada build ini.'),
+        300,
+      );
       expect(
         find.text('Simulasi — Firebase belum tersedia pada build ini.'),
         findsOneWidget,
@@ -156,6 +212,10 @@ void main() {
     ) async {
       await pumpSettings(tester);
 
+      await tester.scrollUntilVisible(
+        find.text('Firebase — data tersinkron ke cloud.'),
+        300,
+      );
       expect(find.text('Firebase — data tersinkron ke cloud.'), findsOneWidget);
     });
 

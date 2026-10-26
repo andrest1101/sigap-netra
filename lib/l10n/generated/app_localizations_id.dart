@@ -12,9 +12,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get appTitle => 'SIGAP-NETRA';
 
   @override
-  String get appSubtitle => 'Pendamping kacamata pintar';
-
-  @override
   String get commonRetry => 'Coba lagi';
 
   @override
@@ -22,9 +19,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get commonClose => 'Tutup';
-
-  @override
-  String get commonSave => 'Simpan';
 
   @override
   String get commonDelete => 'Hapus';
@@ -39,25 +33,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get commonNext => 'Lanjut';
 
   @override
-  String get commonSearch => 'Cari';
-
-  @override
   String get commonFilter => 'Saring';
 
   @override
   String get commonRefresh => 'Muat ulang';
 
   @override
-  String get commonLoading => 'Memuat...';
-
-  @override
   String get commonYes => 'Ya';
-
-  @override
-  String get commonNo => 'Tidak';
-
-  @override
-  String get commonNone => 'Tidak ada';
 
   @override
   String get commonUnknown => 'Tidak diketahui';
@@ -109,9 +91,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get stateErrorUnknown => 'Kesalahan tidak diketahui. Coba lagi.';
 
   @override
-  String get stateErrorNoConnection => 'Tidak ada koneksi internet.';
-
-  @override
   String get offlineBannerTitle => 'Mode luring';
 
   @override
@@ -133,16 +112,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get navDevices => 'Perangkat';
 
   @override
-  String get navSettings => 'Pengaturan';
-
-  @override
   String get loginOrDivider => 'atau';
-
-  @override
-  String get loginTitle => 'Masuk';
-
-  @override
-  String get loginSubtitle => 'Masuk untuk memantau perangkat SIGAP-NETRA.';
 
   @override
   String get loginEmailLabel => 'Email';
@@ -232,12 +202,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get loginCreateAccount => 'Buat akun';
 
   @override
-  String get loginHaveAccount => 'Sudah punya akun?';
-
-  @override
-  String get loginSignInLink => 'Masuk';
-
-  @override
   String get loginPrivacyNote =>
       'Hanya email untuk login perangkat. Tanpa video, audio, atau lokasi.';
 
@@ -263,13 +227,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeSyncShort => 'Sinkronkan';
 
   @override
-  String get homeSyncSent => 'Permintaan sinkronisasi dikirim.';
-
-  @override
   String get homeRecentActivity => 'Aktivitas terbaru';
-
-  @override
-  String get homeValidationSummary => 'Ringkasan validasi';
 
   @override
   String get homeNoDevicesTitle => 'Belum ada perangkat';
@@ -282,13 +240,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeAccuracyLabel => 'Akurasi';
 
   @override
-  String get homeValidatedLabel => 'Tervalidasi';
-
-  @override
   String get homePendingLabel => 'Menunggu';
-
-  @override
-  String get homeLastSeenLabel => 'Terakhir terlihat';
 
   @override
   String homeAccuracyFromCount(int count) {
@@ -315,9 +267,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get statusOffline => 'Terputus';
-
-  @override
-  String get statusConnecting => 'Menghubungkan';
 
   @override
   String get statusPending => 'Menunggu';
@@ -363,42 +312,10 @@ class AppLocalizationsId extends AppLocalizations {
       'Semua penanda Cocok dan Tidak cocok akan dihapus. Tindakan ini tidak dapat dibatalkan.';
 
   @override
-  String get validationFilterPending => 'Menunggu';
-
-  @override
-  String get validationFilterMatch => 'Cocok';
-
-  @override
-  String get validationFilterMismatch => 'Tidak cocok';
-
-  @override
-  String get validationEmptyTitle => 'Tidak ada pembacaan menunggu';
-
-  @override
-  String get validationEmptyBody => 'Semua pembacaan sudah divalidasi.';
-
-  @override
-  String get validationNoImage => 'Tidak ada gambar untuk pembacaan ini.';
-
-  @override
-  String get validationDistanceLabel => 'Jarak';
-
-  @override
-  String get validationConfidenceLabel => 'Keyakinan';
-
-  @override
-  String validationConfidenceValue(String value) {
-    return 'Keyakinan: $value';
-  }
-
-  @override
   String get validationConfidenceNoValue => 'Keyakinan tidak tersedia';
 
   @override
   String get historyTitle => 'Riwayat';
-
-  @override
-  String get historyFilterType => 'Jenis';
 
   @override
   String get historyTypeMoney => 'Uang';
@@ -407,22 +324,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyTypeText => 'Teks';
 
   @override
-  String get historyFilterDate => 'Rentang tanggal';
-
-  @override
-  String get historyFilterStatus => 'Status validasi';
-
-  @override
   String get historyToday => 'Hari ini';
-
-  @override
-  String get historyLast7Days => '7 hari terakhir';
-
-  @override
-  String get historyLast30Days => '30 hari terakhir';
-
-  @override
-  String get historyAllTime => 'Semua waktu';
 
   @override
   String get historyLoadMore => 'Muat lagi';
@@ -438,9 +340,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Pembacaan dan thumbnail terkait akan dihapus permanen.';
 
   @override
-  String get historyDeleted => 'Pembacaan dihapus.';
-
-  @override
   String historyDeletedNamed(String label) {
     return '$label dihapus dari riwayat.';
   }
@@ -451,9 +350,6 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get historyActionFailed =>
       'Tindakan gagal. Periksa koneksi lalu coba lagi.';
-
-  @override
-  String get historySummaryTitle => 'Ringkasan harian';
 
   @override
   String get historyDetailTitle => 'Detail pembacaan';
@@ -537,26 +433,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get deviceAdd => 'Tambah perangkat';
 
   @override
-  String get deviceRemoveTitle => 'Lepas perangkat ini?';
-
-  @override
-  String get deviceRemoveBody =>
-      'Perangkat akan dihapus dari daftar Anda. Data di perangkat tidak terpengaruh.';
-
-  @override
-  String get deviceRemoved => 'Perangkat dilepas.';
-
-  @override
   String get deviceThumbnailOn => 'Thumbnail diunggah';
 
   @override
   String get deviceThumbnailOff => 'Thumbnail tidak diunggah';
-
-  @override
-  String get deviceLocalActive => 'Aktif';
-
-  @override
-  String get deviceLocalInactive => 'Tidak aktif';
 
   @override
   String get provisioningTitle => 'Pasang Wi-Fi';
@@ -575,17 +455,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get provisioningShowPassword => 'Tampilkan kata sandi';
 
   @override
-  String get provisioningGenerate => 'Buat QR';
-
-  @override
   String get provisioningWaiting => 'Menunggu perangkat terhubung...';
 
   @override
   String get provisioningSuccess => 'Perangkat berhasil terhubung.';
-
-  @override
-  String get provisioningFailed =>
-      'Perangkat gagal terhubung. Periksa kata sandi Wi-Fi.';
 
   @override
   String get provisioningInvalidSsid => 'Nama Wi-Fi tidak valid.';
@@ -768,10 +641,6 @@ class AppLocalizationsId extends AppLocalizations {
       'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.';
 
   @override
-  String get settingsDeviceUploadsReadOnly =>
-      'Nilai ini hanya informasi perangkat.';
-
-  @override
   String get settingsUploadThumbnailsConsentTitle =>
       'Izinkan pengiriman thumbnail?';
 
@@ -795,25 +664,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Berlaku setelah aplikasi dimulai ulang.';
 
   @override
-  String get settingsDataSourceFirebase => 'Firebase';
-
-  @override
-  String get settingsDataSourceSimulation => 'Simulasi';
-
-  @override
-  String get settingsAbout => 'Tentang aplikasi';
-
-  @override
   String get settingsVersion => 'Versi';
-
-  @override
-  String get settingsAccount => 'Akun';
-
-  @override
-  String get settingsSignedInAs => 'Masuk sebagai';
-
-  @override
-  String get settingsSignedInUid => 'ID pengguna';
 
   @override
   String get settingsSignedOutAsGuest => 'Tamu (belum masuk)';
@@ -824,9 +675,6 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get settingsSignOutConfirmBody =>
       'Anda perlu masuk lagi untuk melihat data perangkat.';
-
-  @override
-  String get sharingTitle => 'Bagikan hasil';
 
   @override
   String get sharingConsentTitle => 'Izinkan berbagi data ini?';
@@ -861,15 +709,6 @@ class AppLocalizationsId extends AppLocalizations {
   String sharingSummaryAccuracy(String value, int count) {
     return 'Akurasi validasi: $value dari $count pembacaan';
   }
-
-  @override
-  String get homeDeviceHero => 'Perangkat';
-
-  @override
-  String get homeConnectedNow => 'Terhubung';
-
-  @override
-  String get homeDisconnectedSince => 'Terputus';
 
   @override
   String get homeBatteryLabel => 'Baterai';
@@ -912,19 +751,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get homeWifiQrAction => 'QR Wi-Fi';
 
   @override
-  String get homeSyncing => 'Menyinkronkan...';
-
-  @override
-  String get homeSyncFailed => 'Sinkronisasi gagal. Coba lagi.';
-
-  @override
   String get homeNoDeviceHeroTitle => 'Belum ada perangkat terhubung';
 
   @override
   String get homeNoDeviceHeroBody => 'Hubungkan kacamata untuk mulai memantau.';
-
-  @override
-  String get validationQueueTitle => 'Antrean validasi';
 
   @override
   String validationProgressValue(int current, int total) {
@@ -944,17 +774,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get validationReadAs => 'TERBACA SEBAGAI';
 
   @override
-  String get validationProcessingLabel => 'Waktu proses';
-
-  @override
   String get validationNoImageTitle => 'Gambar tidak diunggah';
 
   @override
   String get validationNoImageBody =>
       'Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.';
-
-  @override
-  String get validationNoImageAction => 'Buka pengaturan privasi';
 
   @override
   String get photoViewerZoom => 'Perbesar foto';
@@ -1239,9 +1063,6 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get deviceIdLabel => 'ID perangkat';
-
-  @override
   String get provisioningStepNetwork => 'Jaringan';
 
   @override
@@ -1270,6 +1091,52 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get notificationMoneyTitle => 'Pembacaan uang baru';
+
+  @override
+  String notificationMoneyBody(String amount, String device) {
+    return '$amount · $device';
+  }
+
+  @override
+  String notificationMoneyUnknownBody(String device) {
+    return 'Nominal belum terbaca · $device';
+  }
+
+  @override
+  String get notificationTextTitle => 'Pembacaan teks baru';
+
+  @override
+  String notificationTextBody(String device) {
+    return 'Teks terdeteksi oleh $device. Buka aplikasi untuk melihat isinya.';
+  }
+
+  @override
+  String get notificationChannelName => 'Pembacaan SIGAP-NETRA';
+
+  @override
+  String get notificationChannelDescription =>
+      'Notifikasi saat perangkat mengirim pembacaan uang atau teks baru.';
+
+  @override
+  String get settingsNotificationsTitle => 'Notifikasi';
+
+  @override
+  String get settingsDetectionNotifications => 'Notifikasi pembacaan';
+
+  @override
+  String get settingsDetectionNotificationsBody =>
+      'Tampilkan notifikasi saat kacamata mengirim pembacaan uang atau teks baru. Isi teks OCR tidak ikut ditampilkan.';
+
+  @override
+  String get settingsDetectionNotificationsNote =>
+      'Notifikasi berjalan selama aplikasi masih aktif di ponsel. Tidak memakai server push.';
+
+  @override
+  String get settingsDetectionNotificationsDenied =>
+      'Izin notifikasi ditolak. Aktifkan izin notifikasi SIGAP-NETRA di pengaturan sistem, lalu coba lagi.';
+
+  @override
   String get settingsPrivacyTitle => 'Privasi dan data';
 
   @override
@@ -1294,9 +1161,6 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get settingsSourceSimulationFirebaseUnavailable =>
       'Simulasi — Firebase belum tersedia pada build ini.';
-
-  @override
-  String get settingsShowTechnicalIds => 'Tampilkan ID teknis';
 
   @override
   String get simulationBadgeLabel => 'SIMULASI';
@@ -1325,17 +1189,8 @@ class AppLocalizationsId extends AppLocalizations {
       'Firebase belum tersedia pada build ini.';
 
   @override
-  String get settingsRetentionTitle => 'Retensi data';
-
-  @override
   String get settingsRetentionBody =>
       'Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.';
-
-  @override
-  String get settingsDeleteAllTitle => 'Hapus semua data perangkat';
-
-  @override
-  String get settingsDeleteAllBody => 'Segera hadir.';
 
   @override
   String get settingsOpenTitle => 'Buka pengaturan';

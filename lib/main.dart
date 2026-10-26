@@ -42,6 +42,8 @@ import 'features/monitoring/data/datasources/firestore_detection_data_source.dar
 import 'features/monitoring/data/repositories/detection_repository_impl.dart';
 import 'features/monitoring/domain/repositories/detection_repository.dart';
 import 'features/monitoring/presentation/providers/monitoring_providers.dart';
+import 'features/notifications/data/datasources/local_notification_gateway.dart';
+import 'features/notifications/presentation/providers/notification_providers.dart';
 import 'features/settings/domain/entities/data_source.dart';
 import 'features/settings/presentation/providers/settings_providers.dart';
 import 'features/validation/data/datasources/fake_validation_data_source.dart';
@@ -79,6 +81,7 @@ Future<void> main() async {
   // berubah.
   final deviceNameCache = DeviceNameCache();
   final repositories = buildRepositories(dataSource, deviceNameCache);
+  final notificationGateway = LocalNotificationGateway();
 
   runApp(
     ProviderScope(
@@ -98,6 +101,7 @@ Future<void> main() async {
         mediaRepositoryProvider.overrideWithValue(repositories.media),
         eventRepositoryProvider.overrideWithValue(repositories.events),
         commandRepositoryProvider.overrideWithValue(repositories.commands),
+        notificationGatewayProvider.overrideWithValue(notificationGateway),
       ],
       child: const App(),
     ),

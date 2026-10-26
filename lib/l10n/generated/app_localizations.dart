@@ -100,12 +100,6 @@ abstract class AppLocalizations {
   /// **'SIGAP-NETRA'**
   String get appTitle;
 
-  /// No description provided for @appSubtitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Pendamping kacamata pintar'**
-  String get appSubtitle;
-
   /// No description provided for @commonRetry.
   ///
   /// In id, this message translates to:
@@ -123,12 +117,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tutup'**
   String get commonClose;
-
-  /// No description provided for @commonSave.
-  ///
-  /// In id, this message translates to:
-  /// **'Simpan'**
-  String get commonSave;
 
   /// No description provided for @commonDelete.
   ///
@@ -154,12 +142,6 @@ abstract class AppLocalizations {
   /// **'Lanjut'**
   String get commonNext;
 
-  /// No description provided for @commonSearch.
-  ///
-  /// In id, this message translates to:
-  /// **'Cari'**
-  String get commonSearch;
-
   /// No description provided for @commonFilter.
   ///
   /// In id, this message translates to:
@@ -172,29 +154,11 @@ abstract class AppLocalizations {
   /// **'Muat ulang'**
   String get commonRefresh;
 
-  /// No description provided for @commonLoading.
-  ///
-  /// In id, this message translates to:
-  /// **'Memuat...'**
-  String get commonLoading;
-
   /// No description provided for @commonYes.
   ///
   /// In id, this message translates to:
   /// **'Ya'**
   String get commonYes;
-
-  /// No description provided for @commonNo.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak'**
-  String get commonNo;
-
-  /// No description provided for @commonNone.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak ada'**
-  String get commonNone;
 
   /// No description provided for @commonUnknown.
   ///
@@ -286,12 +250,6 @@ abstract class AppLocalizations {
   /// **'Kesalahan tidak diketahui. Coba lagi.'**
   String get stateErrorUnknown;
 
-  /// No description provided for @stateErrorNoConnection.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak ada koneksi internet.'**
-  String get stateErrorNoConnection;
-
   /// No description provided for @offlineBannerTitle.
   ///
   /// In id, this message translates to:
@@ -334,29 +292,11 @@ abstract class AppLocalizations {
   /// **'Perangkat'**
   String get navDevices;
 
-  /// No description provided for @navSettings.
-  ///
-  /// In id, this message translates to:
-  /// **'Pengaturan'**
-  String get navSettings;
-
   /// No description provided for @loginOrDivider.
   ///
   /// In id, this message translates to:
   /// **'atau'**
   String get loginOrDivider;
-
-  /// No description provided for @loginTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Masuk'**
-  String get loginTitle;
-
-  /// No description provided for @loginSubtitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Masuk untuk memantau perangkat SIGAP-NETRA.'**
-  String get loginSubtitle;
 
   /// No description provided for @loginEmailLabel.
   ///
@@ -526,18 +466,6 @@ abstract class AppLocalizations {
   /// **'Buat akun'**
   String get loginCreateAccount;
 
-  /// No description provided for @loginHaveAccount.
-  ///
-  /// In id, this message translates to:
-  /// **'Sudah punya akun?'**
-  String get loginHaveAccount;
-
-  /// No description provided for @loginSignInLink.
-  ///
-  /// In id, this message translates to:
-  /// **'Masuk'**
-  String get loginSignInLink;
-
   /// No description provided for @loginPrivacyNote.
   ///
   /// In id, this message translates to:
@@ -586,23 +514,11 @@ abstract class AppLocalizations {
   /// **'Sinkronkan'**
   String get homeSyncShort;
 
-  /// No description provided for @homeSyncSent.
-  ///
-  /// In id, this message translates to:
-  /// **'Permintaan sinkronisasi dikirim.'**
-  String get homeSyncSent;
-
   /// No description provided for @homeRecentActivity.
   ///
   /// In id, this message translates to:
   /// **'Aktivitas terbaru'**
   String get homeRecentActivity;
-
-  /// No description provided for @homeValidationSummary.
-  ///
-  /// In id, this message translates to:
-  /// **'Ringkasan validasi'**
-  String get homeValidationSummary;
 
   /// No description provided for @homeNoDevicesTitle.
   ///
@@ -622,23 +538,11 @@ abstract class AppLocalizations {
   /// **'Akurasi'**
   String get homeAccuracyLabel;
 
-  /// No description provided for @homeValidatedLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Tervalidasi'**
-  String get homeValidatedLabel;
-
   /// No description provided for @homePendingLabel.
   ///
   /// In id, this message translates to:
   /// **'Menunggu'**
   String get homePendingLabel;
-
-  /// No description provided for @homeLastSeenLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Terakhir terlihat'**
-  String get homeLastSeenLabel;
 
   /// No description provided for @homeAccuracyFromCount.
   ///
@@ -681,12 +585,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Terputus'**
   String get statusOffline;
-
-  /// No description provided for @statusConnecting.
-  ///
-  /// In id, this message translates to:
-  /// **'Menghubungkan'**
-  String get statusConnecting;
 
   /// No description provided for @statusPending.
   ///
@@ -772,60 +670,6 @@ abstract class AppLocalizations {
   /// **'Semua penanda Cocok dan Tidak cocok akan dihapus. Tindakan ini tidak dapat dibatalkan.'**
   String get validationResetAllConfirmBody;
 
-  /// No description provided for @validationFilterPending.
-  ///
-  /// In id, this message translates to:
-  /// **'Menunggu'**
-  String get validationFilterPending;
-
-  /// No description provided for @validationFilterMatch.
-  ///
-  /// In id, this message translates to:
-  /// **'Cocok'**
-  String get validationFilterMatch;
-
-  /// No description provided for @validationFilterMismatch.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak cocok'**
-  String get validationFilterMismatch;
-
-  /// No description provided for @validationEmptyTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak ada pembacaan menunggu'**
-  String get validationEmptyTitle;
-
-  /// No description provided for @validationEmptyBody.
-  ///
-  /// In id, this message translates to:
-  /// **'Semua pembacaan sudah divalidasi.'**
-  String get validationEmptyBody;
-
-  /// No description provided for @validationNoImage.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak ada gambar untuk pembacaan ini.'**
-  String get validationNoImage;
-
-  /// No description provided for @validationDistanceLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Jarak'**
-  String get validationDistanceLabel;
-
-  /// No description provided for @validationConfidenceLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Keyakinan'**
-  String get validationConfidenceLabel;
-
-  /// No description provided for @validationConfidenceValue.
-  ///
-  /// In id, this message translates to:
-  /// **'Keyakinan: {value}'**
-  String validationConfidenceValue(String value);
-
   /// No description provided for @validationConfidenceNoValue.
   ///
   /// In id, this message translates to:
@@ -837,12 +681,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Riwayat'**
   String get historyTitle;
-
-  /// No description provided for @historyFilterType.
-  ///
-  /// In id, this message translates to:
-  /// **'Jenis'**
-  String get historyFilterType;
 
   /// No description provided for @historyTypeMoney.
   ///
@@ -856,41 +694,11 @@ abstract class AppLocalizations {
   /// **'Teks'**
   String get historyTypeText;
 
-  /// No description provided for @historyFilterDate.
-  ///
-  /// In id, this message translates to:
-  /// **'Rentang tanggal'**
-  String get historyFilterDate;
-
-  /// No description provided for @historyFilterStatus.
-  ///
-  /// In id, this message translates to:
-  /// **'Status validasi'**
-  String get historyFilterStatus;
-
   /// No description provided for @historyToday.
   ///
   /// In id, this message translates to:
   /// **'Hari ini'**
   String get historyToday;
-
-  /// No description provided for @historyLast7Days.
-  ///
-  /// In id, this message translates to:
-  /// **'7 hari terakhir'**
-  String get historyLast7Days;
-
-  /// No description provided for @historyLast30Days.
-  ///
-  /// In id, this message translates to:
-  /// **'30 hari terakhir'**
-  String get historyLast30Days;
-
-  /// No description provided for @historyAllTime.
-  ///
-  /// In id, this message translates to:
-  /// **'Semua waktu'**
-  String get historyAllTime;
 
   /// No description provided for @historyLoadMore.
   ///
@@ -916,12 +724,6 @@ abstract class AppLocalizations {
   /// **'Pembacaan dan thumbnail terkait akan dihapus permanen.'**
   String get historyDeleteBody;
 
-  /// No description provided for @historyDeleted.
-  ///
-  /// In id, this message translates to:
-  /// **'Pembacaan dihapus.'**
-  String get historyDeleted;
-
   /// No description provided for @historyDeletedNamed.
   ///
   /// In id, this message translates to:
@@ -939,12 +741,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Tindakan gagal. Periksa koneksi lalu coba lagi.'**
   String get historyActionFailed;
-
-  /// No description provided for @historySummaryTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Ringkasan harian'**
-  String get historySummaryTitle;
 
   /// No description provided for @historyDetailTitle.
   ///
@@ -1096,24 +892,6 @@ abstract class AppLocalizations {
   /// **'Tambah perangkat'**
   String get deviceAdd;
 
-  /// No description provided for @deviceRemoveTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Lepas perangkat ini?'**
-  String get deviceRemoveTitle;
-
-  /// No description provided for @deviceRemoveBody.
-  ///
-  /// In id, this message translates to:
-  /// **'Perangkat akan dihapus dari daftar Anda. Data di perangkat tidak terpengaruh.'**
-  String get deviceRemoveBody;
-
-  /// No description provided for @deviceRemoved.
-  ///
-  /// In id, this message translates to:
-  /// **'Perangkat dilepas.'**
-  String get deviceRemoved;
-
   /// No description provided for @deviceThumbnailOn.
   ///
   /// In id, this message translates to:
@@ -1125,18 +903,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Thumbnail tidak diunggah'**
   String get deviceThumbnailOff;
-
-  /// No description provided for @deviceLocalActive.
-  ///
-  /// In id, this message translates to:
-  /// **'Aktif'**
-  String get deviceLocalActive;
-
-  /// No description provided for @deviceLocalInactive.
-  ///
-  /// In id, this message translates to:
-  /// **'Tidak aktif'**
-  String get deviceLocalInactive;
 
   /// No description provided for @provisioningTitle.
   ///
@@ -1168,12 +934,6 @@ abstract class AppLocalizations {
   /// **'Tampilkan kata sandi'**
   String get provisioningShowPassword;
 
-  /// No description provided for @provisioningGenerate.
-  ///
-  /// In id, this message translates to:
-  /// **'Buat QR'**
-  String get provisioningGenerate;
-
   /// No description provided for @provisioningWaiting.
   ///
   /// In id, this message translates to:
@@ -1185,12 +945,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Perangkat berhasil terhubung.'**
   String get provisioningSuccess;
-
-  /// No description provided for @provisioningFailed.
-  ///
-  /// In id, this message translates to:
-  /// **'Perangkat gagal terhubung. Periksa kata sandi Wi-Fi.'**
-  String get provisioningFailed;
 
   /// No description provided for @provisioningInvalidSsid.
   ///
@@ -1516,12 +1270,6 @@ abstract class AppLocalizations {
   /// **'Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.'**
   String get settingsUploadThumbnailsBody;
 
-  /// No description provided for @settingsDeviceUploadsReadOnly.
-  ///
-  /// In id, this message translates to:
-  /// **'Nilai ini hanya informasi perangkat.'**
-  String get settingsDeviceUploadsReadOnly;
-
   /// No description provided for @settingsUploadThumbnailsConsentTitle.
   ///
   /// In id, this message translates to:
@@ -1558,47 +1306,11 @@ abstract class AppLocalizations {
   /// **'Berlaku setelah aplikasi dimulai ulang.'**
   String get settingsAppliesAfterRestart;
 
-  /// No description provided for @settingsDataSourceFirebase.
-  ///
-  /// In id, this message translates to:
-  /// **'Firebase'**
-  String get settingsDataSourceFirebase;
-
-  /// No description provided for @settingsDataSourceSimulation.
-  ///
-  /// In id, this message translates to:
-  /// **'Simulasi'**
-  String get settingsDataSourceSimulation;
-
-  /// No description provided for @settingsAbout.
-  ///
-  /// In id, this message translates to:
-  /// **'Tentang aplikasi'**
-  String get settingsAbout;
-
   /// No description provided for @settingsVersion.
   ///
   /// In id, this message translates to:
   /// **'Versi'**
   String get settingsVersion;
-
-  /// No description provided for @settingsAccount.
-  ///
-  /// In id, this message translates to:
-  /// **'Akun'**
-  String get settingsAccount;
-
-  /// No description provided for @settingsSignedInAs.
-  ///
-  /// In id, this message translates to:
-  /// **'Masuk sebagai'**
-  String get settingsSignedInAs;
-
-  /// No description provided for @settingsSignedInUid.
-  ///
-  /// In id, this message translates to:
-  /// **'ID pengguna'**
-  String get settingsSignedInUid;
 
   /// No description provided for @settingsSignedOutAsGuest.
   ///
@@ -1617,12 +1329,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Anda perlu masuk lagi untuk melihat data perangkat.'**
   String get settingsSignOutConfirmBody;
-
-  /// No description provided for @sharingTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Bagikan hasil'**
-  String get sharingTitle;
 
   /// No description provided for @sharingConsentTitle.
   ///
@@ -1677,24 +1383,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Akurasi validasi: {value} dari {count} pembacaan'**
   String sharingSummaryAccuracy(String value, int count);
-
-  /// No description provided for @homeDeviceHero.
-  ///
-  /// In id, this message translates to:
-  /// **'Perangkat'**
-  String get homeDeviceHero;
-
-  /// No description provided for @homeConnectedNow.
-  ///
-  /// In id, this message translates to:
-  /// **'Terhubung'**
-  String get homeConnectedNow;
-
-  /// No description provided for @homeDisconnectedSince.
-  ///
-  /// In id, this message translates to:
-  /// **'Terputus'**
-  String get homeDisconnectedSince;
 
   /// No description provided for @homeBatteryLabel.
   ///
@@ -1768,18 +1456,6 @@ abstract class AppLocalizations {
   /// **'QR Wi-Fi'**
   String get homeWifiQrAction;
 
-  /// No description provided for @homeSyncing.
-  ///
-  /// In id, this message translates to:
-  /// **'Menyinkronkan...'**
-  String get homeSyncing;
-
-  /// No description provided for @homeSyncFailed.
-  ///
-  /// In id, this message translates to:
-  /// **'Sinkronisasi gagal. Coba lagi.'**
-  String get homeSyncFailed;
-
   /// No description provided for @homeNoDeviceHeroTitle.
   ///
   /// In id, this message translates to:
@@ -1791,12 +1467,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Hubungkan kacamata untuk mulai memantau.'**
   String get homeNoDeviceHeroBody;
-
-  /// No description provided for @validationQueueTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Antrean validasi'**
-  String get validationQueueTitle;
 
   /// No description provided for @validationProgressValue.
   ///
@@ -1828,12 +1498,6 @@ abstract class AppLocalizations {
   /// **'TERBACA SEBAGAI'**
   String get validationReadAs;
 
-  /// No description provided for @validationProcessingLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'Waktu proses'**
-  String get validationProcessingLabel;
-
   /// No description provided for @validationNoImageTitle.
   ///
   /// In id, this message translates to:
@@ -1845,12 +1509,6 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.'**
   String get validationNoImageBody;
-
-  /// No description provided for @validationNoImageAction.
-  ///
-  /// In id, this message translates to:
-  /// **'Buka pengaturan privasi'**
-  String get validationNoImageAction;
 
   /// No description provided for @photoViewerZoom.
   ///
@@ -2318,12 +1976,6 @@ abstract class AppLocalizations {
   /// **'Model {model}'**
   String deviceModelShort(String model);
 
-  /// No description provided for @deviceIdLabel.
-  ///
-  /// In id, this message translates to:
-  /// **'ID perangkat'**
-  String get deviceIdLabel;
-
   /// No description provided for @provisioningStepNetwork.
   ///
   /// In id, this message translates to:
@@ -2371,6 +2023,78 @@ abstract class AppLocalizations {
   /// In id, this message translates to:
   /// **'Menunggu {seconds} dtk'**
   String provisioningCountdown(int seconds);
+
+  /// No description provided for @notificationMoneyTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan uang baru'**
+  String get notificationMoneyTitle;
+
+  /// No description provided for @notificationMoneyBody.
+  ///
+  /// In id, this message translates to:
+  /// **'{amount} · {device}'**
+  String notificationMoneyBody(String amount, String device);
+
+  /// No description provided for @notificationMoneyUnknownBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Nominal belum terbaca · {device}'**
+  String notificationMoneyUnknownBody(String device);
+
+  /// No description provided for @notificationTextTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan teks baru'**
+  String get notificationTextTitle;
+
+  /// No description provided for @notificationTextBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Teks terdeteksi oleh {device}. Buka aplikasi untuk melihat isinya.'**
+  String notificationTextBody(String device);
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In id, this message translates to:
+  /// **'Pembacaan SIGAP-NETRA'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi saat perangkat mengirim pembacaan uang atau teks baru.'**
+  String get notificationChannelDescription;
+
+  /// No description provided for @settingsNotificationsTitle.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi'**
+  String get settingsNotificationsTitle;
+
+  /// No description provided for @settingsDetectionNotifications.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi pembacaan'**
+  String get settingsDetectionNotifications;
+
+  /// No description provided for @settingsDetectionNotificationsBody.
+  ///
+  /// In id, this message translates to:
+  /// **'Tampilkan notifikasi saat kacamata mengirim pembacaan uang atau teks baru. Isi teks OCR tidak ikut ditampilkan.'**
+  String get settingsDetectionNotificationsBody;
+
+  /// No description provided for @settingsDetectionNotificationsNote.
+  ///
+  /// In id, this message translates to:
+  /// **'Notifikasi berjalan selama aplikasi masih aktif di ponsel. Tidak memakai server push.'**
+  String get settingsDetectionNotificationsNote;
+
+  /// No description provided for @settingsDetectionNotificationsDenied.
+  ///
+  /// In id, this message translates to:
+  /// **'Izin notifikasi ditolak. Aktifkan izin notifikasi SIGAP-NETRA di pengaturan sistem, lalu coba lagi.'**
+  String get settingsDetectionNotificationsDenied;
 
   /// No description provided for @settingsPrivacyTitle.
   ///
@@ -2420,12 +2144,6 @@ abstract class AppLocalizations {
   /// **'Simulasi — Firebase belum tersedia pada build ini.'**
   String get settingsSourceSimulationFirebaseUnavailable;
 
-  /// No description provided for @settingsShowTechnicalIds.
-  ///
-  /// In id, this message translates to:
-  /// **'Tampilkan ID teknis'**
-  String get settingsShowTechnicalIds;
-
   /// No description provided for @simulationBadgeLabel.
   ///
   /// In id, this message translates to:
@@ -2468,29 +2186,11 @@ abstract class AppLocalizations {
   /// **'Firebase belum tersedia pada build ini.'**
   String get simulationReasonFirebaseUnavailable;
 
-  /// No description provided for @settingsRetentionTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Retensi data'**
-  String get settingsRetentionTitle;
-
   /// No description provided for @settingsRetentionBody.
   ///
   /// In id, this message translates to:
   /// **'Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.'**
   String get settingsRetentionBody;
-
-  /// No description provided for @settingsDeleteAllTitle.
-  ///
-  /// In id, this message translates to:
-  /// **'Hapus semua data perangkat'**
-  String get settingsDeleteAllTitle;
-
-  /// No description provided for @settingsDeleteAllBody.
-  ///
-  /// In id, this message translates to:
-  /// **'Segera hadir.'**
-  String get settingsDeleteAllBody;
 
   /// No description provided for @settingsOpenTitle.
   ///
