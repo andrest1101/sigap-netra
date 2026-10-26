@@ -1,5 +1,31 @@
 # Progress — SIGAP-NETRA App
 
+## 2026-10-26 Notifikasi pembacaan — Fase 1 lokal, tanpa Blaze
+
+Notifikasi OS untuk pembacaan uang/teks baru. Architektur yang disetujui owner adalah **Fase 1**: `flutter_local_notifications` + stream Firestore yang sudah ada, tanpa FCM, Cloud Functions, atau layanan berbayar. Notifikasi berjalan selama proses aplikasi masih aktif; menjamin notifikasi saat aplikasi ditutup tetap butuh foreground service Android atau FCM + Blaze/relay (belum dipilih).
+
+- **Fitur baru `notifications`.** Domain murni: `NotificationGateway`, `NewDetectionTracker` (emisi pertama hanya primes, bukan backlog), `selectNotifiableDetections` (umur maksimum 10 menit, maksimum 3 notifikasi per emisi, urut terbaru), dan `notificationIdFor` (FNV-1a 31-bit). Data layer membungkus `flutter_local_notifications`; presentation menyusun judul/isi dan koordinator akar.
+- **Privasi notifikasi.** Uang menampilkan nominal berformat `Rp …`; teks hanya "Teks terdeteksi oleh …" dan **tidak pernah** memuat `ocrText`, label, atau thumbnail. Nama kanal dan seluruh teks berasal dari `app_id.arb`.
+- **Anti-banjir & kuota.** Hanya perangkat utama yang dipantau; query memakai `limit: 100` yang sama dengan Beranda agar Riverpod memakai subscription Firestore yang sama. ID yang sudah dikenal tidak dinotifikasikan ulang saat status validasi berubah; pembacaan lama yang baru tersinkron diabaikan.
+- **Pengaturan.** Seksi **Notifikasi** baru dengan saklar **Notifikasi pembacaan** default **mati**. Menyalakannya meminta izin OS (Android 13+); bila ditolak, saklar tetap mati dan snackbar mengarahkan ke pengaturan sistem. Catatan UI jujur: berjalan selama aplikasi aktif, tanpa server push.
+- **Android/iOS.** Tambah `flutter_local_notifications` 20.1.0, core library desugaring 2.1.4, `POST_NOTIFICATIONS`, ikon notifikasi monokrom `ic_stat_sigap_netra.xml`, dan delegate `UNUserNotificationCenter` di `AppDelegate.swift`. Tidak ada izin alarm/foreground service karena belum dibutuhkan.
+- **Wiring.** `notificationGatewayProvider` di-override di `main.dart`; `DetectionNotificationCoordinator` dipasang di `builder` `MaterialApp.router` agar hidup lintas tab. Kegagalan plugin ditelan dengan sengaja: notifikasi pelengkap tidak boleh menjatuhkan aplikasi.
+- **Verifikasi.** `dart format .` bersih (224 file); `flutter analyze` No issues; `flutter test` **349 lulus** (dari 324; +25 test notifikasi/pengaturan); golden Pengaturan diperbarui dan diperiksa (seksi Notifikasi tampil utuh, tanpa overflow); `flutter build apk --debug` sukses. Tanpa perubahan schema/rules/indexes/kode device/perilaku data. Rules 200 KB tetap belum dideploy (aksi owner).
+- **Berikutnya.** Bila notifikasi harus tetap masuk saat aplikasi ditutup: pilih foreground service Android (notifikasi permanen, baterai) atau FCM + Blaze/relay. Batch 4B/4C, U6, dan U7 tetap terbuka.
+
+## 2026-10-26 Batch 4A — Bersih-bersih l10n, rute, dan sinkron dokumen
+
+Batch pertama dari Batch 4 (backlog UI). Fokusnya menutup utang yang tidak terlihat di layar: kunci terjemahan mati, token/komentar basi, path rute mentah, dependency tak terpakai, dan dokumen yang sudah menyimpang dari kode.
+
+- **l10n.** 62 kunci non-`@` tanpa referensi di `lib/` + `test/` dihapus dari `app_id.arb` dan generated l10n (444 → 382 entri; 344 kunci + 38 metadata). Audit memakai pencarian prefiks `l10n.` **dan** nama getter telanjang, karena `failure_message.dart` memakai `switch` getter langsung — lima kunci login (`loginWrongPassword`, `loginTooManyAttempts`, `loginAccountDisabled`, `loginEmailInUse`, `loginWeakPassword`) tetap dipertahankan.
+- **Token & komentar.** `DesignTokens.radiusBottomNav` dihapus (nol referensi); komentar `radiusPill` yang menunjuk konstanta tidak ada diganti dengan penjelasan `StadiumBorder`.
+- **Rute.** `ConnectionLogsPath` kini menerima `deviceId` opsional dan membangun `/pengaturan/koneksi/:deviceId`; `device_detail_screen.dart` tidak lagi memakai path mentah. Dua test baru mengunci path dengan dan tanpa `deviceId`.
+- **Dependency.** `cupertino_icons` dihapus (tidak dipakai); `mocktail` dan `firebase_auth_mocks` dipertahankan karena tercantum di `AGENTS.md` sebagai dev dependency yang diharapkan. `pubspec.lock` ikut menyesuaikan.
+- **Dokumentasi.** README menyebut 29 test rules (bukan 25); `docs/firestore_schema.md` naik ke v0.4 selaras rules v0.4; `docs/ui_spec.md` §6 memakai nama class nyata (`EmptyView`, `LoadingView`, `ErrorView`, `Skeleton`/`SkeletonList`, `FilterChipRow`, `BatteryRing`, dst.) dan mencatat grup harian/tumpukan geser/Urungkan sebagai implementasi privat layar; komentar thumbnail demo di `pubspec.yaml` menjadi 200 KB; status `docs/ui_refinement_backlog.md` menjadi 26 Okt 2026 dengan Batch 4A selesai.
+- **Sengaja dipertahankan.** `OfflineBanner` dan tiga kunci l10n-nya tetap ada karena merupakan implementasi yang ditunggu U7 (`isFromCache`), bukan kode mati yang dibuang.
+- **Verifikasi.** `dart format .` bersih (210 file); `flutter analyze` No issues; `flutter test` **324 lulus** (dari 322; +2 test rute); golden tidak berubah; `flutter build apk --debug` sukses (`build/app/outputs/flutter-apk/app-debug.apk`). Tanpa perubahan schema/rules/indexes/kode device/perilaku data. Rules 200 KB tetap belum dideploy (aksi owner).
+- **Berikutnya.** Batch 4B (tablet/landscape), 4C (navigasi layar anak — butuh keputusan produk), U6 (aksesibilitas), U7 (banner cache), lalu rencana notifikasi pembacaan ke ponsel (butuh keputusan paket/izin).
+
 ## 2026-10-23 Selaraskan batas thumbnail 200 KB
 
 - Berdasarkan persetujuan owner, batas maksimum JPEG dinaikkan dari 60.000 menjadi 200.000 byte; panjang Base64 maksimum menjadi 273.000 karakter. Batas berlaku di konstanta/model Flutter, Firestore Rules, dan dokumentasi PRD/skema/protokol/UI.

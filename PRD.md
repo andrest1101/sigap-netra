@@ -110,7 +110,7 @@ Detail UI per layar ada di `docs/ui_spec.md`.
 
 ### P2 — Nanti
 
-Notifikasi lokal · multi-perangkat penuh · TTS di aplikasi (`flutter_tts`) · validasi otomatis (ditandai terpisah; tidak dihitung dalam % kecocokan) · Mode Lokal (tarik rekaman resolusi penuh bila API lokal firmware masih ada) · versi web · PDF · push notification (butuh Blaze).
+Notifikasi lokal pembacaan ✅ Fase 1 (saat aplikasi aktif; isi OCR tidak ditampilkan) · multi-perangkat penuh · TTS di aplikasi (`flutter_tts`) · validasi otomatis (ditandai terpisah; tidak dihitung dalam % kecocokan) · Mode Lokal (tarik rekaman resolusi penuh bila API lokal firmware masih ada) · versi web · PDF · push notification (butuh Blaze).
 
 ### Sisi perangkat (MaixCAM)
 

@@ -56,6 +56,24 @@ const int kEventsPageSize = 25;
 /// Jumlah entri yang diminta saat menghitung agregat badge dan akurasi.
 const int kAggregationCountLimit = 1000;
 
+/// Jumlah maksimum notifikasi yang ditampilkan untuk satu emisi stream.
+///
+/// Deteksi kontinu (mis. teks berganti cepat) tidak boleh membanjiri laci
+/// notifikasi; sisanya tetap terlihat di Beranda dan Riwayat.
+const int kNotificationMaxPerBatch = 3;
+
+/// Umur maksimum pembacaan yang masih layak dinotifikasikan.
+///
+/// Antrean offline perangkat bisa tersinkron terlambat; pembacaan lama cukup
+/// masuk Riwayat tanpa memicu notifikasi "baru".
+const Duration kNotificationFreshness = Duration(minutes: 10);
+
+/// Batas query stream yang dipakai koordinator notifikasi.
+///
+/// Disamakan dengan jendela Beranda agar Riverpod memakai subscription
+/// Firestore yang sama — bukan query kedua yang membakar kuota baca.
+const int kNotificationDetectionLimit = 100;
+
 /// Versi aplikasi yang ditampilkan di Pengaturan → Tentang.
 ///
 /// Sinkronkan manual dengan `version:` di `pubspec.yaml` setiap rilis.

@@ -17,8 +17,8 @@ abstract final class DesignTokens {
   static const double spaceXxl = 32;
 
   // Radius v3: hero 28, kartu 20, thumbnail 14, input 14, sheet atas 28.
-  // Tombol utama dan chip memakai bentuk pil (stadium) — lihat
-  // [radiusPill] yang dipakai bersama `StadiumBorder`.
+  // Tombol utama dan chip memakai bentuk pil (stadium) lewat `StadiumBorder`;
+  // bentuk itu bukan angka radius, jadi tidak ada token khusus untuknya.
   static const double radiusBadge = 8;
   static const double radiusButton = 12;
   static const double radiusThumbnail = 14;
@@ -26,7 +26,6 @@ abstract final class DesignTokens {
   static const double radiusCard = 20;
   static const double radiusSheet = 28;
   static const double radiusHero = 28;
-  static const double radiusBottomNav = 24;
 
   // Ukuran target sentuh minimum (accessibility).
   static const double minTouchTarget = 48;

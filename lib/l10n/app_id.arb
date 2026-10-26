@@ -2,23 +2,17 @@
   "@@locale": "id",
 
   "appTitle": "SIGAP-NETRA",
-  "appSubtitle": "Pendamping kacamata pintar",
 
   "commonRetry": "Coba lagi",
   "commonCancel": "Batal",
   "commonClose": "Tutup",
-  "commonSave": "Simpan",
   "commonDelete": "Hapus",
   "commonConfirm": "Konfirmasi",
   "commonBack": "Kembali",
   "commonNext": "Lanjut",
-  "commonSearch": "Cari",
   "commonFilter": "Saring",
   "commonRefresh": "Muat ulang",
-  "commonLoading": "Memuat...",
   "commonYes": "Ya",
-  "commonNo": "Tidak",
-  "commonNone": "Tidak ada",
   "commonUnknown": "Tidak diketahui",
   "commonSeeAll": "Lihat semua",
   "commonSeeDetail": "Lihat detail",
@@ -35,7 +29,6 @@
   "stateErrorNotFound": "Data yang Anda cari tidak ditemukan.",
   "stateErrorResourceExhausted": "Kuota layanan habis. Coba lagi nanti.",
   "stateErrorUnknown": "Kesalahan tidak diketahui. Coba lagi.",
-  "stateErrorNoConnection": "Tidak ada koneksi internet.",
 
   "offlineBannerTitle": "Mode luring",
   "offlineBannerBody": "Data mungkin sudah tidak terbaru.",
@@ -45,11 +38,8 @@
   "navValidation": "Validasi",
   "navHistory": "Riwayat",
   "navDevices": "Perangkat",
-  "navSettings": "Pengaturan",
 
   "loginOrDivider": "atau",
-  "loginTitle": "Masuk",
-  "loginSubtitle": "Masuk untuk memantau perangkat SIGAP-NETRA.",
   "loginEmailLabel": "Email",
   "loginPasswordLabel": "Kata sandi",
   "loginSignInWithEmail": "Masuk dengan email",
@@ -78,8 +68,6 @@
   "loginNameHint": "Nama panggilan Anda",
   "loginConfirmPasswordLabel": "Konfirmasi kata sandi",
   "loginCreateAccount": "Buat akun",
-  "loginHaveAccount": "Sudah punya akun?",
-  "loginSignInLink": "Masuk",
   "loginPrivacyNote": "Hanya email untuk login perangkat. Tanpa video, audio, atau lokasi.",
   "loginGuestFailed": "Masuk tamu gagal. Coba lagi nanti.",
   "loginSignUpFailed": "Pendaftaran gagal. Coba lagi nanti.",
@@ -89,15 +77,11 @@
   "homeTitle": "Beranda",
   "homeSyncNow": "Sinkronkan sekarang",
   "homeSyncShort": "Sinkronkan",
-  "homeSyncSent": "Permintaan sinkronisasi dikirim.",
   "homeRecentActivity": "Aktivitas terbaru",
-  "homeValidationSummary": "Ringkasan validasi",
   "homeNoDevicesTitle": "Belum ada perangkat",
   "homeNoDevicesBody": "Daftarkan perangkat pertama Anda melalui menu Perangkat.",
   "homeAccuracyLabel": "Akurasi",
-  "homeValidatedLabel": "Tervalidasi",
   "homePendingLabel": "Menunggu",
-  "homeLastSeenLabel": "Terakhir terlihat",
   "homeAccuracyFromCount": "dari {count} validasi",
   "homeNoValidation": "Belum ada validasi",
   "homeTodayBreakdown": "{money} uang · {text} teks",
@@ -117,7 +101,6 @@
 
   "statusOnline": "Online",
   "statusOffline": "Terputus",
-  "statusConnecting": "Menghubungkan",
   "statusPending": "Menunggu",
   "statusMatch": "Cocok",
   "statusMismatch": "Tidak cocok",
@@ -133,15 +116,6 @@
   "validationResetAll": "Reset semua validasi",
   "validationResetAllConfirmTitle": "Reset semua validasi?",
   "validationResetAllConfirmBody": "Semua penanda Cocok dan Tidak cocok akan dihapus. Tindakan ini tidak dapat dibatalkan.",
-  "validationFilterPending": "Menunggu",
-  "validationFilterMatch": "Cocok",
-  "validationFilterMismatch": "Tidak cocok",
-  "validationEmptyTitle": "Tidak ada pembacaan menunggu",
-  "validationEmptyBody": "Semua pembacaan sudah divalidasi.",
-  "validationNoImage": "Tidak ada gambar untuk pembacaan ini.",
-  "validationDistanceLabel": "Jarak",
-  "validationConfidenceLabel": "Keyakinan",
-  "validationConfidenceValue": "Keyakinan: {value}",
   "validationConfidenceNoValue": "Keyakinan tidak tersedia",
   "@validationConfidenceValue": {
     "placeholders": {
@@ -150,20 +124,13 @@
   },
 
   "historyTitle": "Riwayat",
-  "historyFilterType": "Jenis",
   "historyTypeMoney": "Uang",
   "historyTypeText": "Teks",
-  "historyFilterDate": "Rentang tanggal",
-  "historyFilterStatus": "Status validasi",
   "historyToday": "Hari ini",
-  "historyLast7Days": "7 hari terakhir",
-  "historyLast30Days": "30 hari terakhir",
-  "historyAllTime": "Semua waktu",
   "historyLoadMore": "Muat lagi",
   "historyEndOfList": "Inilah seluruh riwayat.",
   "historyDeleteTitle": "Hapus pembacaan ini?",
   "historyDeleteBody": "Pembacaan dan thumbnail terkait akan dihapus permanen.",
-  "historyDeleted": "Pembacaan dihapus.",
   "historyDeletedNamed": "{label} dihapus dari riwayat.",
   "@historyDeletedNamed": {
     "placeholders": {
@@ -172,7 +139,6 @@
   },
   "historyResetDone": "Status validasi direset.",
   "historyActionFailed": "Tindakan gagal. Periksa koneksi lalu coba lagi.",
-  "historySummaryTitle": "Ringkasan harian",
   "historyDetailTitle": "Detail pembacaan",
   "historyRecognitionResult": "Hasil pengenalan",
   "historyEmptyTitle": "Belum ada pembacaan",
@@ -204,23 +170,16 @@
   "deviceBootCountLabel": "Jumlah boot",
   "deviceRemoteControl": "Kontrol jarak jauh",
   "deviceAdd": "Tambah perangkat",
-  "deviceRemoveTitle": "Lepas perangkat ini?",
-  "deviceRemoveBody": "Perangkat akan dihapus dari daftar Anda. Data di perangkat tidak terpengaruh.",
-  "deviceRemoved": "Perangkat dilepas.",
   "deviceThumbnailOn": "Thumbnail diunggah",
   "deviceThumbnailOff": "Thumbnail tidak diunggah",
-  "deviceLocalActive": "Aktif",
-  "deviceLocalInactive": "Tidak aktif",
 
   "provisioningTitle": "Pasang Wi-Fi",
   "provisioningIntro": "Pindai QR ini dengan kamera kacamata untuk menghubungkan perangkat ke Wi-Fi.",
   "provisioningSsidLabel": "Nama Wi-Fi (SSID)",
   "provisioningPasswordLabel": "Kata sandi Wi-Fi",
   "provisioningShowPassword": "Tampilkan kata sandi",
-  "provisioningGenerate": "Buat QR",
   "provisioningWaiting": "Menunggu perangkat terhubung...",
   "provisioningSuccess": "Perangkat berhasil terhubung.",
-  "provisioningFailed": "Perangkat gagal terhubung. Periksa kata sandi Wi-Fi.",
   "provisioningInvalidSsid": "Nama Wi-Fi tidak valid.",
   "provisioningPasswordTooShort": "Kata sandi Wi-Fi minimal 8 karakter.",
   "provisioningPasswordNotStored": "Kata sandi tidak disimpan di aplikasi.",
@@ -298,25 +257,17 @@
   "settingsTitle": "Pengaturan",
   "settingsUploadThumbnails": "Kirim thumbnail pembacaan",
   "settingsUploadThumbnailsBody": "Thumbnail adalah satu-satunya gambar yang dapat dikirim. Ukurannya dibatasi 200 KB dan tidak menyertakan video atau audio.",
-  "settingsDeviceUploadsReadOnly": "Nilai ini hanya informasi perangkat.",
   "settingsUploadThumbnailsConsentTitle": "Izinkan pengiriman thumbnail?",
   "settingsUploadThumbnailsConsentBody": "Thumbnail berisi Potongan gambar pembacaan dan dapat memuat informasi pribadi. Video, audio, dan lokasi tidak pernah dikirim.",
   "settingsUploadsManageOnDevice": "Pengunggahan diatur di dokumen perangkat, bukan di aplikasi ini.",
   "settingsDeveloperMode": "Mode pengembang",
   "settingsDeveloperModeBody": "Gunakan data simulasi tanpa perangkat keras dan tanpa Firebase.",
   "settingsAppliesAfterRestart": "Berlaku setelah aplikasi dimulai ulang.",
-  "settingsDataSourceFirebase": "Firebase",
-  "settingsDataSourceSimulation": "Simulasi",
-  "settingsAbout": "Tentang aplikasi",
   "settingsVersion": "Versi",
-  "settingsAccount": "Akun",
-  "settingsSignedInAs": "Masuk sebagai",
-  "settingsSignedInUid": "ID pengguna",
   "settingsSignedOutAsGuest": "Tamu (belum masuk)",
   "settingsSignOutConfirmTitle": "Keluar dari aplikasi?",
   "settingsSignOutConfirmBody": "Anda perlu masuk lagi untuk melihat data perangkat.",
 
-  "sharingTitle": "Bagikan hasil",
   "sharingConsentTitle": "Izinkan berbagi data ini?",
   "sharingConsentBody": "Teks hasil pengenalan dapat memuat informasi pribadi. Data yang dibagikan tidak menyimpan foto, video, atau lokasi.",
   "sharingAction": "Bagikan",
@@ -344,9 +295,6 @@
     }
   },
 
-  "homeDeviceHero": "Perangkat",
-  "homeConnectedNow": "Terhubung",
-  "homeDisconnectedSince": "Terputus",
   "homeBatteryLabel": "Baterai",
   "homeBatteryUnavailable": "Baterai tidak tersedia",
   "homePendingReview": "Periksa",
@@ -359,8 +307,6 @@
   "homeOfflineStepTwo": "Tampilkan QR Wi-Fi",
   "homeOfflineStepThree": "Arahkan ke kamera SIGAP-NETRA",
   "homeWifiQrAction": "QR Wi-Fi",
-  "homeSyncing": "Menyinkronkan...",
-  "homeSyncFailed": "Sinkronisasi gagal. Coba lagi.",
   "homeNoDeviceHeroTitle": "Belum ada perangkat terhubung",
   "homeNoDeviceHeroBody": "Hubungkan kacamata untuk mulai memantau.",
   "@homeReadingsToday": {
@@ -374,16 +320,13 @@
     }
   },
 
-  "validationQueueTitle": "Antrean validasi",
   "validationProgressValue": "{current} dari {total}",
   "validationFilterAll": "Gabungan",
   "validationFilterMoney": "Uang",
   "validationFilterText": "Menu/Teks",
   "validationReadAs": "TERBACA SEBAGAI",
-  "validationProcessingLabel": "Waktu proses",
   "validationNoImageTitle": "Gambar tidak diunggah",
   "validationNoImageBody": "Validasi tetap bisa dilanjutkan. Aktifkan unggah gambar di pengaturan privasi bila perlu.",
-  "validationNoImageAction": "Buka pengaturan privasi",
   "photoViewerZoom": "Perbesar foto",
   "photoViewerClose": "Tutup foto",
   "photoViewerReset": "Kembalikan ukuran",
@@ -556,7 +499,6 @@
   "deviceLastSeenLabel": "Terakhir terlihat",
   "deviceFirmwareShort": "Firmware {version}",
   "deviceModelShort": "Model {model}",
-  "deviceIdLabel": "ID perangkat",
   "@deviceFirmwareShort": {
     "placeholders": {
       "version": { "type": "String" }
@@ -588,6 +530,36 @@
     }
   },
 
+  "notificationMoneyTitle": "Pembacaan uang baru",
+  "notificationMoneyBody": "{amount} · {device}",
+  "@notificationMoneyBody": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "device": { "type": "String" }
+    }
+  },
+  "notificationMoneyUnknownBody": "Nominal belum terbaca · {device}",
+  "@notificationMoneyUnknownBody": {
+    "placeholders": {
+      "device": { "type": "String" }
+    }
+  },
+  "notificationTextTitle": "Pembacaan teks baru",
+  "notificationTextBody": "Teks terdeteksi oleh {device}. Buka aplikasi untuk melihat isinya.",
+  "@notificationTextBody": {
+    "placeholders": {
+      "device": { "type": "String" }
+    }
+  },
+  "notificationChannelName": "Pembacaan SIGAP-NETRA",
+  "notificationChannelDescription": "Notifikasi saat perangkat mengirim pembacaan uang atau teks baru.",
+
+  "settingsNotificationsTitle": "Notifikasi",
+  "settingsDetectionNotifications": "Notifikasi pembacaan",
+  "settingsDetectionNotificationsBody": "Tampilkan notifikasi saat kacamata mengirim pembacaan uang atau teks baru. Isi teks OCR tidak ikut ditampilkan.",
+  "settingsDetectionNotificationsNote": "Notifikasi berjalan selama aplikasi masih aktif di ponsel. Tidak memakai server push.",
+  "settingsDetectionNotificationsDenied": "Izin notifikasi ditolak. Aktifkan izin notifikasi SIGAP-NETRA di pengaturan sistem, lalu coba lagi.",
+
   "settingsPrivacyTitle": "Privasi dan data",
   "settingsAdvancedTitle": "Lanjutan",
   "settingsAccountTitle": "Akun",
@@ -596,7 +568,6 @@
   "settingsSourceLive": "Firebase — data tersinkron ke cloud.",
   "settingsSourceSimulationDeveloperMode": "Simulasi — mode pengembang aktif.",
   "settingsSourceSimulationFirebaseUnavailable": "Simulasi — Firebase belum tersedia pada build ini.",
-  "settingsShowTechnicalIds": "Tampilkan ID teknis",
 
   "simulationBadgeLabel": "SIMULASI",
   "simulationBadgeSemantics": "Mode simulasi: data demo, bukan perangkat nyata.",
@@ -605,10 +576,7 @@
   "simulationLoginHint": "Masuk dengan email apa pun; akun ini hanya tersimpan di perangkat.",
   "simulationReasonDeveloperMode": "Mode pengembang dinyalakan di Pengaturan.",
   "simulationReasonFirebaseUnavailable": "Firebase belum tersedia pada build ini.",
-  "settingsRetentionTitle": "Retensi data",
   "settingsRetentionBody": "Pembacaan dan thumbnail dapat dihapus kapan saja dari Riwayat. Penghapusan otomatis 30 hari belum aktif.",
-  "settingsDeleteAllTitle": "Hapus semua data perangkat",
-  "settingsDeleteAllBody": "Segera hadir.",
   "settingsOpenTitle": "Buka pengaturan",
   "splashLoading": "Menyiapkan SIGAP-NETRA...",
 

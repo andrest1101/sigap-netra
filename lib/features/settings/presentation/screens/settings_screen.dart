@@ -11,6 +11,7 @@ import '../../../../core/widgets/section_card.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../notifications/presentation/providers/notification_providers.dart';
 import '../../domain/entities/data_source.dart';
 import '../providers/settings_providers.dart';
 
@@ -51,6 +52,8 @@ class SettingsScreen extends ConsumerWidget {
             const _AccountHeader(),
             SectionHeader.inset(title: l10n.settingsPrivacyTitle),
             const _PrivacySection(),
+            SectionHeader.inset(title: l10n.settingsNotificationsTitle),
+            const _NotificationsSection(),
             SectionHeader.inset(title: l10n.settingsAdvancedTitle),
             const _AdvancedSection(),
             SectionHeader.inset(title: l10n.settingsAboutTitle),
@@ -185,6 +188,81 @@ class _PrivacySection extends ConsumerWidget {
         ),
       ],
     );
+  }
+}
+
+class _NotificationsSection extends ConsumerWidget {
+  const _NotificationsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(detectionNotificationsEnabledProvider);
+
+    return SectionCard(
+      divide: true,
+      dividerIndent: DesignTokens.spaceLg,
+      children: [
+        SwitchListTile(
+          contentPadding: _settingsTilePadding,
+          secondary: const _SettingsLeading(
+            icon: Icons.notifications_active_outlined,
+          ),
+          title: Text(l10n.settingsDetectionNotifications),
+          value: enabled,
+          onChanged: (value) async {
+            if (!value) {
+              await ref
+                  .read(detectionNotificationsEnabledProvider.notifier)
+                  .set(false);
+              return;
+            }
+
+            final granted = await _requestPermission(ref);
+            if (!context.mounted) return;
+            if (!granted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.settingsDetectionNotificationsDenied),
+                ),
+              );
+              return;
+            }
+
+            await ref
+                .read(detectionNotificationsEnabledProvider.notifier)
+                .set(true);
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignTokens.spaceLg,
+            DesignTokens.spaceMd,
+            DesignTokens.spaceLg,
+            DesignTokens.spaceLg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SettingsNoteLine(text: l10n.settingsDetectionNotificationsBody),
+              const SizedBox(height: DesignTokens.spaceMd),
+              _SettingsNoteLine(
+                icon: Icons.schedule_rounded,
+                text: l10n.settingsDetectionNotificationsNote,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<bool> _requestPermission(WidgetRef ref) async {
+    try {
+      return await ref.read(notificationGatewayProvider).requestPermission();
+    } catch (_) {
+      return false;
+    }
   }
 }
 

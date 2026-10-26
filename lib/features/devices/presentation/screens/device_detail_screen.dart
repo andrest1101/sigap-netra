@@ -211,8 +211,7 @@ class _DeviceDetailBody extends StatelessWidget {
               icon: Icons.hub_outlined,
               title: l10n.deviceLogActionTitle,
               subtitle: l10n.deviceLogActionBody,
-              onTap: () =>
-                  context.push('/pengaturan/koneksi/${device.deviceId}'),
+              onTap: () => ConnectionLogsPath(device.deviceId).push(context),
             ),
           ],
         ),

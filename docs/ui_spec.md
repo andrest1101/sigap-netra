@@ -194,9 +194,10 @@ Header langkah kustom 3 langkah (bukan `Stepper` Material): penanda 1-2-3 dengan
 
 ### 5.6 Pengaturan (`/settings`, via avatar)
 
-- **Struktur kartu (Batch 2):** header akun tetap hero `primaryContainer` (avatar, nama, email tersamar, **Keluar** di baris terpisah) + tiga seksi ber-`SectionHeader.inset`: **Privasi dan data**, **Lanjutan**, **Tentang**. Setiap seksi memakai `SectionCard` tonal + hairline, divider inset 16, leading 36, dan padding 16. Teks penjelas panjang memakai lebar penuh di bawah saklar — bukan subtitle yang terhimpit switch. Tidak ada label seksi biru/privat.
+- **Struktur kartu:** header akun tetap hero `primaryContainer` (avatar, nama, email tersamar, **Keluar** di baris terpisah) + empat seksi ber-`SectionHeader.inset`: **Privasi dan data**, **Notifikasi** (ditambahkan 26 Okt 2026), **Lanjutan**, **Tentang**. Setiap seksi memakai `SectionCard` tonal + hairline, divider inset 16, leading 36, dan padding 16. Teks penjelas panjang memakai lebar penuh di bawah saklar — bukan subtitle yang terhimpit switch. Tidak ada label seksi biru/privat.
 - **Tampilan:** tidak ada pemilih tema — aplikasi terang-saja (keputusan produk 2026-10-18).
 - **Privasi & data:** status unggah gambar (ubah/cabut) + penjelasan thumbnail maksimal 200 KB dan tanpa video/audio; catatan retensi jujur (data dapat dihapus kapan saja dari Riwayat; penghapusan otomatis 30 hari **belum aktif** — lihat `docs/firestore_schema.md` §7.4); hapus semua data perangkat (P1).
+- **Notifikasi:** saklar **Notifikasi pembacaan** default mati. Menyalakannya meminta izin OS (Android 13+); bila ditolak, saklar tetap mati dan snackbar mengarahkan ke pengaturan sistem. Notifikasi hanya memuat nominal uang atau pemberitahuan teks generik — **isi OCR tidak pernah ditampilkan**, tanpa thumbnail. Catatan jujur di bawah saklar: berjalan selama aplikasi masih aktif, tanpa server push/Blaze.
 - **Lanjutan:** **Mode pengembang** + catatan berlaku setelah mulai ulang; sumber data (Firebase / Simulasi). Baris **Sumber data** selalu melaporkan sumber yang benar-benar aktif beserta alasannya (lihat §2 "Mode data"); toggle hanya menyatakan niat dan baru berlaku setelah mulai ulang. ⚠️ "Uji kamera" pada aplikasi lama belum jelas maksudnya — tanyakan sebelum dibangun.
 - **Akun & Tentang:** akun (email, keluar) ada di hero; **Tentang** hanya versi aplikasi.
 - **Batas bawah aman:** isi Pengaturan dibungkus `SafeArea` bawah + padding gulir 24 dp. Pada Android edge-to-edge, baris **Tentang / versi** tidak boleh tertutup navigation bar dan harus masih punya ruang gulir setelah kartu terakhir.
@@ -211,7 +212,9 @@ Splash: logo lensa dengan animasi cincin "memfokus". Login: Email/Password dan G
 
 ## 6. Inventaris Widget Bersama (`lib/core/widgets/`)
 
-`LargeTitleScaffold` · `LensRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `DeviceHeroCard` · `SectionHeader` · `SectionCard` · `ActionTile` · `ThumbnailTile` · `PhotoViewerScreen` + `PhotoZoomButton` · `DayGroupedList` · `SwipeStack` · `UndoSnackbar` (helper) · `ConfirmSheet` · `ConsentSheet` · `EmptyState` · `ErrorState` · `SkeletonBox` · `OfflineBanner`.
+`BackAppBar` · `LargeTitleScaffold` · `LensRing` · `BatteryRing` · `StatusDot` · `StatusChip` · `MetricChip` · `BentoTile` · `BentoNumber` · `SectionHeader` · `SectionCard` · `ActionTile` · `FilterChipRow` · `ThumbnailTile` · `PhotoViewerScreen` + `PhotoZoomButton` · `ConfirmSheet` · `ConsentSheet` · `EmptyView` · `LoadingView` · `ErrorView` · `Skeleton`/`SkeletonList` · `OfflineBanner` · `LogoMark` · `FadeThroughBranchContainer`.
+
+`DeviceHeroCard` khusus Beranda (`features/home/presentation/home_screen.dart`). Grup harian, tumpukan kartu geser, dan snackbar Urungkan bukan widget bersama; implementasinya privat di layar Riwayat, Validasi, dan detail Riwayat.
 
 Semua widget menerima data lewat parameter; tidak ada akses Firebase di dalamnya.
 
@@ -240,7 +243,7 @@ Loading (skeleton) · kosong · error + coba lagi · data dari cache ("data mung
 
 | Fitur                                     | Status                                                   |
 | ----------------------------------------- | -------------------------------------------------------- |
-| Notifikasi realtime                       | P2 — lokal saat aplikasi aktif; push butuh Blaze         |
+| Notifikasi realtime                       | ✅ Fase 1 (26 Okt 2026) — lokal saat aplikasi aktif; isi OCR tidak tampil; push butuh Blaze |
 | Grafik riwayat                            | ✅ P1 selesai — batang dari `count()` (digambar sendiri, tanpa `fl_chart`; §5.3) |
 | Export CSV/PDF                            | ✅ CSV P1 selesai — 500 terbaru sesuai filter aktif, CSV titik-koma + BOM, consent sebelum menulis berkas (§5.3); PDF P2 |
 | Multi-perangkat                           | P2 (pemilih perangkat di Hero)                           |

@@ -202,18 +202,24 @@ class DeviceCommandsPath {
   void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
-/// Navigasi ke layar log koneksi (semua perangkat).
+/// Navigasi ke layar log koneksi.
 ///
-/// Layar daun top-level: selalu [push] agar tombol kembali tersedia. [go]
-/// hanya untuk fallback (tidak ada stack kembali).
+/// Tanpa [deviceId] layar menampilkan semua perangkat; dengan [deviceId]
+/// layar dibuka untuk satu perangkat. Layar daun top-level: selalu [push]
+/// agar tombol kembali tersedia. [go] hanya untuk fallback (tidak ada stack
+/// kembali).
 class ConnectionLogsPath {
-  const ConnectionLogsPath();
+  const ConnectionLogsPath([this.deviceId]);
 
-  void go(BuildContext context) =>
-      GoRouter.of(context).go(AppRoutes.settingsConnection);
+  final String? deviceId;
 
-  void push(BuildContext context) =>
-      GoRouter.of(context).push(AppRoutes.settingsConnection);
+  String get location => deviceId == null
+      ? AppRoutes.settingsConnection
+      : '${AppRoutes.settingsConnection}/$deviceId';
+
+  void go(BuildContext context) => GoRouter.of(context).go(location);
+
+  void push(BuildContext context) => GoRouter.of(context).push(location);
 }
 
 /// Shell empat tab dengan `NavigationBar` standar M3 (label selalu tampil).
