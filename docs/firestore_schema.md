@@ -6,8 +6,8 @@ Dokumen ini adalah **satu-satunya definisi** koleksi, field, dan tipe data Cloud
 
 | Item | Nilai |
 | --- | --- |
-| Versi skema | v0.2 (draft; diselaraskan dengan rules v0.2) |
-| Tanggal | 2026-10-18 |
+| Versi skema | v0.4 (draft; diselaraskan dengan rules v0.4) |
+| Tanggal | 2026-10-23 |
 | Plan Firebase | Spark (gratis), tanpa Cloud Functions, tanpa TTL policy, tanpa FCM dari server |
 | Sumber kebenaran lain | `AGENTS.md` (kontrak ringkas), `PRD.md` (v1.1 — draft siap eksekusi), `docs/device_protocol.md`, `docs/ui_spec.md` |
 

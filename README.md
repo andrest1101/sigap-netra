@@ -3,6 +3,7 @@
 Aplikasi pendamping (*companion*) untuk **kacamata pintar SIGAP-NETRA** — perangkat bantu tunanetra yang membaca **uang** (YOLOv11) dan **teks/menu** (OCR) lalu menyebutkan hasilnya lewat headset. Aplikasi ini dipakai oleh **pendamping / keluarga / peneliti / pengembang** (bukan pengguna tunanetra) untuk:
 
 - memantau status alat dan bacaan baru dari jaringan mana pun (realtime);
+- menerima **notifikasi lokal** saat pembacaan uang/teks baru masuk (nominal uang boleh tampil; isi OCR tidak);
 - **memvalidasi** bacaan (Cocok / Tidak cocok) sebagai data kebenaran lapangan;
 - menelusuri riwayat dan statistik akurasi;
 - mengirim kredensial Wi-Fi ke alat lewat **QR code**;
@@ -47,7 +48,7 @@ firebase deploy --only firestore:rules,firestore:indexes
 flutter test
 ```
 
-Test Security Rules lewat emulator Firestore — **25 test** (butuh `firebase` CLI + **Java 21+**; `firebase-tools` 15 menolak Java di bawah 21):
+Test Security Rules lewat emulator Firestore — **29 test** (butuh `firebase` CLI + **Java 21+**; `firebase-tools` 15 menolak Java di bawah 21):
 
 ```bash
 cd firebase/tests && npm install && cd ../..

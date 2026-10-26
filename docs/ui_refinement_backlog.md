@@ -8,7 +8,7 @@ atau perilaku data produk. Semua string tampil lewat `lib/l10n/app_id.arb`.
 Tidak menambah package tanpa persetujuan. Jangan commit — deskripsi commit
 disiapkan untuk pemilik repo.
 
-**Status:** 21 Oktober 2026 · Batch 2 selesai.
+**Status:** 26 Oktober 2026 · Batch 3 dan 4A selesai; 4B, 4C, dan U6 menunggu.
 
 ## Ringkasan
 
@@ -16,8 +16,8 @@ disiapkan untuk pemilik repo.
 | ----- | ----- | ------ |
 | 1 | Fondasi app bar, avatar Pengaturan, hierarki judul, golden ponsel + font nyata | ✅ Selesai |
 | 2 | Unifikasi header seksi + hierarki Pengaturan / Detail perangkat / Kontrol | ✅ Selesai |
-| 3 | Layar masuk, QR provisioning, sheet aman-scroll, detail gestur | ⏳ Berikutnya |
-| 4 | Navigasi layar anak, tablet/landscape, kode mati, konsistensi sisa | ⏳ Belum |
+| 3 | Layar masuk, QR provisioning, sheet aman-scroll, detail gestur | ✅ Selesai |
+| 4 | Navigasi layar anak, tablet/landscape, kode mati, konsistensi sisa | ⏳ Sebagian (4A selesai) |
 | U6 | Audit aksesibilitas & semantik lintas layar | ⏳ Belum |
 
 ---
@@ -101,7 +101,7 @@ diperiksa. Tanpa perubahan schema/rules/device atau package.
 
 ---
 
-## Batch 3 — Alur masuk, QR, sheet, dan gestur
+## Batch 3 — Alur masuk, QR, sheet, dan gestur (selesai 21 Okt 2026)
 
 - [x] **Layar masuk 390×844 / 360×640:** tautan "Belum punya akun? Daftar"
       menempel di tepi bawah. Jadikan form scrollable dengan bottom safe padding,
@@ -132,27 +132,46 @@ sama; test 1,3× lulus.
 
 ## Batch 4 — Navigasi, tablet, dan pembersihan
 
-- [ ] **Navigasi layar anak:** detail Riwayat/Perangkat, QR, Kontrol, Log, dan
-      Pengaturan masih hidup di branch navigator sehingga bottom nav tetap
-      terlihat. Putuskan: pertahankan (jika produk menginginkan) atau pindahkan
-      ke root navigator + verifikasi Hero tetap bekerja. Jangan mengubah route
-      hanya demi estetika tanpa retest back/fallback.
-- [ ] **Tablet/landscape:** `DesignTokens.maxContentWidth` baru dipakai di
-      layar masuk. Terapkan max-width + padding adaptif pada empat tab, detail,
-      dan Pengaturan; uji 800×1280 dan landscape.
-- [ ] **Kode/token mati:** hapus atau pakai `OfflineBanner`
-      (`lib/core/widgets/offline_banner.dart` belum dipasang), `radiusBottomNav`,
-      komentar `radiusPill` yang menunjuk konstanta tidak ada, dan key l10n
-      yatim. Hati-hati: hapus hanya setelah `grep` seluruh `lib/` + `test/`.
-- [ ] **Dokumentasi:** pastikan `docs/ui_spec.md` dan `AGENTS.md` tidak
-      menyebut gear atau "Pengaturan → Koneksi" (Log koneksi ada di Perangkat);
-      entri historis `progress.md` boleh tetap. Route `/pengaturan/koneksi` boleh
-      tetap untuk kompatibilitas, tetapi label UI harus "Perangkat → Log
-      koneksi".
+### 4A — Pembersihan & konsistensi (selesai 26 Okt 2026)
+
+- [x] **Kode/token mati:** 62 key l10n non-`@` tanpa referensi di `lib/` +
+      `test/` dihapus dari `app_id.arb` dan generated l10n; `radiusBottomNav`
+      dihapus; komentar `radiusPill` yang menunjuk konstanta tidak ada
+      diperbaiki; `cupertino_icons` dihapus; `mocktail`/`firebase_auth_mocks`
+      dipertahankan karena tercantum di `AGENTS.md`; `OfflineBanner`
+      dipertahankan untuk U7, bukan dihapus. Lima key login
+      (`loginWrongPassword` dkk.) tetap ada karena `failure_message.dart`
+      merujuk getter-nya tanpa prefiks `l10n.`.
+- [x] **Helper rute:** `ConnectionLogsPath(deviceId)` menghasilkan path log
+      per perangkat; detail Perangkat tidak lagi memakai path mentah
+      `/pengaturan/koneksi/:deviceId`.
+- [x] **Dokumentasi:** README menyebut 29 test rules (bukan 25), skema naik ke
+      v0.4 selaras rules v0.4, inventaris widget `ui_spec.md` memakai nama class
+      yang benar, komentar thumbnail di `pubspec.yaml` menjadi 200 KB, dan
+      status backlog ini disinkronkan.
+
+**Bukti (26 Okt 2026):** `dart format .` bersih (210 file, 0 berubah setelah
+format); `flutter analyze` No issues; `flutter test` **324 lulus** (dari 322;
++2 test `ConnectionLogsPath`); golden tidak berubah; `flutter build apk --debug`
+sukses. Tanpa perubahan schema/rules/indexes/kode device/perilaku data.
+
+### 4B — Tablet/landscape (belum)
+
+- [ ] `DesignTokens.maxContentWidth` baru dipakai di layar masuk. Terapkan
+      max-width + padding adaptif pada empat tab, detail, dan Pengaturan; uji
+      800×1280 dan landscape.
 - [ ] **Sisa poles:** cek ulang bayangan/hairline kartu, `Stepper` yang sudah
       diganti, dan golden penuh Perangkat setelah perubahan.
 - [ ] Regenerasi golden hanya untuk perubahan yang disengaja; inspeksi PNG satu
       per satu.
+
+### 4C — Navigasi layar anak (belum, butuh keputusan produk)
+
+- [ ] Detail Riwayat/Perangkat, QR, Kontrol, Log, dan Pengaturan masih hidup di
+      branch navigator sehingga bottom nav tetap terlihat. Putuskan:
+      pertahankan (jika produk menginginkan) atau pindahkan ke root navigator +
+      verifikasi Hero tetap bekerja. Jangan mengubah route hanya demi estetika
+      tanpa retest back/fallback.
 
 ---
 
