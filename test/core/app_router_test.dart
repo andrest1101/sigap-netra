@@ -41,4 +41,17 @@ void main() {
       expect(redirectFor(signedOut, '/perangkat/dev-1/wifi'), AppRoutes.login);
     });
   });
+
+  group('ConnectionLogsPath', () {
+    test('tanpa deviceId membuka log semua perangkat', () {
+      expect(const ConnectionLogsPath().location, AppRoutes.settingsConnection);
+    });
+
+    test('dengan deviceId membuka log perangkat tersebut', () {
+      expect(
+        const ConnectionLogsPath('dev-1').location,
+        '${AppRoutes.settingsConnection}/dev-1',
+      );
+    });
+  });
 }
